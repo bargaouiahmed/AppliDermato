@@ -293,34 +293,12 @@ public class ExamService(AppDbContext db) : IExamService
     private static Dictionary<string, JsonElement> BuildDefaultPayload()
     {
         var payload = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
-
-        payload["general"] = JsonSerializer.SerializeToElement(new
+        payload["bodyMap"] = JsonSerializer.SerializeToElement(new
         {
-            etatGeneral = string.Empty,
-            tensionSystolique = 10,
-            tensionDiastolique = 10,
-            frequenceCardiaque = (int?)null,
-            rythmeCardiaque = string.Empty,
-            temperature = 37m,
-            saturationO2 = 90,
-            poidsKg = (decimal?)null,
-            tailleCm = (decimal?)null,
-            imc = (decimal?)null,
+            gender = "male",
+            zones = new Dictionary<string, object>(),
+            notes = string.Empty,
         });
-
-        var specific = new Dictionary<string, object>(StringComparer.Ordinal);
-        foreach (var section in DefaultCatalog.Keys)
-        {
-            specific[section] = new
-            {
-                status = "not_examined",
-                selectedFindings = Array.Empty<string>(),
-                findingDetails = new Dictionary<string, object>(),
-                notes = string.Empty,
-            };
-        }
-
-        payload["specific"] = JsonSerializer.SerializeToElement(specific);
         return payload;
     }
 
@@ -332,34 +310,16 @@ public class ExamService(AppDbContext db) : IExamService
             return defaults;
         }
 
-        var result = ClonePayload(payload);
-        var incomingGeneral = ReadObjectElement(payload, "general");
-        var defaultGeneral = ReadObjectElement(defaults, "general");
-
-        var normalizedGeneral = new Dictionary<string, object?>(StringComparer.Ordinal);
-        foreach (var defaultEntry in defaultGeneral.EnumerateObject())
+        var result = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var incomingBodyMap = ReadObjectElement(payload, "bodyMap");
+        var normalizedBodyMap = new Dictionary<string, object?>(StringComparer.Ordinal)
         {
-            if (incomingGeneral.ValueKind == JsonValueKind.Object
-                && incomingGeneral.TryGetProperty(defaultEntry.Name, out var incomingValue)
-                && incomingValue.ValueKind != JsonValueKind.Null
-                && incomingValue.ValueKind != JsonValueKind.Undefined)
-            {
-                normalizedGeneral[defaultEntry.Name] = incomingValue;
-                continue;
-            }
+            ["gender"] = NormalizeGender(ReadStringProperty(incomingBodyMap, "gender")),
+            ["zones"] = NormalizeZones(ReadObjectProperty(incomingBodyMap, "zones")),
+            ["notes"] = NormalizeText(ReadStringProperty(incomingBodyMap, "notes"), 4000),
+        };
 
-            normalizedGeneral[defaultEntry.Name] = defaultEntry.Value;
-        }
-
-        result["general"] = JsonSerializer.SerializeToElement(normalizedGeneral);
-
-        if (!result.TryGetValue("specific", out var specificEl)
-            || specificEl.ValueKind == JsonValueKind.Null
-            || specificEl.ValueKind == JsonValueKind.Undefined)
-        {
-            result["specific"] = defaults["specific"].Clone();
-        }
-
+        result["bodyMap"] = JsonSerializer.SerializeToElement(normalizedBodyMap);
         return result;
     }
 
@@ -371,6 +331,30 @@ public class ExamService(AppDbContext db) : IExamService
         }
 
         return JsonSerializer.SerializeToElement(new Dictionary<string, object?>());
+    }
+
+    private static JsonElement ReadObjectProperty(JsonElement source, string key)
+    {
+        if (source.ValueKind == JsonValueKind.Object
+            && source.TryGetProperty(key, out var value)
+            && value.ValueKind == JsonValueKind.Object)
+        {
+            return value;
+        }
+
+        return JsonSerializer.SerializeToElement(new Dictionary<string, object?>());
+    }
+
+    private static string ReadStringProperty(JsonElement source, string key)
+    {
+        if (source.ValueKind == JsonValueKind.Object
+            && source.TryGetProperty(key, out var value)
+            && value.ValueKind == JsonValueKind.String)
+        {
+            return value.GetString() ?? string.Empty;
+        }
+
+        return string.Empty;
     }
 
     private static bool PayloadEquals(Dictionary<string, JsonElement> left, Dictionary<string, JsonElement> right)
@@ -394,6 +378,155 @@ public class ExamService(AppDbContext db) : IExamService
         }
 
         return result;
+    }
+
+    private static Dictionary<string, object> NormalizeZones(JsonElement zonesElement)
+    {
+        var normalized = new Dictionary<string, object>(StringComparer.Ordinal);
+        if (zonesElement.ValueKind != JsonValueKind.Object)
+        {
+            return normalized;
+        }
+
+        foreach (var entry in zonesElement.EnumerateObject())
+        {
+            if (entry.Value.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var zone = entry.Value;
+            var regionId = NormalizeText(ReadStringProperty(zone, "regionId"), 120);
+            if (string.IsNullOrWhiteSpace(regionId))
+            {
+                regionId = NormalizeText(entry.Name, 120);
+            }
+
+            if (string.IsNullOrWhiteSpace(regionId))
+            {
+                continue;
+            }
+
+            normalized[regionId] = new Dictionary<string, object?>
+            {
+                ["regionId"] = regionId,
+                ["label"] = NormalizeText(ReadStringProperty(zone, "label"), 160),
+                ["slug"] = NormalizeText(ReadStringProperty(zone, "slug"), 80),
+                ["segment"] = NormalizeSegment(ReadStringProperty(zone, "segment")),
+                ["pathIndex"] = ReadIntProperty(zone, "pathIndex"),
+                ["view"] = NormalizeView(ReadStringProperty(zone, "view")),
+                ["description"] = NormalizeText(ReadStringProperty(zone, "description"), 4000),
+                ["image"] = NormalizeImage(ReadObjectProperty(zone, "image")),
+                ["updatedAt"] = NormalizeNullableText(ReadStringProperty(zone, "updatedAt"), 64),
+            };
+        }
+
+        return normalized;
+    }
+
+    private static object? NormalizeImage(JsonElement imageElement)
+    {
+        if (imageElement.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        var documentId = NormalizeNullableText(ReadStringProperty(imageElement, "documentId"), 64);
+        var fileUrl = NormalizeNullableText(ReadStringProperty(imageElement, "fileUrl"), 500);
+        var originalFileName = NormalizeNullableText(ReadStringProperty(imageElement, "originalFileName"), 260);
+        var contentType = NormalizeNullableText(ReadStringProperty(imageElement, "contentType"), 120);
+        var createdAt = NormalizeNullableText(ReadStringProperty(imageElement, "createdAt"), 64);
+        var fileSizeBytes = ReadLongProperty(imageElement, "fileSizeBytes");
+
+        if (string.IsNullOrWhiteSpace(documentId) && string.IsNullOrWhiteSpace(fileUrl))
+        {
+            return null;
+        }
+
+        return new Dictionary<string, object?>
+        {
+            ["documentId"] = documentId ?? string.Empty,
+            ["fileUrl"] = fileUrl ?? string.Empty,
+            ["originalFileName"] = originalFileName ?? string.Empty,
+            ["contentType"] = contentType ?? string.Empty,
+            ["fileSizeBytes"] = fileSizeBytes,
+            ["createdAt"] = createdAt ?? string.Empty,
+        };
+    }
+
+    private static int ReadIntProperty(JsonElement source, string key)
+    {
+        if (source.ValueKind == JsonValueKind.Object
+            && source.TryGetProperty(key, out var value)
+            && value.TryGetInt32(out var parsed))
+        {
+            return parsed;
+        }
+
+        return 0;
+    }
+
+    private static long ReadLongProperty(JsonElement source, string key)
+    {
+        if (source.ValueKind == JsonValueKind.Object
+            && source.TryGetProperty(key, out var value)
+            && value.TryGetInt64(out var parsed))
+        {
+            return parsed;
+        }
+
+        return 0;
+    }
+
+    private static string NormalizeGender(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim().ToLowerInvariant();
+        if (normalized.Contains("femme", StringComparison.Ordinal)
+            || normalized.Contains("female", StringComparison.Ordinal))
+        {
+            return "female";
+        }
+
+        return "male";
+    }
+
+    private static string NormalizeView(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized == "back" ? "back" : "front";
+    }
+
+    private static string NormalizeSegment(string? value)
+    {
+        var normalized = (value ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "left" => "left",
+            "right" => "right",
+            _ => "common",
+        };
+    }
+
+    private static string NormalizeText(string? value, int maxLength)
+    {
+        var normalized = string.Join(
+            ' ',
+            (value ?? string.Empty)
+                .Trim()
+                .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+        if (normalized.Length <= maxLength)
+        {
+            return normalized;
+        }
+
+        return normalized[..maxLength].TrimEnd();
+    }
+
+    private static string? NormalizeNullableText(string? value, int maxLength)
+    {
+        var normalized = NormalizeText(value, maxLength);
+        return string.IsNullOrWhiteSpace(normalized) ? null : normalized;
     }
 
     private static string? NormalizeSection(string? section)

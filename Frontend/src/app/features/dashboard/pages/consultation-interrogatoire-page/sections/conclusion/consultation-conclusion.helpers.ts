@@ -4,10 +4,8 @@ import {
 } from '../../../../../../core/models/conduite.models';
 import {
   ConsultationExamPayload,
-  SPECIFIC_EXAM_SECTION_KEYS,
-  SPECIFIC_EXAM_SECTION_NORMAL_FINDINGS,
-  SpecificExamSectionData,
-  SpecificExamSectionKey,
+  DermatologyExamZone,
+  cloneConsultationExamPayload,
   createDefaultConsultationExamPayload,
 } from '../../../../../../core/models/exam.models';
 import {
@@ -89,24 +87,6 @@ export interface ConsultationConclusionViewModel {
   stats: ConclusionStat[];
 }
 
-interface ConclusionEmptyLabels {
-  generalStatus: string;
-  medicalHistory: string;
-  familyHistory: string;
-  functionalSigns: string;
-  story: string;
-  ongoingTreatments: string;
-  metrics: {
-    tension: string;
-    frequenceCardiaque: string;
-    temperature: string;
-    saturation: string;
-    poids: string;
-    taille: string;
-    imc: string;
-  };
-}
-
 export interface BuildConsultationConclusionViewModelArgs {
   patient: Patient | null;
   consultationDate: string;
@@ -121,24 +101,18 @@ export interface BuildConsultationConclusionViewModelArgs {
   translate: (key: string) => string;
 }
 
-const EXAM_SECTION_TITLE_KEYS: Record<SpecificExamSectionKey, string> = {
-  orlCouConjonctive: 'consultation.page.exam.specific.orlCouConjonctive.title',
-  auscultationCardiaque: 'consultation.page.exam.specific.auscultationCardiaque.title',
-  auscultationPulmonaire: 'consultation.page.exam.specific.auscultationPulmonaire.title',
-  abdomen: 'consultation.page.exam.specific.abdomen.title',
-  neurologique: 'consultation.page.exam.specific.neurologique.title',
-  locomoteurOsteoArticulaire: 'consultation.page.exam.specific.locomoteurOsteoArticulaire.title',
-  peauDermatologique: 'consultation.page.exam.specific.peauDermatologique.title',
-  urogenital: 'consultation.page.exam.specific.urogenital.title',
-};
+interface EmptyLabels {
+  story: string;
+  ongoingTreatments: string;
+  unassigned: string;
+}
 
 export function buildConsultationConclusionViewModel(
   args: BuildConsultationConclusionViewModelArgs,
 ): ConsultationConclusionViewModel {
   const translate = args.translate;
   const noneLabel = translate('consultation.page.none');
-  const emptyBadgeLabel = translate('consultation.page.conclusion.empty.unassigned');
-  const emptyLabels = createConclusionEmptyLabels(args.locale, emptyBadgeLabel);
+  const emptyLabels = createEmptyLabels(args.locale, translate('consultation.page.conclusion.empty.unassigned'));
   const examPayload = normalizeExamPayloadForConclusion(args.examPayload);
   const conduite = args.conduite ?? {
     consultationId: '',
@@ -146,43 +120,29 @@ export function buildConsultationConclusionViewModel(
     actions: [],
   };
 
-  const historyGroups = buildHistoryGroups(args.anomalies ?? [], translate, emptyLabels);
-  const generalSummary = buildGeneralSummary(
-    examPayload,
-    translate,
-    emptyLabels,
-  );
-  const clinicalGroups = buildClinicalGroups(examPayload, translate, emptyBadgeLabel);
-  const carePlanGroups = buildCarePlanGroups(conduite, args.diagnostics ?? [], translate, emptyBadgeLabel);
+  const historyGroups = buildHistoryGroups(args.anomalies ?? [], emptyLabels.unassigned);
+  const generalSummary = buildGeneralSummary(examPayload, translate, emptyLabels.unassigned);
+  const clinicalGroups = buildClinicalGroups(examPayload, translate, emptyLabels.unassigned);
+  const carePlanGroups = buildCarePlanGroups(conduite, args.diagnostics ?? [], translate, emptyLabels.unassigned);
   const ongoingTreatments = buildTreatmentRows(args.ongoingTreatments ?? [], args.locale, noneLabel);
 
-  const abnormalCount = countByTone(
-    historyGroups.flatMap((group) => group.badges),
-    'abnormal',
-  ) + countByTone(clinicalGroups.flatMap((group) => group.badges), 'abnormal')
-    + countByTone(carePlanGroups.flatMap((group) => group.badges), 'abnormal');
+  const abnormalCount = countByTone(historyGroups.flatMap((group) => group.badges), 'abnormal')
+    + countByTone(clinicalGroups.flatMap((group) => group.badges), 'abnormal')
+    + countByTone(carePlanGroups.flatMap((group) => group.badges), 'abnormal')
+    + (generalSummary.statusTone === 'abnormal' ? 1 : 0);
 
-  const normalCount = (generalSummary.statusTone === 'normal' ? 1 : 0)
-    + countByTone(clinicalGroups.flatMap((group) => group.badges), 'normal');
-
-  const unassignedCount = (generalSummary.statusTone === 'unassigned' ? 1 : 0)
-    + countByTone(historyGroups.flatMap((group) => group.badges), 'unassigned')
+  const unassignedCount = countByTone(historyGroups.flatMap((group) => group.badges), 'unassigned')
     + countByTone(clinicalGroups.flatMap((group) => group.badges), 'unassigned')
     + countByTone(carePlanGroups.flatMap((group) => group.badges), 'unassigned')
+    + (generalSummary.statusTone === 'unassigned' ? 1 : 0)
     + (ongoingTreatments.length === 0 ? 1 : 0)
     + (!normalizeText(args.histoireMaladie) ? 1 : 0);
 
   return {
     title: translate('consultation.page.conclusion.title'),
-    patientFields: buildPatientFields(
-      args.patient,
-      args.consultationDate,
-      args.motifs ?? [],
-      args.locale,
-      translate,
-    ),
+    patientFields: buildPatientFields(args.patient, args.consultationDate, args.motifs ?? [], args.locale, translate),
     motifsLabel: translate('consultation.page.conclusion.labels.motifs'),
-    motifs: normalizeStringArray(args.motifs ?? []),
+    motifs: normalizeDistinctStrings(args.motifs ?? []),
     story: {
       title: translate('consultation.page.conclusion.labels.histoireMaladie'),
       text: normalizeText(args.histoireMaladie),
@@ -199,7 +159,7 @@ export function buildConsultationConclusionViewModel(
     ongoingTreatmentsTitle: translate('consultation.page.conclusion.labels.ongoingTreatments'),
     ongoingTreatments,
     ongoingTreatmentsEmptyLabel: emptyLabels.ongoingTreatments,
-    emptyBadgeLabel,
+    emptyBadgeLabel: emptyLabels.unassigned,
     stats: [
       {
         label: translate('consultation.page.conclusion.labels.summaryAbnormal'),
@@ -208,7 +168,7 @@ export function buildConsultationConclusionViewModel(
       },
       {
         label: translate('consultation.page.conclusion.labels.summaryNormal'),
-        value: String(normalCount),
+        value: '0',
         tone: 'normal',
       },
       {
@@ -220,46 +180,19 @@ export function buildConsultationConclusionViewModel(
   };
 }
 
-function createConclusionEmptyLabels(
-  locale: string,
-  fallbackLabel: string,
-): ConclusionEmptyLabels {
+function createEmptyLabels(locale: string, fallback: string): EmptyLabels {
   if (!locale.toLowerCase().startsWith('fr')) {
     return {
-      generalStatus: fallbackLabel,
-      medicalHistory: fallbackLabel,
-      familyHistory: fallbackLabel,
-      functionalSigns: fallbackLabel,
-      story: fallbackLabel,
-      ongoingTreatments: fallbackLabel,
-      metrics: {
-        tension: fallbackLabel,
-        frequenceCardiaque: fallbackLabel,
-        temperature: fallbackLabel,
-        saturation: fallbackLabel,
-        poids: fallbackLabel,
-        taille: fallbackLabel,
-        imc: fallbackLabel,
-      },
+      story: fallback,
+      ongoingTreatments: fallback,
+      unassigned: fallback,
     };
   }
 
   return {
-    generalStatus: 'Non mentionné',
-    medicalHistory: 'Non mentionnés',
-    familyHistory: 'Non mentionnés',
-    functionalSigns: 'Non mentionnés',
-    story: 'Non mentionnée',
-    ongoingTreatments: 'Non mentionnés',
-    metrics: {
-      tension: 'Non mentionnée',
-      frequenceCardiaque: 'Non mentionnée',
-      temperature: 'Non mentionnée',
-      saturation: 'Non mentionnée',
-      poids: 'Non mentionné',
-      taille: 'Non mentionnée',
-      imc: 'Non mentionné',
-    },
+    story: 'Non mentionnee',
+    ongoingTreatments: 'Non mentionnes',
+    unassigned: 'Non mentionne',
   };
 }
 
@@ -271,65 +204,30 @@ function buildPatientFields(
   translate: (key: string) => string,
 ): ConclusionField[] {
   const noneLabel = translate('consultation.page.none');
-  const motifValue = normalizeDistinctStrings(motifs ?? []).join(', ') || noneLabel;
+  const motifValue = normalizeDistinctStrings(motifs).join(', ') || noneLabel;
 
   return [
-    {
-      label: translate('patients.create.fields.lastname'),
-      value: normalizeText(patient?.lastname) || noneLabel,
-    },
-    {
-      label: translate('patients.create.fields.firstname'),
-      value: normalizeText(patient?.firstname) || noneLabel,
-    },
-    {
-      label: translate('consultation.page.patient.age'),
-      value: formatAge(patient?.dateOfBirth ?? '', locale, noneLabel),
-    },
-    {
-      label: translate('consultation.page.patient.profession'),
-      value: normalizeText(patient?.profession) || noneLabel,
-    },
-    {
-      label: translate('consultation.page.conclusion.labels.consultationDate'),
-      value: formatDateValue(consultationDate, locale, noneLabel),
-    },
-    {
-      label: translate('consultation.page.motif.title'),
-      value: motifValue,
-    },
+    { label: translate('patients.create.fields.lastname'), value: normalizeText(patient?.lastname) || noneLabel },
+    { label: translate('patients.create.fields.firstname'), value: normalizeText(patient?.firstname) || noneLabel },
+    { label: translate('consultation.page.patient.age'), value: formatAge(patient?.dateOfBirth ?? '', locale, noneLabel) },
+    { label: translate('consultation.page.patient.profession'), value: normalizeText(patient?.profession) || noneLabel },
+    { label: translate('consultation.page.conclusion.labels.consultationDate'), value: formatDateValue(consultationDate, locale, noneLabel) },
+    { label: translate('consultation.page.motif.title'), value: motifValue },
   ];
 }
 
 function buildHistoryGroups(
   anomalies: UpdateInterrogatoireAnomalyRequest[],
-  translate: (key: string) => string,
-  emptyLabels: ConclusionEmptyLabels,
+  emptyBadgeLabel: string,
 ): ConclusionGroup[] {
-  const generalAntecedents = (anomalies ?? []).filter(
-    (item) => item.section === 'medical' && !isFunctionalSignAnomaly(item),
-  );
-  const functionalSigns = (anomalies ?? []).filter(
-    (item) => item.section === 'medical' && isFunctionalSignAnomaly(item),
-  );
-  const familyAntecedents = (anomalies ?? []).filter((item) => item.section === 'family');
+  const generalAntecedents = anomalies.filter((item) => item.section === 'medical' && !isFunctionalSignAnomaly(item));
+  const functionalSigns = anomalies.filter((item) => item.section === 'medical' && isFunctionalSignAnomaly(item));
+  const familyAntecedents = anomalies.filter((item) => item.section === 'family');
 
   return [
-    buildHistoryGroup(
-      translate('consultation.page.conclusion.labels.medicalHistory'),
-      generalAntecedents,
-      emptyLabels.medicalHistory,
-    ),
-    buildHistoryGroup(
-      translate('consultation.page.conclusion.labels.familyHistory'),
-      familyAntecedents,
-      emptyLabels.familyHistory,
-    ),
-    buildHistoryGroup(
-      translate('consultation.page.interrogatoire.functionalSigns.title'),
-      functionalSigns,
-      emptyLabels.functionalSigns,
-    ),
+    buildHistoryGroup('Medical history', generalAntecedents, emptyBadgeLabel),
+    buildHistoryGroup('Family history', familyAntecedents, emptyBadgeLabel),
+    buildHistoryGroup('Functional signs', functionalSigns, emptyBadgeLabel),
   ];
 }
 
@@ -339,7 +237,7 @@ function buildHistoryGroup(
   emptyBadgeLabel: string,
 ): ConclusionGroup {
   const badges = normalizeDistinctBadges(
-    (anomalies ?? [])
+    anomalies
       .map((item) => buildAnomalyBadge(item))
       .filter((item): item is ConclusionBadge => item !== null),
   );
@@ -365,90 +263,43 @@ function buildAnomalyBadge(item: UpdateInterrogatoireAnomalyRequest): Conclusion
     return null;
   }
 
-  const meta = firstNonEmptyString(
-    payload['severity'],
-    payload['diagnosedSince'],
-    payload['date'],
-    payload['description'],
-    payload['notes'],
-    payload['treatmentName'],
-  );
-
   return {
     label: normalizeText(label),
     tone: 'abnormal',
-    meta: normalizeText(meta),
+    meta: firstNonEmptyString(
+      payload['severity'],
+      payload['diagnosedSince'],
+      payload['date'],
+      payload['description'],
+      payload['notes'],
+      payload['treatmentName'],
+    ),
   };
 }
 
 function buildGeneralSummary(
   examPayload: ConsultationExamPayload,
   translate: (key: string) => string,
-  emptyLabels: ConclusionEmptyLabels,
+  emptyBadgeLabel: string,
 ): ConclusionGeneralSummary {
-  const general = examPayload.general ?? createDefaultConsultationExamPayload().general;
-  const etatGeneral = normalizeText(general.etatGeneral);
-  const generalConditionLabel = translate('consultation.page.exam.general.etatGeneral.title');
-
-  let statusValue = emptyLabels.generalStatus;
-  let statusTone: ConclusionTone = 'unassigned';
-
-  if (etatGeneral === 'good') {
-    statusValue = translate('consultation.page.exam.general.etatGeneral.good');
-    statusTone = 'normal';
-  } else if (etatGeneral === 'average') {
-    statusValue = translate('consultation.page.exam.general.etatGeneral.average');
-    statusTone = 'abnormal';
-  } else if (etatGeneral === 'altered') {
-    statusValue = translate('consultation.page.exam.general.etatGeneral.altered');
-    statusTone = 'abnormal';
-  }
+  const documentedZones = extractDocumentedZones(examPayload);
+  const photoCount = documentedZones.filter((zone) => !!zone.image?.fileUrl).length;
+  const notes = normalizeText(examPayload.bodyMap.notes);
+  const genderLabel = examPayload.bodyMap.gender === 'female'
+    ? translate('consultation.page.exam.bodyMap.femaleBody')
+    : translate('consultation.page.exam.bodyMap.maleBody');
 
   return {
-    title: translate('consultation.page.conclusion.labels.examenGeneral'),
-    statusLabel: `${generalConditionLabel}: ${statusValue}`,
-    statusTone,
+    title: translate('consultation.page.exam.bodyMap.summaryTitle'),
+    statusLabel: documentedZones.length > 0
+      ? `${documentedZones.length} documented zone${documentedZones.length > 1 ? 's' : ''}`
+      : emptyBadgeLabel,
+    statusTone: documentedZones.length > 0 ? 'abnormal' : 'unassigned',
     metrics: [
-      {
-        label: translate('consultation.page.exam.general.tension.title'),
-        value: formatBloodPressure(general, emptyLabels.metrics.tension),
-        tone: general.tensionSystolique === null && general.tensionDiastolique === null ? 'normal' : undefined,
-      },
-      {
-        label: translate('consultation.page.exam.general.frequenceCardiaque.title'),
-        value: formatHeartRate(general, translate, emptyLabels.metrics.frequenceCardiaque),
-        tone:
-          general.frequenceCardiaque === null
-          && general.rythmeCardiaque !== 'regular'
-          && general.rythmeCardiaque !== 'irregular'
-            ? 'normal'
-            : undefined,
-      },
-      {
-        label: translate('consultation.page.exam.general.temperature.title'),
-        value: general.temperature === null ? emptyLabels.metrics.temperature : `${formatNumber(general.temperature)} °C`,
-        tone: general.temperature === null ? 'normal' : undefined,
-      },
-      {
-        label: translate('consultation.page.exam.general.saturation.title'),
-        value: general.saturationO2 === null ? emptyLabels.metrics.saturation : `${general.saturationO2} %`,
-        tone: general.saturationO2 === null ? 'normal' : undefined,
-      },
-      {
-        label: translate('consultation.page.exam.general.poids.title'),
-        value: general.poidsKg === null ? emptyLabels.metrics.poids : `${formatNumber(general.poidsKg)} kg`,
-        tone: general.poidsKg === null ? 'normal' : undefined,
-      },
-      {
-        label: translate('consultation.page.exam.general.taille.title'),
-        value: general.tailleCm === null ? emptyLabels.metrics.taille : `${formatNumber(general.tailleCm)} cm`,
-        tone: general.tailleCm === null ? 'normal' : undefined,
-      },
-      {
-        label: translate('consultation.page.exam.general.imc.title'),
-        value: formatImcValue(general, translate, emptyLabels.metrics.imc),
-        tone: general.imc === null ? 'normal' : undefined,
-      },
+      { label: translate('consultation.page.exam.bodyMap.bodyModel'), value: genderLabel },
+      { label: translate('consultation.page.exam.bodyMap.savedAreas'), value: documentedZones.length > 0 ? String(documentedZones.length) : emptyBadgeLabel },
+      { label: translate('consultation.page.exam.bodyMap.photos'), value: photoCount > 0 ? String(photoCount) : emptyBadgeLabel },
+      { label: translate('consultation.page.exam.bodyMap.notesShort'), value: notes || emptyBadgeLabel },
     ],
   };
 }
@@ -458,37 +309,32 @@ function buildClinicalGroups(
   translate: (key: string) => string,
   emptyBadgeLabel: string,
 ): ConclusionGroup[] {
-  return SPECIFIC_EXAM_SECTION_KEYS.map((sectionKey) => ({
-    title: translate(EXAM_SECTION_TITLE_KEYS[sectionKey]),
-    badges: buildClinicalBadges(sectionKey, examPayload.specific?.[sectionKey], emptyBadgeLabel),
-  }));
+  const documentedZones = extractDocumentedZones(examPayload);
+  const frontZones = documentedZones.filter((zone) => zone.view === 'front');
+  const backZones = documentedZones.filter((zone) => zone.view === 'back');
+
+  return [
+    { title: translate('consultation.page.exam.bodyMap.front'), badges: buildZoneBadges(frontZones, translate, emptyBadgeLabel) },
+    { title: translate('consultation.page.exam.bodyMap.back'), badges: buildZoneBadges(backZones, translate, emptyBadgeLabel) },
+  ];
 }
 
-function buildClinicalBadges(
-  sectionKey: SpecificExamSectionKey,
-  sectionData: SpecificExamSectionData | null | undefined,
+function buildZoneBadges(
+  zones: DermatologyExamZone[],
+  translate: (key: string) => string,
   emptyBadgeLabel: string,
 ): ConclusionBadge[] {
-  const normalizedFindings = normalizeDistinctStrings(sectionData?.selectedFindings ?? []);
-  const normalFinding = normalizeText(SPECIFIC_EXAM_SECTION_NORMAL_FINDINGS[sectionKey] ?? '');
-
-  if (sectionData?.status === 'normal' && normalizedFindings.length === 0 && normalFinding) {
-    return [{ label: normalFinding, tone: 'normal' }];
-  }
-
-  if (normalizedFindings.length === 0 || sectionData?.status === 'not_examined') {
+  if (zones.length === 0) {
     return [createUnassignedBadge(emptyBadgeLabel)];
   }
 
-  const nonNormalFindings = normalizedFindings.filter((item) => !sameText(item, normalFinding));
-  if (nonNormalFindings.length === 0 && normalFinding) {
-    return [{ label: normalFinding, tone: 'normal' }];
-  }
-
-  return nonNormalFindings.map((finding) => ({
-    label: finding,
+  return zones.map((zone) => ({
+    label: normalizeText(zone.label) || normalizeText(zone.regionId),
     tone: 'abnormal',
-    meta: normalizeText(readFindingDescription(sectionData, finding)),
+    meta: joinMeta(
+      normalizeText(zone.description),
+      zone.image?.fileUrl ? translate('consultation.page.exam.bodyMap.photoAttached') : '',
+    ),
   }));
 }
 
@@ -518,21 +364,13 @@ function buildCarePlanGroups(
     },
     {
       title: translate('consultation.page.conclusion.labels.certificatesReferral'),
-      badges: buildCertificateAndReferralBadges(
-        certificatPayload,
-        lettrePayload,
-        translate,
-        emptyBadgeLabel,
-      ),
+      badges: buildCertificateAndReferralBadges(certificatPayload, lettrePayload, translate, emptyBadgeLabel),
     },
   ];
 }
 
-function buildDiagnosticBadges(
-  diagnostics: string[],
-  emptyBadgeLabel: string,
-): ConclusionBadge[] {
-  const badges = normalizeDistinctStrings(diagnostics ?? []).map((diagnostic) => ({
+function buildDiagnosticBadges(diagnostics: string[], emptyBadgeLabel: string): ConclusionBadge[] {
+  const badges = normalizeDistinctStrings(diagnostics).map((diagnostic) => ({
     label: diagnostic,
     tone: 'abnormal' as const,
   }));
@@ -559,7 +397,7 @@ function buildPrescriptionBadges(
 
       return {
         label: normalizeText(name),
-        tone: 'abnormal' as const,
+        tone: 'abnormal',
         meta: joinMeta(
           normalizeText(firstNonEmptyString(drug['typeClass'], drug['therapeuticClass'])),
           normalizeText(drug['category']),
@@ -636,7 +474,6 @@ function buildCertificateAndReferralBadges(
   emptyBadgeLabel: string,
 ): ConclusionBadge[] {
   const badges: ConclusionBadge[] = [];
-
   const certificateType = normalizeText(certificatPayload['types']);
   if (certificateType) {
     badges.push({
@@ -669,7 +506,7 @@ function buildTreatmentRows(
   locale: string,
   noneLabel: string,
 ): ConclusionTreatmentRow[] {
-  return (treatments ?? [])
+  return treatments
     .map((item) => ({
       medicine: normalizeText(item.medicine) || noneLabel,
       therapeuticClass: normalizeText(item.therapeuticClass) || noneLabel,
@@ -678,83 +515,33 @@ function buildTreatmentRows(
       duration: normalizeText(item.duration) || noneLabel,
       date: formatDateValue(item.date, locale, noneLabel),
     }))
-    .filter((item) => item.medicine !== noneLabel || item.therapeuticClass !== noneLabel || item.category !== noneLabel || item.posology !== noneLabel || item.duration !== noneLabel);
+    .filter((item) =>
+      item.medicine !== noneLabel
+      || item.therapeuticClass !== noneLabel
+      || item.category !== noneLabel
+      || item.posology !== noneLabel
+      || item.duration !== noneLabel,
+    );
+}
+
+function extractDocumentedZones(examPayload: ConsultationExamPayload): DermatologyExamZone[] {
+  return Object.values(examPayload.bodyMap.zones ?? {})
+    .filter((zone) => !!normalizeText(zone.description) || !!zone.image?.fileUrl)
+    .sort((left, right) => {
+      if (left.view !== right.view) {
+        return left.view.localeCompare(right.view);
+      }
+
+      return (normalizeText(left.label) || normalizeText(left.regionId)).localeCompare(
+        normalizeText(right.label) || normalizeText(right.regionId),
+        'fr',
+        { sensitivity: 'base' },
+      );
+    });
 }
 
 function countByTone(items: ConclusionBadge[], tone: ConclusionTone): number {
   return items.filter((item) => item.tone === tone).length;
-}
-
-function formatBloodPressure(
-  general: ConsultationExamPayload['general'],
-  noneLabel: string,
-): string {
-  if (general.tensionSystolique === null && general.tensionDiastolique === null) {
-    return noneLabel;
-  }
-
-  const systolic = general.tensionSystolique === null ? '-' : String(general.tensionSystolique);
-  const diastolic = general.tensionDiastolique === null ? '-' : String(general.tensionDiastolique);
-  return `${systolic} / ${diastolic} mmHg`;
-}
-
-function formatHeartRate(
-  general: ConsultationExamPayload['general'],
-  translate: (key: string) => string,
-  noneLabel: string,
-): string {
-  const parts: string[] = [];
-  if (general.frequenceCardiaque !== null) {
-    parts.push(`${general.frequenceCardiaque} bpm`);
-  }
-  if (general.rythmeCardiaque === 'regular') {
-    parts.push(translate('consultation.page.exam.general.frequenceCardiaque.regular'));
-  } else if (general.rythmeCardiaque === 'irregular') {
-    parts.push(translate('consultation.page.exam.general.frequenceCardiaque.irregular'));
-  }
-  return parts.length > 0 ? parts.join(' • ') : noneLabel;
-}
-
-function formatImcValue(
-  general: ConsultationExamPayload['general'],
-  translate: (key: string) => string,
-  noneLabel: string,
-): string {
-  if (general.imc === null) {
-    return noneLabel;
-  }
-
-  const imc = Number(general.imc);
-  let categoryKey = 'consultation.page.exam.general.imc.category.normal';
-  if (imc < 18.5) {
-    categoryKey = 'consultation.page.exam.general.imc.category.low';
-  } else if (imc >= 25 && imc < 30) {
-    categoryKey = 'consultation.page.exam.general.imc.category.overweight';
-  } else if (imc >= 30) {
-    categoryKey = 'consultation.page.exam.general.imc.category.obesity';
-  }
-
-  return `${formatNumber(imc)} • ${translate(categoryKey)}`;
-}
-
-function readFindingDescription(
-  sectionData: SpecificExamSectionData | null | undefined,
-  label: string,
-): string {
-  if (!sectionData?.findingDetails) {
-    return '';
-  }
-
-  const normalizedLabel = normalizeText(label).toLowerCase();
-  for (const [key, value] of Object.entries(sectionData.findingDetails)) {
-    if (normalizeText(key).toLowerCase() !== normalizedLabel) {
-      continue;
-    }
-
-    return normalizeText(value?.description ?? '');
-  }
-
-  return '';
 }
 
 function findAction(
@@ -774,6 +561,7 @@ function normalizeActionKey(value: unknown): string {
   if (typeof value !== 'string') {
     return '';
   }
+
   return value.trim().toLowerCase().replace(/[\s-]+/g, '_');
 }
 
@@ -783,8 +571,10 @@ function readNestedText(source: Record<string, unknown>, path: string[]): string
     if (!current || typeof current !== 'object') {
       return '';
     }
+
     current = (current as Record<string, unknown>)[step];
   }
+
   return normalizeText(current);
 }
 
@@ -792,6 +582,7 @@ function readTypeNames(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
+
   return normalizeDistinctStrings(
     value.map((item) => firstNonEmptyString(asRecord(item)['name'], asRecord(item)['label'])),
   );
@@ -809,9 +600,11 @@ function normalizeDistinctBadges(items: ConclusionBadge[]): ConclusionBadge[] {
     if (!item.label || seen.has(key)) {
       continue;
     }
+
     seen.add(key);
     result.push(item);
   }
+
   return result;
 }
 
@@ -823,24 +616,24 @@ function normalizeDistinctStrings(items: Array<string | null | undefined>): stri
     if (!normalized) {
       continue;
     }
+
     const key = normalized.toLowerCase();
     if (seen.has(key)) {
       continue;
     }
+
     seen.add(key);
     result.push(normalized);
   }
-  return result;
-}
 
-function normalizeStringArray(items: string[]): string[] {
-  return normalizeDistinctStrings(items);
+  return result;
 }
 
 function normalizeText(value: unknown): string {
   if (typeof value !== 'string') {
     return '';
   }
+
   return value.trim().replace(/\s+/g, ' ');
 }
 
@@ -856,6 +649,7 @@ function formatAge(dateOfBirth: string, locale: string, noneLabel: string): stri
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsed.getDate())) {
     years -= 1;
   }
+
   return Number.isFinite(years) && years >= 0 ? new Intl.NumberFormat(locale).format(years) : noneLabel;
 }
 
@@ -863,23 +657,17 @@ function formatDateValue(value: string, locale: string, fallback: string): strin
   if (!value) {
     return fallback;
   }
+
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return normalizeText(value) || fallback;
   }
+
   return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   }).format(parsed);
-}
-
-function formatNumber(value: number): string {
-  return Number(value).toFixed(Number.isInteger(value) ? 0 : 1);
-}
-
-function sameText(left: string, right: string): boolean {
-  return normalizeText(left).toLowerCase() === normalizeText(right).toLowerCase();
 }
 
 function firstNonEmptyString(...values: unknown[]): string {
@@ -889,6 +677,7 @@ function firstNonEmptyString(...values: unknown[]): string {
       return normalized;
     }
   }
+
   return '';
 }
 
@@ -896,6 +685,7 @@ function joinMeta(...values: Array<string | null | undefined>): string {
   const normalized = values
     .map((value) => normalizeText(value))
     .filter((value, index, array) => value.length > 0 && array.indexOf(value) === index);
+
   return normalized.join(' • ');
 }
 
@@ -903,6 +693,7 @@ function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return {};
   }
+
   return value as Record<string, unknown>;
 }
 
@@ -910,105 +701,13 @@ function normalizeExamPayloadForConclusion(
   incoming: ConsultationExamPayload | null | undefined,
 ): ConsultationExamPayload {
   const defaults = createDefaultConsultationExamPayload();
-  if (!incoming) {
-    return defaults;
-  }
-
-  const specific = { ...defaults.specific };
-  for (const sectionKey of SPECIFIC_EXAM_SECTION_KEYS) {
-    specific[sectionKey] = normalizeSpecificSectionForConclusion(
-      sectionKey,
-      incoming.specific?.[sectionKey],
-    );
-  }
+  const cloned = cloneConsultationExamPayload(incoming ?? defaults);
 
   return {
-    general: {
-      ...defaults.general,
-      ...(incoming.general ?? {}),
-    },
-    specific,
-  };
-}
-
-function normalizeSpecificSectionForConclusion(
-  sectionKey: SpecificExamSectionKey,
-  sectionData: SpecificExamSectionData | null | undefined,
-): SpecificExamSectionData {
-  const defaultSection = createDefaultConsultationExamPayload().specific[sectionKey];
-  if (!sectionData) {
-    return {
-      ...defaultSection,
-      selectedFindings: [...defaultSection.selectedFindings],
-      findingDetails: { ...defaultSection.findingDetails },
-    };
-  }
-
-  const findingDetails: SpecificExamSectionData['findingDetails'] = {};
-  for (const [key, value] of Object.entries(sectionData.findingDetails ?? {})) {
-    const normalizedKey = normalizeText(key);
-    if (!normalizedKey) {
-      continue;
-    }
-
-    findingDetails[normalizedKey] = {
-      description: normalizeText(value?.description ?? ''),
-    };
-  }
-
-  const selectedFindings = normalizeDistinctStrings(sectionData.selectedFindings ?? []);
-  if (selectedFindings.length === 0 && Object.keys(findingDetails).length > 0) {
-    selectedFindings.push(...Object.keys(findingDetails));
-  }
-  const normalFinding = normalizeText(SPECIFIC_EXAM_SECTION_NORMAL_FINDINGS[sectionKey] ?? '');
-  let status = sectionData.status ?? 'not_examined';
-  if (selectedFindings.length === 0) {
-    status = 'not_examined';
-  } else if (
-    normalFinding
-    && selectedFindings.length === 1
-    && sameText(selectedFindings[0], normalFinding)
-  ) {
-    status = 'normal';
-  } else {
-    status = 'abnormal';
-  }
-
-  return applySpecificSectionDisplayDefaults(sectionKey, {
-    status,
-    selectedFindings,
-    findingDetails,
-    notes: normalizeText(sectionData.notes ?? ''),
-  });
-}
-
-function applySpecificSectionDisplayDefaults(
-  sectionKey: SpecificExamSectionKey,
-  sectionData: SpecificExamSectionData,
-): SpecificExamSectionData {
-  if (sectionData.status === 'abnormal') {
-    return sectionData;
-  }
-
-  const hasSelection = sectionData.selectedFindings.length > 0;
-  const hasDetails = Object.keys(sectionData.findingDetails).length > 0;
-  if (hasSelection || hasDetails) {
-    return sectionData;
-  }
-
-  const normalFinding = normalizeText(SPECIFIC_EXAM_SECTION_NORMAL_FINDINGS[sectionKey] ?? '');
-  if (!normalFinding) {
-    return sectionData;
-  }
-
-  return {
-    ...sectionData,
-    status: 'normal',
-    selectedFindings: [normalFinding],
-    findingDetails: {
-      [normalFinding]: {
-        description: '',
-      },
+    bodyMap: {
+      gender: cloned.bodyMap?.gender === 'female' ? 'female' : 'male',
+      zones: { ...(cloned.bodyMap?.zones ?? {}) },
+      notes: normalizeText(cloned.bodyMap?.notes ?? ''),
     },
   };
 }

@@ -1,3 +1,86 @@
+export type BodyGender = 'male' | 'female';
+export type BodyView = 'front' | 'back';
+export type DermatologyRegionSegment = 'common' | 'left' | 'right';
+
+export interface DermatologyExamImage {
+  documentId: string;
+  fileUrl: string;
+  originalFileName: string;
+  contentType: string;
+  fileSizeBytes: number;
+  createdAt: string;
+}
+
+export interface DermatologyExamZone {
+  regionId: string;
+  label: string;
+  slug: string;
+  segment: DermatologyRegionSegment;
+  pathIndex: number;
+  view: BodyView;
+  description: string;
+  image: DermatologyExamImage | null;
+  updatedAt: string | null;
+}
+
+export interface DermatologyBodyMapData {
+  gender: BodyGender;
+  zones: Record<string, DermatologyExamZone>;
+  notes: string;
+}
+
+export interface ConsultationExamPayload {
+  bodyMap: DermatologyBodyMapData;
+}
+
+export interface ConsultationExamResponse {
+  consultationId: string;
+  payload: ConsultationExamPayload;
+}
+
+export interface UpdateConsultationExamRequest {
+  payload: ConsultationExamPayload;
+}
+
+export function createDefaultConsultationExamPayload(
+  gender: BodyGender = 'male',
+): ConsultationExamPayload {
+  return {
+    bodyMap: {
+      gender,
+      zones: {},
+      notes: '',
+    },
+  };
+}
+
+export function createDefaultDermatologyExamZone(
+  input: Partial<DermatologyExamZone> & Pick<
+    DermatologyExamZone,
+    'regionId' | 'label' | 'slug' | 'segment' | 'pathIndex' | 'view'
+  >,
+): DermatologyExamZone {
+  return {
+    regionId: input.regionId,
+    label: input.label,
+    slug: input.slug,
+    segment: input.segment,
+    pathIndex: input.pathIndex,
+    view: input.view,
+    description: input.description?.trim() ?? '',
+    image: input.image ?? null,
+    updatedAt: input.updatedAt ?? null,
+  };
+}
+
+export function cloneConsultationExamPayload(
+  payload: ConsultationExamPayload | null | undefined,
+): ConsultationExamPayload {
+  return JSON.parse(
+    JSON.stringify(payload ?? createDefaultConsultationExamPayload()),
+  ) as ConsultationExamPayload;
+}
+
 export type SpecificExamSectionKey =
   | 'orlCouConjonctive'
   | 'auscultationCardiaque'
@@ -38,20 +121,6 @@ export interface SpecificExamSectionData {
 
 export type SpecificExamSections = Record<SpecificExamSectionKey, SpecificExamSectionData>;
 
-export interface ConsultationExamPayload {
-  general: GeneralExamData;
-  specific: SpecificExamSections;
-}
-
-export interface ConsultationExamResponse {
-  consultationId: string;
-  payload: ConsultationExamPayload;
-}
-
-export interface UpdateConsultationExamRequest {
-  payload: ConsultationExamPayload;
-}
-
 export interface ExamFindingCatalogItem {
   section: SpecificExamSectionKey;
   isCustom: boolean;
@@ -65,13 +134,13 @@ export interface UpsertExamFindingCatalogItemRequest {
 
 export const SPECIFIC_EXAM_SECTION_NORMAL_FINDINGS: Record<SpecificExamSectionKey, string> = {
   orlCouConjonctive: 'ORL, cou et conjonctives sans anomalie',
-  auscultationCardiaque: 'Bruits du cœur réguliers, sans souffle',
-  auscultationPulmonaire: 'Murmure vésiculaire bien perçu, sans râle',
-  abdomen: 'Abdomen souple, dépressible et indolore',
-  neurologique: 'Examen neurologique sans déficit focal',
-  locomoteurOsteoArticulaire: 'Mobilité conservée, sans limitation articulaire',
-  peauDermatologique: 'Peau saine, sans lésion dermatologique',
-  urogenital: 'Examen urogénital sans anomalie',
+  auscultationCardiaque: 'Bruits du coeur reguliers, sans souffle',
+  auscultationPulmonaire: 'Murmure vesiculaire bien percu, sans rale',
+  abdomen: 'Abdomen souple, depressible et indolore',
+  neurologique: 'Examen neurologique sans deficit focal',
+  locomoteurOsteoArticulaire: 'Mobilite conservee, sans limitation articulaire',
+  peauDermatologique: 'Peau saine, sans lesion dermatologique',
+  urogenital: 'Examen urogenital sans anomalie',
 };
 
 export const SPECIFIC_EXAM_SECTION_KEYS: SpecificExamSectionKey[] = [
@@ -100,7 +169,9 @@ export function createDefaultGeneralExamData(): GeneralExamData {
   };
 }
 
-export function createDefaultSpecificExamSectionData(sectionKey?: SpecificExamSectionKey): SpecificExamSectionData {
+export function createDefaultSpecificExamSectionData(
+  sectionKey?: SpecificExamSectionKey,
+): SpecificExamSectionData {
   const normalFinding = sectionKey ? SPECIFIC_EXAM_SECTION_NORMAL_FINDINGS[sectionKey] ?? '' : '';
   if (normalFinding) {
     return {
@@ -133,12 +204,5 @@ export function createDefaultSpecificExamSections(): SpecificExamSections {
     locomoteurOsteoArticulaire: createDefaultSpecificExamSectionData('locomoteurOsteoArticulaire'),
     peauDermatologique: createDefaultSpecificExamSectionData('peauDermatologique'),
     urogenital: createDefaultSpecificExamSectionData('urogenital'),
-  };
-}
-
-export function createDefaultConsultationExamPayload(): ConsultationExamPayload {
-  return {
-    general: createDefaultGeneralExamData(),
-    specific: createDefaultSpecificExamSections(),
   };
 }

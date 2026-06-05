@@ -200,6 +200,7 @@
 							<app-consultation-examen-section
 								[consultationId]="consultation?.consultationId ?? null"
 								[patientId]="consultation?.patientId ?? null"
+								[patientSex]="patient?.sex ?? null"
 								(payloadChange)="onExamPayloadChange($event)"
 								(navigateToConduite)="selectTab('conduite')"
 							/>

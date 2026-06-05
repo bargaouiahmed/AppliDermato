@@ -1,146 +1,352 @@
 <div class="tab-panel exam-root">
-	@if (isLoading) {
-		<div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
-	} @else if (loadError) {
-		<div class="state-card error">{{ loadError | translate }}</div>
-	} @else {
-		<app-consultation-examen-general-section
-			[value]="payload.general"
-			(valueChange)="onGeneralChange($event)"
-		/>
+  @if (isLoading) {
+    <div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
+  } @else if (loadError) {
+    <div class="state-card error">{{ loadError | translate }}</div>
+  } @else {
 
-		<section class="history-card">
-			<div class="history-header">
-				<h3>{{ 'consultation.page.exam.timeline.title' | translate }}</h3>
-				@if (isPreviewingHistory && previewSourceDate) {
-					<p class="history-preview">
-						{{ 'consultation.page.exam.timeline.previewing' | translate }}
-						<strong>{{ previewSourceDate | date: 'dd/MM/yyyy HH:mm' }}</strong>
-					</p>
-				}
-			</div>
 
-			@if (isHistoryLoading) {
-				<div class="history-state">{{ 'consultation.page.exam.timeline.loading' | translate }}</div>
-			} @else if (historyLoadError) {
-				<div class="history-state error">{{ historyLoadError | translate }}</div>
-			} @else if (!hasHistoryConsultations) {
-				<div class="history-state">{{ 'consultation.page.exam.timeline.empty' | translate }}</div>
-			} @else {
-				<div class="timeline-progress" aria-hidden="true">
-					<span class="timeline-progress-bar" [style.width.%]="timelineScrollProgress"></span>
-				</div>
+    <section class="derm-card history-card">
+      <div class="history-header">
+        <h3>{{ 'consultation.page.exam.timeline.title' | translate }}</h3>
+        @if (isPreviewingHistory && previewSourceDate) {
+          <p class="history-preview">
+            {{ 'consultation.page.exam.timeline.previewing' | translate }}
+            <strong>{{ previewSourceDate | date: 'dd/MM/yyyy HH:mm' }}</strong>
+          </p>
+        }
+      </div>
 
-				<div
-					class="history-timeline-scroll"
-					#timelineScroller
-					(wheel)="onTimelineWheel($event)"
-					(scroll)="onTimelineScroll()"
-					(pointerdown)="onTimelinePointerDown($event)"
-					(pointermove)="onTimelinePointerMove($event)"
-					(pointerup)="onTimelinePointerUp($event)"
-					(pointercancel)="onTimelinePointerUp($event)"
-				>
-					<div class="timeline-track">
-						@for (consultation of historyConsultations; track consultation.id; let itemIndex = $index) {
-							<button
-								type="button"
-								class="timeline-node"
-								[class.above]="(itemIndex % 2) === 0"
-								[class.below]="(itemIndex % 2) !== 0"
-								[class.current]="isCurrentConsultation(consultation)"
-								[class.selected]="selectedHistoryConsultationId === consultation.id && isPreviewingHistory"
-								[attr.data-timeline-id]="consultation.id"
-								[disabled]="isHistoryExamLoading || isApplyingHistoricalPayload"
-								(click)="onTimelineConsultationClick(consultation)"
-							>
-								<span class="timeline-node-connector" aria-hidden="true"></span>
-								<span class="timeline-node-dot" aria-hidden="true"></span>
-								<span class="timeline-node-card">
-									<span class="timeline-item-date">{{ consultation.consultationDate | date: 'dd/MM/yyyy' }}</span>
-									<span class="timeline-item-time">{{ consultation.consultationDate | date: 'HH:mm' }}</span>
-									@if (isCurrentConsultation(consultation)) {
-										<span class="timeline-item-tag">{{ 'consultation.page.exam.timeline.current' | translate }}</span>
-									}
-								</span>
-							</button>
-						}
-					</div>
-				</div>
+      @if (isHistoryLoading) {
+        <div class="history-state">{{ 'consultation.page.exam.timeline.loading' | translate }}</div>
+      } @else if (historyLoadError) {
+        <div class="history-state error">{{ historyLoadError | translate }}</div>
+      } @else if (!hasHistoryConsultations) {
+        <div class="history-state">{{ 'consultation.page.exam.timeline.empty' | translate }}</div>
+      } @else {
+        <div class="timeline-progress" aria-hidden="true">
+          <span class="timeline-progress-bar" [style.width.%]="timelineScrollProgress"></span>
+        </div>
 
-				@if (historyVisiblePages.length > 1) {
-					<div class="history-pagination">
-						<button
-							type="button"
-							[disabled]="historyPageNumber <= 1 || isHistoryLoading"
-							(click)="goToHistoryPage(historyPageNumber - 1)"
-						>
-							{{ 'patients.list.pagination.previous' | translate }}
-						</button>
+        <div
+          class="history-timeline-scroll"
+          #timelineScroller
+          (wheel)="onTimelineWheel($event)"
+          (scroll)="onTimelineScroll()"
+          (pointerdown)="onTimelinePointerDown($event)"
+          (pointermove)="onTimelinePointerMove($event)"
+          (pointerup)="onTimelinePointerUp($event)"
+          (pointercancel)="onTimelinePointerUp($event)"
+        >
+          <div class="timeline-track">
+            @for (consultation of historyConsultations; track consultation.id; let itemIndex = $index) {
+              <button
+                type="button"
+                class="timeline-node"
+                [class.above]="(itemIndex % 2) === 0"
+                [class.below]="(itemIndex % 2) !== 0"
+                [class.current]="isCurrentConsultation(consultation)"
+                [class.selected]="selectedHistoryConsultationId === consultation.id && isPreviewingHistory"
+                [attr.data-timeline-id]="consultation.id"
+                [disabled]="isHistoryExamLoading || isApplyingHistoricalPayload"
+                (click)="onTimelineConsultationClick(consultation)"
+              >
+                <span class="timeline-node-connector" aria-hidden="true"></span>
+                <span class="timeline-node-dot" aria-hidden="true"></span>
+                <span class="timeline-node-card">
+                  <span class="timeline-item-date">{{ consultation.consultationDate | date: 'dd/MM/yyyy' }}</span>
+                  <span class="timeline-item-time">{{ consultation.consultationDate | date: 'HH:mm' }}</span>
+                  @if (isCurrentConsultation(consultation)) {
+                    <span class="timeline-item-tag">{{ 'consultation.page.exam.timeline.current' | translate }}</span>
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        </div>
 
-						@for (page of historyVisiblePages; track page) {
-							<button
-								type="button"
-								[class.active]="page === historyPageNumber"
-								(click)="goToHistoryPage(page)"
-							>
-								{{ page }}
-							</button>
-						}
+        @if (historyVisiblePages.length > 1) {
+          <div class="history-pagination">
+            <button
+              type="button"
+              [disabled]="historyPageNumber <= 1 || isHistoryLoading"
+              (click)="goToHistoryPage(historyPageNumber - 1)"
+            >
+              {{ 'patients.list.pagination.previous' | translate }}
+            </button>
 
-						<button
-							type="button"
-							[disabled]="historyPageNumber >= historyTotalPages || isHistoryLoading"
-							(click)="goToHistoryPage(historyPageNumber + 1)"
-						>
-							{{ 'patients.list.pagination.next' | translate }}
-						</button>
-					</div>
-				}
-			}
+            @for (page of historyVisiblePages; track page) {
+              <button
+                type="button"
+                [class.active]="page === historyPageNumber"
+                (click)="goToHistoryPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
 
-			@if (isPreviewingHistory) {
-				<div class="history-actions">
-					<button
-						type="button"
-						class="ghost-btn"
-						[disabled]="isApplyingHistoricalPayload"
-						(click)="restoreTodayExam()"
-					>
-						{{ 'consultation.page.exam.timeline.actions.restoreToday' | translate }}
-					</button>
-					<button
-						type="button"
-						class="filled-btn"
-						[disabled]="isApplyingHistoricalPayload"
-						(click)="applyHistoricalPayloadToToday()"
-					>
-						@if (isApplyingHistoricalPayload) {
-							{{ 'consultation.page.loading' | translate }}
-						} @else {
-							{{ 'consultation.page.exam.timeline.actions.applyToToday' | translate }}
-						}
-					</button>
-				</div>
-			}
-		</section>
+            <button
+              type="button"
+              [disabled]="historyPageNumber >= historyTotalPages || isHistoryLoading"
+              (click)="goToHistoryPage(historyPageNumber + 1)"
+            >
+              {{ 'patients.list.pagination.next' | translate }}
+            </button>
+          </div>
+        }
+      }
 
-		<app-consultation-examen-specific-section
-			[sections]="payload.specific"
-			[catalogBySection]="catalogBySection"
-			(sectionChange)="onSpecificSectionChange($event)"
-			(customFindingCreate)="onCustomFindingCreate($event)"
-		/>
+      @if (isPreviewingHistory) {
+        <div class="history-actions">
+          <button
+            type="button"
+            class="ghost-btn"
+            [disabled]="isApplyingHistoricalPayload"
+            (click)="restoreTodayExam()"
+          >
+            {{ 'consultation.page.exam.timeline.actions.restoreToday' | translate }}
+          </button>
+          <button
+            type="button"
+            class="filled-btn"
+            [disabled]="isApplyingHistoricalPayload"
+            (click)="applyHistoricalPayloadToToday()"
+          >
+            @if (isApplyingHistoricalPayload) {
+              {{ 'consultation.page.loading' | translate }}
+            } @else {
+              {{ 'consultation.page.exam.timeline.actions.applyToToday' | translate }}
+            }
+          </button>
+        </div>
+      }
+    </section>
 
-		<div class="d-flex justify-content-center mt-4 mb-3 exam-bottom-actions">
-			<button
-				type="button"
-				class="btn btn-color-green btn-primary btn-gg d-flex align-items-center gap-2"
-				(click)="goToConduite()"
-			>
-				<span>{{ 'consultation.page.actions.goToConduite' | translate }}</span>
-				<i class="bi bi-arrow-right"></i>
-			</button>
-		</div>
-	}
+    <section class="derm-layout">
+      <div class="derm-card derm-viewer-card">
+        <div class="derm-toolbar">
+          <span class="toolbar-label">{{ 'consultation.page.exam.bodyMap.view' | translate }}</span>
+        </div>
+
+        <div class="bodymap-grid">
+          <div class="bodymap-panel">
+            <div class="bodymap-panel-header">
+              <span>{{ 'consultation.page.exam.bodyMap.front' | translate }}</span>
+            </div>
+
+            <div class="bodymap-viewer">
+              <svg
+                class="muscle-map-svg"
+                [attr.viewBox]="viewBoxFor('front')"
+                role="img"
+                [attr.aria-label]="'consultation.page.exam.bodyMap.frontView' | translate"
+              >
+                @if (outlinePathFor('front')) {
+                  <path class="body-skin-path" [attr.d]="outlinePathFor('front')" />
+                }
+
+                @for (part of bodyPartsFor('front'); track part.slug) {
+                  @for (path of part.path?.common ?? []; track $index) {
+                    <path
+                      [attr.d]="path"
+                      [attr.fill]="pathFill(regionId('front', part.slug, 'common', $index))"
+                      [attr.class]="pathClass(regionId('front', part.slug, 'common', $index))"
+                      tabindex="0"
+                      (click)="onRegionClick(regionId('front', part.slug, 'common', $index))"
+                      (keydown)="onRegionKeydown($event, regionId('front', part.slug, 'common', $index))"
+                    />
+                  }
+
+                  @for (path of part.path?.left ?? []; track $index) {
+                    <path
+                      [attr.d]="path"
+                      [attr.fill]="pathFill(regionId('front', part.slug, 'left', $index))"
+                      [attr.class]="pathClass(regionId('front', part.slug, 'left', $index))"
+                      tabindex="0"
+                      (click)="onRegionClick(regionId('front', part.slug, 'left', $index))"
+                      (keydown)="onRegionKeydown($event, regionId('front', part.slug, 'left', $index))"
+                    />
+                  }
+
+                  @for (path of part.path?.right ?? []; track $index) {
+                    <path
+                      [attr.d]="path"
+                      [attr.fill]="pathFill(regionId('front', part.slug, 'right', $index))"
+                      [attr.class]="pathClass(regionId('front', part.slug, 'right', $index))"
+                      tabindex="0"
+                      (click)="onRegionClick(regionId('front', part.slug, 'right', $index))"
+                      (keydown)="onRegionKeydown($event, regionId('front', part.slug, 'right', $index))"
+                    />
+                  }
+                }
+              </svg>
+            </div>
+          </div>
+
+          <div class="bodymap-panel">
+            <div class="bodymap-panel-header">
+              <span>{{ 'consultation.page.exam.bodyMap.back' | translate }}</span>
+            </div>
+
+            <div class="bodymap-viewer">
+              <svg
+                class="muscle-map-svg"
+                [attr.viewBox]="viewBoxFor('back')"
+                role="img"
+                [attr.aria-label]="'consultation.page.exam.bodyMap.backView' | translate"
+              >
+                @if (outlinePathFor('back')) {
+                  <path class="body-skin-path" [attr.d]="outlinePathFor('back')" />
+                }
+
+                @for (part of bodyPartsFor('back'); track part.slug) {
+                  @for (path of part.path?.common ?? []; track $index) {
+                    <path
+                      [attr.d]="path"
+                      [attr.fill]="pathFill(regionId('back', part.slug, 'common', $index))"
+                      [attr.class]="pathClass(regionId('back', part.slug, 'common', $index))"
+                      tabindex="0"
+                      (click)="onRegionClick(regionId('back', part.slug, 'common', $index))"
+                      (keydown)="onRegionKeydown($event, regionId('back', part.slug, 'common', $index))"
+                    />
+                  }
+
+                  @for (path of part.path?.left ?? []; track $index) {
+                    <path
+                      [attr.d]="path"
+                      [attr.fill]="pathFill(regionId('back', part.slug, 'left', $index))"
+                      [attr.class]="pathClass(regionId('back', part.slug, 'left', $index))"
+                      tabindex="0"
+                      (click)="onRegionClick(regionId('back', part.slug, 'left', $index))"
+                      (keydown)="onRegionKeydown($event, regionId('back', part.slug, 'left', $index))"
+                    />
+                  }
+
+                  @for (path of part.path?.right ?? []; track $index) {
+                    <path
+                      [attr.d]="path"
+                      [attr.fill]="pathFill(regionId('back', part.slug, 'right', $index))"
+                      [attr.class]="pathClass(regionId('back', part.slug, 'right', $index))"
+                      tabindex="0"
+                      (click)="onRegionClick(regionId('back', part.slug, 'right', $index))"
+                      (keydown)="onRegionKeydown($event, regionId('back', part.slug, 'right', $index))"
+                    />
+                  }
+                }
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="derm-card derm-sidebar">
+        <div class="sidebar-section">
+          <div class="sidebar-header">
+            <h3>{{ 'consultation.page.exam.bodyMap.savedAreas' | translate }}</h3>
+            <span class="sidebar-count">{{ lesionCount }}</span>
+          </div>
+
+          @if (documentedZones.length === 0) {
+            <p class="sidebar-empty">{{ 'consultation.page.exam.bodyMap.empty' | translate }}</p>
+          } @else {
+            <div class="zone-list">
+              @for (zone of documentedZones; track zone.regionId) {
+                <button type="button" class="zone-chip" (click)="reopenZone(zone)">
+                  <span>{{ regionLabel(zone.regionId) }}</span>
+                  @if (zone.image?.fileUrl) {
+                    <small>{{ 'consultation.page.exam.bodyMap.photoTag' | translate }}</small>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="sidebar-section">
+          <label class="notes-label" for="derm-notes">{{ 'consultation.page.exam.bodyMap.notes' | translate }}</label>
+          <textarea
+            id="derm-notes"
+            rows="5"
+            [(ngModel)]="payload.bodyMap.notes"
+            (ngModelChange)="onBodyMapNotesChange()"
+            [placeholder]="'consultation.page.exam.bodyMap.notesPlaceholder' | translate"
+          ></textarea>
+        </div>
+      </aside>
+    </section>
+
+    <div class="d-flex justify-content-center mt-4 mb-3 exam-bottom-actions">
+      <button
+        type="button"
+        class="btn btn-color-green btn-primary btn-gg d-flex align-items-center gap-2"
+        (click)="goToConduite()"
+      >
+        <span>{{ 'consultation.page.actions.goToConduite' | translate }}</span>
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+
+    @if (modalState) {
+      <div class="zone-modal-backdrop" (click)="closeZoneModal()"></div>
+      <section class="zone-modal" role="dialog" aria-modal="true" aria-labelledby="zone-modal-title">
+        <div class="zone-modal-header">
+          <div>
+            <p class="zone-modal-eyebrow">{{ (modalState.view === 'front' ? 'consultation.page.exam.bodyMap.frontView' : 'consultation.page.exam.bodyMap.backView') | translate }}</p>
+            <h3 id="zone-modal-title">{{ modalState.label }}</h3>
+          </div>
+          <button type="button" class="modal-close" (click)="closeZoneModal()">×</button>
+        </div>
+
+        <div class="zone-modal-body">
+          <label class="modal-field">
+            <span>{{ 'consultation.page.exam.bodyMap.lesionDescription' | translate }}</span>
+            <textarea
+              rows="6"
+              [(ngModel)]="modalState.description"
+              [placeholder]="'consultation.page.exam.bodyMap.lesionDescriptionPlaceholder' | translate"
+            ></textarea>
+          </label>
+
+          <div class="modal-field">
+            <span>{{ 'consultation.page.exam.bodyMap.zoneImage' | translate }}</span>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              (change)="onZoneFileSelected($event)"
+            />
+
+            @if (modalState.nextFile) {
+              <p class="file-hint">{{ 'consultation.page.exam.bodyMap.newFile' | translate }}: {{ modalState.nextFile.name }}</p>
+            } @else if (modalState.existingImage && !modalState.removeExistingImage) {
+              <div class="image-preview-card">
+                @if ((modalState.existingImage.contentType || '').startsWith('image/')) {
+                  <img [src]="resolveImageUrl(modalState.existingImage)" [alt]="modalState.label" />
+                }
+                <div class="image-preview-meta">
+                  <span>{{ modalState.existingImage.originalFileName || ('consultation.page.exam.bodyMap.currentImage' | translate) }}</span>
+                  <button type="button" class="link-btn" (click)="removeZoneImage()">{{ 'consultation.page.exam.bodyMap.removeImage' | translate }}</button>
+                </div>
+              </div>
+            } @else if (modalState.removeExistingImage) {
+              <p class="file-hint warning">{{ 'consultation.page.exam.bodyMap.imageWillBeRemoved' | translate }}</p>
+            }
+          </div>
+        </div>
+
+        <div class="zone-modal-footer">
+          <button type="button" class="ghost-btn" [disabled]="isSavingZone" (click)="clearZoneDraft()">
+            {{ 'consultation.page.exam.bodyMap.clearZone' | translate }}
+          </button>
+          <div class="footer-actions">
+            <button type="button" class="ghost-btn" [disabled]="isSavingZone" (click)="closeZoneModal()">
+              {{ 'consultation.page.actions.cancel' | translate }}
+            </button>
+            <button type="button" class="filled-btn" [disabled]="isSavingZone" (click)="saveZoneModal()">
+              {{ isSavingZone ? ('consultation.page.loading' | translate) : ('consultation.page.exam.bodyMap.saveLesion' | translate) }}
+            </button>
+          </div>
+        </div>
+      </section>
+    }
+  }
 </div>
