@@ -1,0 +1,145 @@
+<div class="medecins-create-page bg-color">
+  <div class="header-row">
+    <a class="back-link" [routerLink]="['/medecins']">
+      <span aria-hidden="true">&larr;</span>
+      {{ 'common.back' | translate }}
+    </a>
+    <h3>{{ isAdminMode() ? 'Ajouter un administrateur' : ('medecins.actions.add' | translate) }}</h3>
+  </div>
+
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="grid">
+        <label class="field">
+          <span>{{ 'medecins.fields.firstName' | translate }} *</span>
+          <input type="text" formControlName="firstName" />
+          @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.lastName' | translate }} *</span>
+          <input type="text" formControlName="lastName" />
+          @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.email' | translate }} *</span>
+          <input type="email" formControlName="email" />
+          @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+          @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+            <small>{{ 'medecins.validation.email' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.nationality' | translate }} *</span>
+          <input type="text" formControlName="nationality" />
+          @if (form.controls.nationality.invalid && form.controls.nationality.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.role' | translate }} *</span>
+          <select formControlName="role">
+            @for (option of roleOptions; track option) {
+              <option [value]="option">{{ ('medecins.role.' + option) | translate }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.language' | translate }} *</span>
+          <select formControlName="languagePreference">
+            @for (lang of languageOptions; track lang) {
+              <option [value]="lang">{{ lang.toUpperCase() }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.phoneNumber' | translate }} *</span>
+          <input type="tel" formControlName="phoneNumber" />
+          @if (form.controls.phoneNumber.invalid && form.controls.phoneNumber.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.landline' | translate }} *</span>
+          <input type="tel" formControlName="landline" />
+          @if (form.controls.landline.invalid && form.controls.landline.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.subscriptionDuration' | translate }} *</span>
+          <input type="number" min="1" max="5" formControlName="subscriptionDurationInYears" />
+          @if (form.controls.subscriptionDurationInYears.invalid && form.controls.subscriptionDurationInYears.touched) {
+            <small>{{ 'medecins.validation.duration' | translate }}</small>
+          }
+
+          <div class="preset-wrap">
+            @for (preset of subscriptionPresetOptions; track preset) {
+              <button type="button" class="preset-btn" (click)="usePresetDuration(preset)">{{ preset }} an(s)</button>
+            }
+          </div>
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.cabinetCountry' | translate }} *</span>
+          <input type="text" formControlName="cabinetCountry" />
+          @if (form.controls.cabinetCountry.invalid && form.controls.cabinetCountry.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.cabinetCity' | translate }} *</span>
+          <input type="text" formControlName="cabinetCity" />
+          @if (form.controls.cabinetCity.invalid && form.controls.cabinetCity.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field field-wide">
+          <span>{{ 'medecins.fields.cabinetAddress' | translate }} *</span>
+          <input type="text" formControlName="cabinetAddress" />
+          @if (form.controls.cabinetAddress.invalid && form.controls.cabinetAddress.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'medecins.fields.cabinetPostalCode' | translate }} *</span>
+          <input type="text" formControlName="cabinetPostalCode" />
+          @if (form.controls.cabinetPostalCode.invalid && form.controls.cabinetPostalCode.touched) {
+            <small>{{ 'medecins.validation.required' | translate }}</small>
+          }
+        </label>
+
+        <label class="field field-wide-full">
+          <span>{{ 'medecins.fields.notesFromAdmin' | translate }}</span>
+          <textarea rows="3" formControlName="notesFromAdmin"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            {{ 'medecins.actions.submitting' | translate }}
+          } @else {
+            {{ 'medecins.actions.submit' | translate }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

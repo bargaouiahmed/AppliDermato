@@ -1,0 +1,51 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <h4 class="text-center text-lg font-bold uppercase mb-2 text-gray-800">
+    {{ 'reset.emailStep.title' | translate }}
+  </h4>
+
+  <p class="text-center text-sm text-gray-500 mb-4">
+    {{ 'reset.emailStep.description' | translate }}
+  </p>
+
+  <div class="mb-3">
+    <input
+      type="email"
+      formControlName="email"
+      class="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#175042] focus:ring-1 focus:ring-[#175042] transition"
+      [placeholder]="'login.email' | translate"
+    />
+    <app-form-error
+      [show]="form.controls.email.touched && form.controls.email.hasError('required')"
+      messageKey="validation.emailRequired"
+    />
+    <app-form-error
+      [show]="form.controls.email.touched && form.controls.email.hasError('email')"
+      messageKey="validation.emailInvalid"
+    />
+  </div>
+
+  @if (serverError()) {
+    <p class="text-center text-red-500 text-sm mb-3">{{ serverError() }}</p>
+  }
+
+  <button
+    type="submit"
+    class="w-full rounded bg-[#175042] py-2 text-sm font-bold uppercase text-white transition hover:bg-[#123d33] disabled:opacity-60 disabled:cursor-not-allowed"
+    [disabled]="form.invalid || loading()"
+  >
+    @if (loading()) {
+      {{ 'common.loading' | translate }}
+    } @else {
+      {{ 'reset.emailStep.submit' | translate }}
+    }
+  </button>
+
+  <div class="text-center mt-3">
+    <a
+      class="text-sm text-[#175042] underline cursor-pointer hover:text-[#123d33]"
+      (click)="backToLogin.emit()"
+    >
+      {{ 'reset.backToLogin' | translate }}
+    </a>
+  </div>
+</form>

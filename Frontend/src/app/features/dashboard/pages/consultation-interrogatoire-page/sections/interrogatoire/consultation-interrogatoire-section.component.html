@@ -1,0 +1,42 @@
+<div class="tab-panel">
+  <app-consultation-interrogatoire-antecedents-generaux
+    [anomalies]="medicalSectionAnomalies"
+    (anomaliesChange)="onMedicalAnomaliesChange($event)"
+  ></app-consultation-interrogatoire-antecedents-generaux>
+
+
+
+  <app-consultation-interrogatoire-antecedents-familiaux
+    [anomalies]="familySectionAnomalies"
+    (anomaliesChange)="onFamilyAnomaliesChange($event)"
+  ></app-consultation-interrogatoire-antecedents-familiaux>
+
+
+  <app-consultation-interrogatoire-signes-fonctionnels
+    [anomalies]="functionalSignsSectionAnomalies"
+    (anomaliesChange)="onFunctionalSignsAnomaliesChange($event)"
+  ></app-consultation-interrogatoire-signes-fonctionnels>
+   <app-consultation-interrogatoire-histoire-maladie
+    [histoireMaladie]="histoireMaladie"
+    (histoireMaladieChange)="onHistoireMaladieChange($event)"
+  ></app-consultation-interrogatoire-histoire-maladie>
+  <app-consultation-interrogatoire-traitement-en-cours
+    [consultationId]="consultationId"
+    [treatments]="ongoingTreatments"
+    (treatmentsChange)="onOngoingTreatmentsChange($event)"
+  ></app-consultation-interrogatoire-traitement-en-cours>
+ 
+
+  @if (canAccessExam) {
+    <div class="d-flex justify-content-center mt-4 mb-3">
+      <button
+        type="button"
+        class="btn btn-color-green btn-primary btn-gg d-flex align-items-center gap-2"
+        (click)="goToExam()"
+      >
+        <span>{{ 'consultation.page.actions.goToExam' | translate }}</span>
+        <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,434 @@
+<div
+  #rootContainer
+  class="kiosk-root"
+  [class.rtl]="isRtl()"
+  [attr.dir]="isRtl() ? 'rtl' : 'ltr'"
+  (click)="onUserActivity()"
+  (input)="onUserActivity()"
+  (keydown)="onUserActivity()"
+>
+  <header class="kiosk-header">
+    <div>
+      <h1>{{ t('appTitle') }}</h1>
+      @if (doctorDisplayName()) {
+        <p class="doctor-name">{{ doctorDisplayName() }}</p>
+      }
+    </div>
+
+    <div class="header-actions">
+      @if (step() !== 'language' && step() !== 'error') {
+        <button type="button" class="btn-soft" (click)="resetSession()">
+          {{ t('startOver') }}
+        </button>
+      }
+      <button type="button" class="btn-soft" (click)="toggleFullscreen()">
+        {{ isFullscreen() ? t('exitFullscreen') : t('fullscreen') }}
+      </button>
+    </div>
+  </header>
+
+  @if (step() !== 'error') {
+    <div class="progress-wrap">
+      <span>{{ stepNumber() }}/{{ stepsCount }}</span>
+      <div class="progress-line">
+        <div class="progress-fill" [style.width.%]="(stepNumber() / stepsCount) * 100"></div>
+      </div>
+    </div>
+  }
+
+  @if (infoMessage()) {
+    <div class="banner-info">{{ infoMessage() }}</div>
+  }
+
+  @if (errorMessage() && step() !== 'error') {
+    <div class="banner-error">{{ errorMessage() }}</div>
+  }
+
+  @if (loading()) {
+    <section class="panel loading-panel">
+      <p>{{ t('loading') }}</p>
+    </section>
+  } @else {
+    @switch (step()) {
+      @case ('language') {
+        <section class="panel">
+          <h2>{{ t('languageTitle') }}</h2>
+          <p class="muted">{{ t('languageSubtitle') }}</p>
+          <div class="language-grid">
+            <button type="button" class="lang-btn" (click)="selectLanguage('fr')">Francais</button>
+            <button type="button" class="lang-btn" (click)="selectLanguage('en')">English</button>
+            <button type="button" class="lang-btn" (click)="selectLanguage('ar')">العربية</button>
+          </div>
+        </section>
+      }
+
+      @case ('visit') {
+        <section class="panel">
+          <h2>{{ t('firstVisitQuestion') }}</h2>
+          <div class="choice-grid">
+            <button type="button" class="choice-btn" (click)="selectVisitType(true)">
+              {{ t('firstVisitYes') }}
+            </button>
+            <button type="button" class="choice-btn" (click)="selectVisitType(false)">
+              {{ t('firstVisitNo') }}
+            </button>
+          </div>
+        </section>
+      }
+
+      @case ('newPatient') {
+        <section class="panel">
+          <h2>{{ t('newPatientTitle') }}</h2>
+
+          <div class="form-grid">
+            <label>
+              <span>{{ t('assignedDossierNumber') }}</span>
+              <input
+                type="text"
+                [value]="isLoadingNextDossierNumber() ? '' : (nextDossierNumber() ?? '')"
+                [placeholder]="isLoadingNextDossierNumber() ? t('loadingDossierNumber') : ''"
+                disabled
+              />
+            </label>
+
+            <label>
+              <span>{{ t('firstName') }} *</span>
+              <input type="text" [ngModel]="newPatient().firstname" (ngModelChange)="updateNewPatientField('firstname', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('lastName') }} *</span>
+              <input type="text" [ngModel]="newPatient().lastname" (ngModelChange)="updateNewPatientField('lastname', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('dateOfBirth') }} *</span>
+              <input type="date" [ngModel]="newPatient().dateOfBirth" (ngModelChange)="updateNewPatientField('dateOfBirth', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('sex') }} *</span>
+              <select [ngModel]="newPatient().sex" (ngModelChange)="updateNewPatientField('sex', $event)">
+                <option value=""></option>
+                <option value="Homme">{{ t('sexMale') }}</option>
+                <option value="Femme">{{ t('sexFemale') }}</option>
+              </select>
+            </label>
+          </div>
+
+          <h3>{{ t('optionalDetails') }}</h3>
+          <div class="form-grid">
+            <label>
+              <span>{{ t('phone') }}</span>
+              <input type="tel" [ngModel]="newPatient().phoneNumber" (ngModelChange)="updateNewPatientField('phoneNumber', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('email') }}</span>
+              <input type="email" [ngModel]="newPatient().email" (ngModelChange)="updateNewPatientField('email', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('profession') }}</span>
+              <app-profession-select
+                [ngModel]="newPatient().profession"
+                [options]="professionOptions()"
+                [placeholderKey]="''"
+                [notFoundTextKey]="'consultation.conduite.noResults'"
+                (ngModelChange)="updateNewPatientField('profession', $event)"
+              ></app-profession-select>
+            </label>
+
+            <label>
+              <span>{{ t('workPlace') }}</span>
+              <input type="text" [ngModel]="newPatient().workPlace" (ngModelChange)="updateNewPatientField('workPlace', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('country') }}</span>
+              <input type="text" [ngModel]="newPatient().country" (ngModelChange)="updateNewPatientField('country', $event)" />
+            </label>
+
+            <label>
+              <span>{{ t('city') }}</span>
+              <input type="text" [ngModel]="newPatient().city" (ngModelChange)="updateNewPatientField('city', $event)" />
+            </label>
+          </div>
+
+          <div class="actions-row">
+            <button type="button" class="btn-soft" (click)="backToVisitType()">{{ t('back') }}</button>
+            <button type="button" class="btn-primary" (click)="goToMotifFromNewPatient()">{{ t('selectPatientAction') }}</button>
+          </div>
+        </section>
+      }
+
+      @case ('returningPatient') {
+        <section class="panel">
+          <h2>{{ t('returningTitle') }}</h2>
+
+          <label class="search-label">{{ t('searchMethodLabel') }}</label>
+          <div class="search-types">
+            <button type="button" [class.active]="returningSearchType() === 'phone'" (click)="updateReturningSearchType('phone')">{{ t('searchByPhone') }}</button>
+            <button type="button" [class.active]="returningSearchType() === 'name'" (click)="updateReturningSearchType('name')">{{ t('searchByName') }}</button>
+            <button type="button" [class.active]="returningSearchType() === 'numFiche'" (click)="updateReturningSearchType('numFiche')">{{ t('searchByDossier') }}</button>
+            <button type="button" [class.active]="returningSearchType() === 'email'" (click)="updateReturningSearchType('email')">{{ t('searchByEmail') }}</button>
+          </div>
+
+          <div class="form-grid">
+            @if (returningSearchType() === 'phone') {
+              <label>
+                <span>{{ t('phone') }}</span>
+                <input type="text" [ngModel]="returningSearch().tel" (ngModelChange)="updateReturningField('tel', $event)" />
+              </label>
+            }
+            @if (returningSearchType() === 'name') {
+              <label>
+                <span>{{ t('lastName') }}</span>
+                <input type="text" [ngModel]="returningSearch().nom" (ngModelChange)="updateReturningField('nom', $event)" />
+              </label>
+              <label>
+                <span>{{ t('firstName') }}</span>
+                <input type="text" [ngModel]="returningSearch().prenom" (ngModelChange)="updateReturningField('prenom', $event)" />
+              </label>
+            }
+            @if (returningSearchType() === 'numFiche') {
+              <label>
+                <span>{{ t('searchByDossier') }}</span>
+                <input type="text" [ngModel]="returningSearch().numFiche" (ngModelChange)="updateReturningField('numFiche', $event)" />
+              </label>
+            }
+            @if (returningSearchType() === 'email') {
+              <label>
+                <span>{{ t('email') }}</span>
+                <input type="text" [ngModel]="returningSearch().email" (ngModelChange)="updateReturningField('email', $event)" />
+              </label>
+            }
+          </div>
+
+          <div class="actions-row">
+            <button type="button" class="btn-soft" (click)="backToVisitType()">{{ t('back') }}</button>
+            <button type="button" class="btn-primary" (click)="searchReturningPatient()">{{ t('searchAction') }}</button>
+          </div>
+
+          @if (returningResults().length > 0) {
+            <div class="results-list">
+              <p class="muted">{{ t('selectPatient') }}</p>
+              @for (patient of returningResults(); track patient.id) {
+                <button type="button" class="result-item" [class.selected]="selectedReturningPatientId() === patient.id" (click)="selectReturningPatient(patient.id)">
+                  <strong>{{ patient.lastname }} {{ patient.firstname }}</strong>
+                  <span>#{{ patient.dossierNumber }}</span>
+                  <span>{{ patient.dateOfBirth }}</span>
+                </button>
+              }
+            </div>
+          }
+
+          <div class="actions-row">
+            <button type="button" class="btn-soft" (click)="continueAsNewPatient()">{{ t('continueAsNewPatient') }}</button>
+            @if (canContinueFromReturning()) {
+              <button type="button" class="btn-primary" (click)="continueReturningPatient()">{{ t('nextStepMotif') }}</button>
+            }
+          </div>
+        </section>
+      }
+
+      @case ('motif') {
+        <section class="panel">
+          <h2>{{ t('motifTitle') }}</h2>
+          <p class="muted">{{ t('motifHint') }}</p>
+
+          <ng-select
+            class="kiosk-select motif-select"
+            [items]="motifSelectOptions()"
+            [appendTo]="'body'"
+            dropdownPosition="auto"
+            [multiple]="true"
+            [closeOnSelect]="true"
+            [searchable]="true"
+            [clearable]="true"
+            [hideSelected]="true"
+            [addTag]="addKioskTag"
+            [addTagText]="t('addTagText')"
+            [notFoundText]="t('noOptions')"
+            [ngModel]="selectedMotifs()"
+            (ngModelChange)="updateSelectedMotifs($event)"
+            [placeholder]="t('motifInputPlaceholder')"
+          ></ng-select>
+
+          <div class="actions-row">
+            <button type="button" class="btn-soft" (click)="goBackFromMotifs()">{{ t('back') }}</button>
+            <button type="button" class="btn-primary" (click)="continueFromMotifs()">{{ t('continue') }}</button>
+          </div>
+        </section>
+      }
+
+      @case ('questionnaire') {
+        <section class="panel">
+          <h2>{{ t('questionnaireTitle') }}</h2>
+          <p class="muted">{{ questionnaireStepNumber() }}/{{ questionnaireStepOrder.length }}</p>
+
+          @switch (questionnaireStep()) {
+            @case ('antecedentsGeneraux') {
+              <div class="question-card">
+                <p>{{ t('questionGeneralHistory') }}</p>
+                <div class="choice-inline">
+                  <button type="button" [class.active]="questionnaire().hasAntecedentsGeneraux === 'yes'" (click)="updateQuestionnaireField('hasAntecedentsGeneraux', 'yes')">{{ t('yes') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasAntecedentsGeneraux === 'no'" (click)="updateQuestionnaireField('hasAntecedentsGeneraux', 'no')">{{ t('no') }}</button>
+                </div>
+                @if (questionnaire().hasAntecedentsGeneraux === 'yes') {
+                <ng-select
+                  class="kiosk-select"
+                  [items]="antecedentsGenerauxOptions()"
+                  [appendTo]="'body'"
+                  dropdownPosition="auto"
+                  [multiple]="true"
+                  [closeOnSelect]="true"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="addKioskTag"
+                  [addTagText]="t('addTagText')"
+                  [notFoundText]="t('noOptions')"
+                  [ngModel]="questionnaire().antecedentsGeneraux"
+                  (ngModelChange)="updateQuestionnaireSelection('antecedentsGeneraux', $event)"
+                  [placeholder]="t('selectPlaceholder')"
+                ></ng-select>
+                }
+              </div>
+            }
+
+            @case ('antecedentsFamiliaux') {
+              <div class="question-card">
+                <p>{{ t('questionFamilyHistory') }}</p>
+                <div class="choice-inline">
+                  <button type="button" [class.active]="questionnaire().hasAntecedentsFamiliaux === 'yes'" (click)="updateQuestionnaireField('hasAntecedentsFamiliaux', 'yes')">{{ t('yes') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasAntecedentsFamiliaux === 'no'" (click)="updateQuestionnaireField('hasAntecedentsFamiliaux', 'no')">{{ t('no') }}</button>
+                </div>
+                @if (questionnaire().hasAntecedentsFamiliaux === 'yes') {
+                <ng-select
+                  class="kiosk-select"
+                  [items]="antecedentsFamiliauxOptions()"
+                  [appendTo]="'body'"
+                  dropdownPosition="auto"
+                  [multiple]="true"
+                  [closeOnSelect]="true"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="addKioskTag"
+                  [addTagText]="t('addTagText')"
+                  [notFoundText]="t('noOptions')"
+                  [ngModel]="questionnaire().antecedentsFamiliaux"
+                  (ngModelChange)="updateQuestionnaireSelection('antecedentsFamiliaux', $event)"
+                  [placeholder]="t('selectPlaceholder')"
+                ></ng-select>
+                }
+              </div>
+            }
+
+            @case ('signesFonctionnels') {
+              <div class="question-card">
+                <p>{{ t('questionFunctionalSigns') }}</p>
+                <div class="choice-inline">
+                  <button type="button" [class.active]="questionnaire().hasSignesFonctionnels === 'yes'" (click)="updateQuestionnaireField('hasSignesFonctionnels', 'yes')">{{ t('yes') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasSignesFonctionnels === 'no'" (click)="updateQuestionnaireField('hasSignesFonctionnels', 'no')">{{ t('no') }}</button>
+                </div>
+                @if (questionnaire().hasSignesFonctionnels === 'yes') {
+                <ng-select
+                  class="kiosk-select"
+                  [items]="signesFonctionnelsOptions()"
+                  [appendTo]="'body'"
+                  dropdownPosition="auto"
+                  [multiple]="true"
+                  [closeOnSelect]="true"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="addKioskTag"
+                  [addTagText]="t('addTagText')"
+                  [notFoundText]="t('noOptions')"
+                  [ngModel]="questionnaire().signesFonctionnels"
+                  (ngModelChange)="updateQuestionnaireSelection('signesFonctionnels', $event)"
+                  [placeholder]="t('selectPlaceholder')"
+                ></ng-select>
+                }
+              </div>
+            }
+
+            @case ('histoireMaladie') {
+              <div class="question-card">
+                <p>{{ t('questionDiseaseHistory') }}</p>
+                <div class="choice-inline">
+                  <button type="button" [class.active]="questionnaire().hasHistoireMaladie === 'yes'" (click)="updateQuestionnaireField('hasHistoireMaladie', 'yes')">{{ t('yes') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasHistoireMaladie === 'no'" (click)="updateQuestionnaireField('hasHistoireMaladie', 'no')">{{ t('no') }}</button>
+                </div>
+                @if (questionnaire().hasHistoireMaladie === 'yes') {
+                <textarea
+                  [placeholder]="t('diseaseHistoryPlaceholder')"
+                  [ngModel]="questionnaire().histoireMaladie"
+                  (ngModelChange)="updateQuestionnaireField('histoireMaladie', $event)"
+                ></textarea>
+                }
+              </div>
+            }
+
+            @case ('traitementEnCours') {
+              <div class="question-card">
+                <p>{{ t('questionTreatments') }}</p>
+                <div class="choice-inline">
+                  <button type="button" [class.active]="questionnaire().hasTraitementEnCours === 'yes'" (click)="updateQuestionnaireField('hasTraitementEnCours', 'yes')">{{ t('yes') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasTraitementEnCours === 'no'" (click)="updateQuestionnaireField('hasTraitementEnCours', 'no')">{{ t('no') }}</button>
+                </div>
+                @if (questionnaire().hasTraitementEnCours === 'yes') {
+                <ng-select
+                  class="kiosk-select"
+                  [items]="treatmentOptions()"
+                  [appendTo]="'body'"
+                  dropdownPosition="auto"
+                  [multiple]="true"
+                  [closeOnSelect]="true"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="addKioskTag"
+                  [addTagText]="t('addTagText')"
+                  [notFoundText]="t('noOptions')"
+                  [ngModel]="questionnaire().traitementEnCours"
+                  (ngModelChange)="updateQuestionnaireSelection('traitementEnCours', $event)"
+                  [placeholder]="t('treatmentPlaceholder')"
+                ></ng-select>
+                }
+              </div>
+            }
+          }
+
+          <div class="actions-row">
+            <button type="button" class="btn-soft" (click)="previousQuestionnaireStep()">{{ t('back') }}</button>
+            @if (!isLastQuestionnaireStep()) {
+              @if (canContinueCurrentQuestionStep()) {
+                <button type="button" class="btn-primary" (click)="nextQuestionnaireStep()">{{ t('continue') }}</button>
+              }
+            } @else {
+              @if (canContinueCurrentQuestionStep()) {
+                <button type="button" class="btn-primary" (click)="submitQuestionnaire()">{{ t('finish') }}</button>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      @case ('confirmation') {
+        <section class="panel confirmation-panel">
+          <h2>{{ t('confirmationTitle') }}</h2>
+          <p>{{ t('confirmationBody') }}</p>
+          <button type="button" class="btn-primary" (click)="resetSession()">{{ t('startOver') }}</button>
+        </section>
+      }
+
+      @case ('error') {
+        <section class="panel error-panel">
+          <h2>{{ t('genericError') }}</h2>
+          <p>{{ errorMessage() || t('genericError') }}</p>
+          <button type="button" class="btn-primary" (click)="resetSession()">{{ t('startOver') }}</button>
+        </section>
+      }
+    }
+  }
+</div>
+

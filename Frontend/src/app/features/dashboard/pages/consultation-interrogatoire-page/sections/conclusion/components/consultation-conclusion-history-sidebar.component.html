@@ -1,0 +1,135 @@
+<aside
+  class="sidebar-shell right"
+  [class.collapsed]="isCollapsed"
+  [class.drawer-mode]="drawerMode"
+>
+  <div class="sidebar-head">
+    @if (showToggle) {
+      <button
+        type="button"
+        class="sidebar-toggle"
+        [attr.aria-expanded]="!isCollapsed"
+        [attr.aria-label]="(
+          isCollapsed
+            ? 'consultation.page.conclusion.sidebar.toggleExpand'
+            : 'consultation.page.conclusion.sidebar.toggleCollapse'
+        ) | translate"
+        (click)="toggleCollapsed()"
+      >
+        <i [class]="toggleIconClass"></i>
+      </button>
+    }
+
+    @if (isCollapsed) {
+      <span class="sidebar-rail-label">
+        {{ 'consultation.page.conclusion.sidebar.historyTitle' | translate }}
+      </span>
+    } @else {
+      <div class="sidebar-heading">
+        <p class="sidebar-eyebrow">
+          {{ 'consultation.page.conclusion.sidebar.historySubtitle' | translate }}
+        </p>
+        <h3>{{ 'consultation.page.conclusion.sidebar.historyTitle' | translate }}</h3>
+      </div>
+    }
+  </div>
+
+  @if (!isCollapsed) {
+    <div class="sidebar-body">
+      @if (isHistoryLoading) {
+        <div class="sidebar-state">
+          {{ 'consultation.page.conclusion.sidebar.historyLoading' | translate }}
+        </div>
+      } @else if (historyLoadError) {
+        <div class="sidebar-state error">
+          {{ historyLoadError | translate }}
+        </div>
+      } @else if (!hasPreviousConsultations) {
+        <div class="sidebar-state">
+          {{ 'consultation.page.conclusion.sidebar.historyEmpty' | translate }}
+        </div>
+      } @else {
+        <div class="history-stack">
+          @for (consultation of previousConsultations; track consultation.id) {
+            <article class="history-card" [class.open]="selectedHistoryConsultationId === consultation.id">
+              <button
+                type="button"
+                class="history-card-trigger"
+                [class.open]="selectedHistoryConsultationId === consultation.id"
+                (click)="toggleHistoryCard(consultation)"
+              >
+                <div class="history-card-main">
+                  <span class="history-card-date">
+                    {{ consultation.consultationDate | date: 'dd/MM/yyyy' }}
+                  </span>
+                  <span class="history-card-time">
+                    {{ consultation.consultationDate | date: 'HH:mm' }}
+                  </span>
+                </div>
+
+                <div class="history-card-meta">
+                  @if (consultation.motifs.length > 0) {
+                    @for (motif of consultation.motifs.slice(0, 2); track motif) {
+                      <span class="history-chip">{{ motif }}</span>
+                    }
+
+                    @if (consultation.motifs.length > 2) {
+                      <span class="history-chip muted">
+                        +{{ consultation.motifs.length - 2 }}
+                      </span>
+                    }
+                  } @else {
+                    <span class="history-chip muted">
+                      {{ 'consultation.page.none' | translate }}
+                    </span>
+                  }
+                </div>
+
+                <i
+                  class="bi history-card-icon"
+                  [class.bi-chevron-up]="selectedHistoryConsultationId === consultation.id"
+                  [class.bi-chevron-down]="selectedHistoryConsultationId !== consultation.id"
+                ></i>
+              </button>
+
+              @if (selectedHistoryConsultationId === consultation.id) {
+                <div class="history-card-body">
+                  @if (isPreviewLoading) {
+                    <div class="sidebar-state">
+                      {{ 'consultation.page.conclusion.sidebar.historyPreviewLoading' | translate }}
+                    </div>
+                  } @else if (previewLoadError) {
+                    <div class="sidebar-state error">
+                      {{ previewLoadError | translate }}
+                    </div>
+                  } @else if (selectedHistoryViewModel) {
+                    <app-consultation-conclusion-report
+                      [viewModel]="selectedHistoryViewModel"
+                      [displayMode]="'compact'"
+                    />
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+
+        @if (totalPages > 1) {
+          <div class="history-pagination">
+            <button type="button" [disabled]="pageNumber <= 1 || isHistoryLoading" (click)="changePage(-1)">
+              {{ 'patients.list.pagination.previous' | translate }}
+            </button>
+            <span>{{ pageNumber }} / {{ totalPages }}</span>
+            <button
+              type="button"
+              [disabled]="pageNumber >= totalPages || isHistoryLoading"
+              (click)="changePage(1)"
+            >
+              {{ 'patients.list.pagination.next' | translate }}
+            </button>
+          </div>
+        }
+      }
+    </div>
+  }
+</aside>

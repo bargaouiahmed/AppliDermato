@@ -1,0 +1,79 @@
+<div class="role-step-shell">
+  <h3 class="role-title">{{ 'role.question' | translate }}</h3>
+  <p class="role-subtitle">{{ 'role.selectHint' | translate }}</p>
+
+  <div class="role-list">
+    <button
+      type="button"
+      class="role-card"
+      [class.selected]="selectedRole() === 'doctor'"
+      [disabled]="loading()"
+      (click)="selectRole('doctor')"
+    >
+      <span class="icon-wrap" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="icon" fill="currentColor">
+          <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-3.31 0-6 1.79-6 4v1h12v-1c0-2.21-2.69-4-6-4Z"/>
+        </svg>
+      </span>
+      <span class="role-content">
+        <span class="role-name">{{ 'role.doctor' | translate }}</span>
+        <span class="role-user">{{ loginData().firstName }} {{ loginData().lastName }}</span>
+      </span>
+    </button>
+
+    @if (loginData().firstSecretary; as sec) {
+      <button
+        type="button"
+        class="role-card"
+        [class.selected]="selectedRole() === 'secretary1'"
+        [disabled]="loading()"
+        (click)="selectRole('secretary1')"
+      >
+        <span class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon" fill="currentColor">
+            <path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm5 3a2.5 2.5 0 1 0 2.5 2.5A2.5 2.5 0 0 0 12 5Zm-4 11a4 4 0 0 1 8 0v1H8Z"/>
+          </svg>
+        </span>
+        <span class="role-content">
+          <span class="role-name">{{ 'role.secretary' | translate }} 1</span>
+          <span class="role-user">{{ sec.firstName }} {{ sec.lastName }}</span>
+        </span>
+      </button>
+    }
+
+    @if (loginData().isSecondSecretaryEnabled && loginData().secondSecretary; as sec) {
+      <button
+        type="button"
+        class="role-card"
+        [class.selected]="selectedRole() === 'secretary2'"
+        [disabled]="loading()"
+        (click)="selectRole('secretary2')"
+      >
+        <span class="icon-wrap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon" fill="currentColor">
+            <path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm5 3a2.5 2.5 0 1 0 2.5 2.5A2.5 2.5 0 0 0 12 5Zm-4 11a4 4 0 0 1 8 0v1H8Z"/>
+          </svg>
+        </span>
+        <span class="role-content">
+          <span class="role-name">{{ 'role.secretary' | translate }} 2</span>
+          <span class="role-user">{{ sec.firstName }} {{ sec.lastName }}</span>
+        </span>
+      </button>
+    }
+  </div>
+
+  <div class="continue-wrap">
+    <button
+      type="button"
+      class="continue-btn"
+      [disabled]="!selectedRole() || loading()"
+      (click)="continue()"
+    >
+      @if (loading()) {
+        {{ 'common.loading' | translate }}
+      } @else {
+        {{ 'role.continue' | translate }}
+      }
+    </button>
+  </div>
+</div>

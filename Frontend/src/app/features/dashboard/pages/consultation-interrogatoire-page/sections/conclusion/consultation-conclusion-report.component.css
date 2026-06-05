@@ -1,0 +1,606 @@
+:host {
+  display: block;
+}
+
+.conclusion-sheet {
+  --conclusion-camel: rgba(200, 149, 104, 0.2);
+  --conclusion-camel-strong: #c89568;
+  --conclusion-forest: #175042;
+  --conclusion-olive: #93ae88;
+  --conclusion-line: #e6dccf;
+  --conclusion-paper: rgba(255, 255, 240, 0.86);
+  --conclusion-text: #121822;
+  --conclusion-abnormal: #ffffac;
+  --conclusion-abnormal-border: #e1d166;
+  --conclusion-unassigned: #6c757d;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0.6rem;
+  border: 1px solid var(--conclusion-line);
+  border-radius: 0.45rem;
+  background: var(--conclusion-camel);
+  color: var(--conclusion-text);
+  box-shadow: 0 4px 12px rgba(34, 34, 34, 0.04);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.patient-panel,
+.sheet-section,
+.entry-block,
+.metric-item {
+  border: 1px solid var(--conclusion-line);
+  border-radius: 0.35rem;
+}
+
+.patient-panel,
+.sheet-section {
+  background: var(--conclusion-paper);
+  padding: 0.55rem;
+}
+
+.patient-panel {
+  display: none;
+  margin-bottom: 0.55rem;
+}
+
+.conclusion-sheet.capture-mode .patient-panel,
+.conclusion-sheet.print-view .patient-panel {
+  display: block;
+}
+
+.conclusion-sheet.capture-mode,
+.conclusion-sheet.print-view {
+  padding-inline-end: calc(0.6rem + 30px);
+}
+
+.patient-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0.65rem 0.55rem;
+}
+
+.patient-table td {
+  width: 33.333%;
+  vertical-align: top;
+  padding: 0;
+}
+
+.patient-cell-label {
+  display: inline-block;
+  color: var(--conclusion-forest);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.patient-cell-value {
+  display: block;
+  min-height: 2rem;
+  margin-top: 0.2rem;
+  padding: 0.34rem 0.5rem;
+  border: 1px solid #d8dde3;
+  border-radius: 0.25rem;
+  background: #edf2f6;
+  color: #4d5c66;
+  font-weight: 500;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.sheet-section + .sheet-section {
+  margin-top: 0.5rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--conclusion-line);
+}
+
+.section-heading h2,
+.entry-block h3,
+.summary-row h3 {
+  margin: 0;
+}
+
+.section-heading h2 {
+  color: var(--conclusion-camel-strong);
+}
+
+.section-index {
+  width: 2rem;
+  height: 2rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--conclusion-camel-strong);
+  color: #fffdf8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.content-stack,
+.rows-block,
+.badge-row {
+  display: flex;
+}
+
+.content-stack,
+.rows-block {
+  flex-direction: column;
+}
+
+.content-stack {
+  gap: 0.35rem;
+}
+
+.rows-block {
+  gap: 0.15rem;
+}
+
+.entry-block {
+  background: rgba(255, 255, 240, 0.95);
+  padding: 0.45rem 0.55rem;
+}
+
+.entry-block h3,
+.summary-row h3 {
+  font-size: 0.92rem;
+  line-height: 1.35;
+  color: var(--conclusion-forest);
+}
+
+.entry-block h3 {
+  margin-bottom: 0.3rem;
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 250px) minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(23, 80, 66, 0.12);
+}
+
+.conclusion-sheet.capture-mode .summary-row,
+.conclusion-sheet.print-view .summary-row {
+  min-height: 3.35rem;
+  padding-top: 0.38rem;
+  padding-bottom: 0.38rem;
+  align-items: stretch;
+}
+
+.conclusion-sheet.capture-mode .summary-row > h3,
+.conclusion-sheet.print-view .summary-row > h3 {
+  display: flex;
+  align-items: center;
+}
+
+.conclusion-sheet.capture-mode .summary-row > .badge-row,
+.conclusion-sheet.print-view .summary-row > .badge-row {
+  display: flex;
+  align-self: stretch;
+  min-height: 100%;
+  align-items: center;
+  align-content: center;
+}
+
+.conclusion-sheet.capture-mode .summary-row > .badge-row .status-badge,
+.conclusion-sheet.print-view .summary-row > .badge-row .status-badge {
+  align-self: center;
+  min-height: 2.05rem;
+  padding-top: 0.42rem;
+  padding-bottom: 0.42rem;
+  justify-content: center;
+}
+
+.rows-block > .summary-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.row-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.conclusion-sheet.capture-mode .row-heading,
+.conclusion-sheet.print-view .row-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) fit-content(18rem);
+  align-items: center;
+}
+
+.conclusion-sheet.capture-mode .row-heading > .status-badge,
+.conclusion-sheet.print-view .row-heading > .status-badge {
+  justify-self: end;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.metric-item {
+  background: rgba(255, 255, 240, 0.95);
+  padding: 0.38rem 0.48rem;
+}
+
+.metric-label {
+  display: block;
+  color: var(--conclusion-forest);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.metric-value {
+  display: block;
+  margin-top: 0.22rem;
+  color: var(--conclusion-text);
+  line-height: 1.45;
+}
+
+.metric-value-card {
+  display: inline-flex;
+  margin-top: 0.3rem;
+  padding: 0.24rem 0.42rem;
+  border: 1px solid var(--conclusion-olive);
+  border-radius: 0.32rem;
+  background: rgba(147, 174, 136, 0.22);
+  color: var(--conclusion-forest);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.story-text {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.empty-story {
+  border: 1px solid rgba(108, 117, 125, 0.25);
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  background: rgba(108, 117, 125, 0.08);
+  color: #343a40;
+  font-weight: 600;
+}
+
+.badge-row {
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  max-width: 100%;
+  padding: 0.24rem 0.42rem;
+  border: 1px solid transparent;
+  border-radius: 0.32rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.status-badge small {
+  font-size: 0.73rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.tone-normal {
+  background: rgba(147, 174, 136, 0.22);
+  border-color: var(--conclusion-olive);
+  color: var(--conclusion-forest);
+}
+
+.tone-abnormal {
+  background: rgba(147, 174, 136, 0.22);
+  border-color: var(--conclusion-olive);
+  color: var(--conclusion-forest);
+}
+
+.tone-unassigned {
+  background: rgba(147, 174, 136, 0.22);
+  border-color: var(--conclusion-olive);
+  color: var(--conclusion-forest);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.treatment-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  background: rgba(255, 255, 240, 0.95);
+}
+
+.treatment-table th,
+.treatment-table td {
+  padding: 0.32rem 0.4rem;
+  border-bottom: 1px solid rgba(230, 220, 207, 0.92);
+  text-align: left;
+  vertical-align: top;
+}
+
+.treatment-table th {
+  color: var(--conclusion-forest);
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.treatment-table td {
+  color: var(--conclusion-text);
+  font-size: 0.85rem;
+}
+
+.print-view {
+  max-width: none;
+  margin: 0;
+}
+
+.compact-view {
+  padding: 0.45rem;
+  border-radius: 0.8rem;
+  box-shadow: 0 10px 24px rgba(23, 80, 66, 0.08);
+}
+
+.compact-view .patient-panel {
+  display: none;
+}
+
+.compact-view .patient-table {
+  border-spacing: 0.45rem 0.4rem;
+}
+
+.compact-view .patient-cell-label {
+  font-size: 0.78rem;
+}
+
+.compact-view .patient-cell-value {
+  min-height: 1.65rem;
+  padding: 0.28rem 0.38rem;
+  font-size: 0.82rem;
+}
+
+.compact-view .patient-panel,
+.compact-view .sheet-section {
+  padding: 0.48rem;
+}
+
+.compact-view .sheet-section + .sheet-section {
+  margin-top: 0.42rem;
+}
+
+.compact-view .section-heading {
+  gap: 0.55rem;
+  margin-bottom: 0.36rem;
+  padding-bottom: 0.26rem;
+}
+
+.compact-view .section-heading h2 {
+  font-size: 1rem;
+}
+
+.compact-view .section-index {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.76rem;
+}
+
+.compact-view .content-stack {
+  gap: 0.28rem;
+}
+
+.compact-view .rows-block {
+  gap: 0.1rem;
+}
+
+.compact-view .entry-block {
+  padding: 0.4rem 0.45rem;
+}
+
+.compact-view .entry-block h3,
+.compact-view .summary-row h3 {
+  font-size: 0.84rem;
+}
+
+.compact-view .summary-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.32rem;
+  padding: 0.32rem 0;
+}
+
+.compact-view .row-heading {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.38rem;
+}
+
+.compact-view .metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.28rem;
+}
+
+.compact-view .metric-item {
+  padding: 0.32rem 0.4rem;
+}
+
+.compact-view .metric-label {
+  font-size: 0.68rem;
+}
+
+.compact-view .metric-value,
+.compact-view .story-text,
+.compact-view .empty-story {
+  font-size: 0.82rem;
+}
+
+.compact-view .badge-row {
+  gap: 0.18rem;
+}
+
+.compact-view .status-badge {
+  padding: 0.22rem 0.34rem;
+  font-size: 0.76rem;
+}
+
+.compact-view .status-badge small {
+  font-size: 0.68rem;
+}
+
+.compact-view .treatment-table {
+  min-width: 0;
+}
+
+.compact-view .treatment-table th,
+.compact-view .treatment-table td {
+  padding: 0.26rem 0.3rem;
+  font-size: 0.72rem;
+}
+
+.print-avoid-break {
+  break-inside: avoid;
+}
+
+@page {
+  size: A4;
+  margin: 8mm;
+}
+
+@media (max-width: 960px) {
+  .patient-table,
+  .patient-table tbody,
+  .patient-table tr,
+  .patient-table td,
+  .metric-grid,
+  .summary-row {
+    display: block;
+  }
+
+  .patient-table {
+    border-spacing: 0;
+  }
+
+  .patient-table td + td {
+    padding-top: 0.7rem;
+  }
+
+  .row-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media print {
+  .conclusion-sheet {
+    padding: 0.45rem;
+    border: 1px solid var(--conclusion-line);
+    box-shadow: none;
+  }
+
+  .conclusion-sheet.print-view {
+    padding-inline-end: calc(0.45rem + 30px);
+  }
+
+  .patient-panel,
+  .sheet-section {
+    padding: 0.6rem 0.7rem;
+  }
+
+  .patient-table {
+    border-spacing: 0.55rem 0.45rem;
+  }
+
+  .patient-cell-value {
+    min-height: 1.8rem;
+    margin-top: 0.18rem;
+    padding: 0.28rem 0.42rem;
+  }
+
+  .sheet-section.print-avoid-break {
+    break-inside: auto;
+  }
+
+  .patient-panel,
+  .entry-block,
+  .summary-row,
+  .metric-item,
+  .table-wrap,
+  .row-heading {
+    break-inside: avoid;
+  }
+
+  .sheet-section + .sheet-section {
+    margin-top: 0.55rem;
+  }
+
+  .section-heading {
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .rows-block {
+    gap: 0.5rem;
+  }
+
+  .content-stack {
+    gap: 0.45rem;
+  }
+
+  .entry-block {
+    padding: 0.5rem 0.6rem;
+  }
+
+  .summary-row {
+    padding: 0.4rem 0;
+  }
+
+  .metric-grid {
+    gap: 0.4rem;
+  }
+
+  .metric-item {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .badge-row {
+    gap: 0.3rem;
+  }
+
+  .status-badge {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.85rem;
+  }
+
+  .treatment-table {
+    min-width: 0;
+  }
+
+  .treatment-table th,
+  .treatment-table td {
+    padding: 0.38rem 0.45rem;
+  }
+}

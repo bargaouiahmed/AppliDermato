@@ -1,0 +1,99 @@
+﻿/* ===================== Collapsible Histoire de la maladie Section ===================== */
+.antecedent-section-wrapper {
+  border: 1px solid #ddd6ca;
+  border-radius: 0.35rem;
+  background: rgba(200, 149, 104, 0.16);
+  overflow: visible;
+  position: relative;
+}
+
+.antecedent-collapsible-body {
+  width: 100%;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s ease;
+}
+
+.antecedent-section-wrapper:hover .antecedent-collapsible-body,
+.antecedent-section-wrapper.section-expanded .antecedent-collapsible-body {
+  max-height: 5000px;
+  overflow: visible;
+  transition: max-height 0.5s ease-in;
+}
+
+.antecedent-section-wrapper .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.antecedent-section-wrapper .card-header.non-collapsible {
+  cursor: default;
+}
+
+.antecedent-section-wrapper .card-header h3 {
+  margin: 0;
+  color: #c89568;
+  font-size: 1.78rem;
+  font-weight: 400 !important;
+}
+
+.antecedent-section-wrapper .card-header .collapse-indicator {
+  color: #425e57;
+  transition: transform 0.2s ease;
+  font-size: 1rem;
+}
+
+.antecedent-section-wrapper.section-expanded .card-header .collapse-indicator {
+  transform: rotate(180deg);
+}
+
+.antecedent-collapsible-body .mb-2 {
+  margin-bottom: 0 !important;
+  padding: 0 0.35rem 0.25rem;
+}
+
+.rtl-layout .card-header {
+  flex-direction: row-reverse;
+}
+
+.rtl-layout .card-header h3 {
+  text-align: right;
+}
+
+.rtl-layout {
+  direction: rtl;
+}
+
+.histoire-maladie-textarea {
+  width: 100%;
+  min-height: 140px;
+  border: 1px solid #cfd7ce;
+  border-radius: 0.3rem;
+  background: #fff;
+  color: #273834;
+  padding: 0.42rem 0.55rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.histoire-maladie-textarea:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: #b8c7bc;
+}
+
+.rtl-layout .histoire-maladie-textarea {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .antecedent-section-wrapper .card-header h3 {
+    font-size: 1.65rem;
+  }
+}

@@ -1,0 +1,107 @@
+<article class="conduite-card">
+  <header class="conduite-card-header">
+    <h3>{{ 'consultation.conduite.certificat.title' | translate }}</h3>
+  </header>
+
+  <div class="form-grid">
+    <label class="wide">
+      <span>{{ 'consultation.conduite.certificat.typeSelector.label' | translate }}</span>
+      <select
+        name="certificat-types"
+        [ngModel]="selectedType"
+        (ngModelChange)="onTypeChange($event)"
+      >
+        @for (typeOption of typeOptions; track typeOption.value) {
+          <option [value]="typeOption.value">
+            {{ typeOption.labelKey | translate }}
+          </option>
+        }
+      </select>
+    </label>
+
+    @if (isRestType) {
+      <label>
+        <span>{{ 'consultation.conduite.certificat.fields.restDays' | translate }}</span>
+        <input
+          name="certificat-nombre"
+          type="number"
+          min="0"
+          [(ngModel)]="nombre"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+
+      <label>
+        <span>{{ 'consultation.conduite.certificat.fields.countFrom' | translate }}</span>
+        <input
+          name="certificat-compterDe"
+          type="datetime-local"
+          [(ngModel)]="compterDe"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+    }
+
+    @if (isAccompanimentType) {
+      <label>
+        <span>{{ 'consultation.conduite.certificat.fields.civility' | translate }}</span>
+        <select
+          name="certificat-civilite"
+          [(ngModel)]="civiliteAccompagnant"
+          (ngModelChange)="onFieldChange()"
+        >
+          <option value="">
+            {{ 'consultation.conduite.certificat.fields.civilityPlaceholder' | translate }}
+          </option>
+          <option value="M">M.</option>
+          <option value="Mme">Mme</option>
+        </select>
+      </label>
+
+      <label>
+        <span>{{ 'consultation.conduite.certificat.fields.companionFullName' | translate }}</span>
+        <input
+          name="certificat-nomPrenom"
+          [(ngModel)]="nomPrenomAccompagnant"
+          (ngModelChange)="onFieldChange()"
+          [placeholder]="'consultation.conduite.certificat.fields.companionPlaceholder' | translate"
+        />
+      </label>
+    }
+
+    @if (hasDateField) {
+      <label>
+        <span>{{ 'consultation.conduite.certificat.fields.date' | translate }}</span>
+        <input
+          name="certificat-date"
+          type="datetime-local"
+          [(ngModel)]="dateCertificat"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+    }
+
+    @if (hasDescriptionField) {
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.certificat.fields.description' | translate }}</span>
+        <textarea
+          name="certificat-description"
+          [(ngModel)]="description"
+          (ngModelChange)="onFieldChange()"
+          [placeholder]="'consultation.conduite.certificat.fields.descriptionPlaceholder' | translate"
+        ></textarea>
+      </label>
+    }
+  </div>
+
+  <div class="certificat-actions">
+    <button
+      type="button"
+      class="btn btn-color-green btn-primary btn-gg certificat-print-btn"
+      [disabled]="isPrinting"
+      (click)="onPrintClick()"
+    >
+      {{ isPrinting ? ('consultation.documents.actions.printing' | translate) : ('consultation.documents.actions.print' | translate) }}
+    </button>
+  </div>
+</article>

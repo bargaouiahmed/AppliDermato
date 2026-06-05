@@ -1,0 +1,69 @@
+:host {
+  display: block;
+}
+
+.conduite-card {
+  background: #ffffff;
+  border: 1px solid #d8e7df;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.conduite-card-header h3 {
+  margin: 0 0 0.8rem;
+  color: #c89568;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.vision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.vision-grid section {
+  border: 1px solid #d8e7df;
+  border-radius: 10px;
+  padding: 0.8rem;
+  background: #f8fcfa;
+}
+
+.vision-grid h4 {
+  margin: 0 0 0.6rem;
+  color: #c89568;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.55rem;
+}
+
+label span {
+  color: #175042;
+  font-size: 0.79rem;
+  font-weight: 700;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #c6d8ce;
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.86rem;
+  color: #153833;
+}
+
+.wide-note {
+  margin-top: 0.8rem;
+}
+
+textarea {
+  min-height: 86px;
+  resize: vertical;
+}

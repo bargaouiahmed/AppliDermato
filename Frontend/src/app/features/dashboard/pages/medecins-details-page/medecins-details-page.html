@@ -1,0 +1,140 @@
+<div class="container-fluid p-4 bg-color medecins-details-page" [formGroup]="form">
+  <div class="header-row mb-4">
+    <a class="back-link" [routerLink]="['/medecins']">
+      <span aria-hidden="true">&larr;</span>
+      {{ 'common.back' | translate }}
+    </a>
+    <h3>{{ 'medecins.details.title' | translate }}</h3>
+  </div>
+
+  @if (loading()) {
+    <div class="card state">{{ 'common.loading' | translate }}</div>
+  } @else {
+    <div class="row mb-4 align-items-stretch">
+      <div class="col-md-3 text-center mb-4 mb-md-0 d-flex">
+        <div class="card shadow-sm p-3 flex-grow-1 d-flex flex-column justify-content-between">
+          <div>
+            <div class="avatar-container mb-3">
+              @if (!profileImageUrl()) {
+                <div class="avatar-placeholder">
+                  <i class="bi bi-person-circle"></i>
+                </div>
+              } @else {
+                <img [src]="profileImageUrl()" class="avatar-image" alt="Photo profil" />
+              }
+            </div>
+
+            <span class="badge status-pill">
+              {{ getStatusLabelKey() | translate }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-9 d-flex">
+        <div class="card shadow-sm p-3 flex-grow-1">
+          <h4 class="mb-3">{{ 'profile.personalInfo' | translate }}</h4>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label>{{ 'profile.lastName' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="lastName" />
+            </div>
+
+            <div class="col-md-6">
+              <label>{{ 'profile.firstName' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="firstName" />
+            </div>
+
+            <div class="col-md-6">
+              <label>{{ 'medecins.fields.nationality' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="nationality" />
+            </div>
+
+            <div class="col-md-6">
+              <label>{{ 'medecins.fields.email' | translate }} *</label>
+              <input class="form-control" type="email" formControlName="email" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4 align-items-stretch">
+      <div class="col-md-6 d-flex">
+        <div class="card shadow-sm p-3 flex-grow-1">
+          <h4 class="mb-3">{{ 'profile.contactInfo' | translate }}</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label>{{ 'profile.mobile' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="phoneNumber" />
+            </div>
+
+            <div class="col-md-6">
+              <label>{{ 'profile.landline' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="landline" />
+            </div>
+
+            <div class="col-md-12">
+              <label>{{ 'medecins.fields.language' | translate }} *</label>
+              <select class="form-control" formControlName="languagePreference">
+                <option value="fr">FR</option>
+                <option value="en">EN</option>
+                <option value="ar">AR</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 d-flex">
+        <div class="card shadow-sm p-3 flex-grow-1">
+          <h4 class="mb-3">{{ 'profile.clinicAddress' | translate }}</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label>{{ 'profile.country' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="cabinetCountry" />
+            </div>
+
+            <div class="col-md-6">
+              <label>{{ 'profile.city' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="cabinetCity" />
+            </div>
+
+            <div class="col-md-6">
+              <label>{{ 'profile.postalCode' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="cabinetPostalCode" />
+            </div>
+
+            <div class="col-12">
+              <label>{{ 'profile.officeAddress' | translate }} *</label>
+              <input class="form-control" type="text" formControlName="cabinetAddress" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card shadow-sm p-3">
+          <h4 class="mb-3">{{ 'medecins.fields.notesFromAdmin' | translate }}</h4>
+          <textarea class="form-control" formControlName="notesFromAdmin" rows="4"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <button class="btn btn-secondary me-2" type="button" [routerLink]="['/medecins']">
+        {{ 'medecins.actions.cancel' | translate }}
+      </button>
+      <button class="btn btn-primary" type="button" [disabled]="saving()" (click)="save()">
+        @if (saving()) {
+          {{ 'common.loading' | translate }}
+        } @else {
+          {{ 'profile.save' | translate }}
+        }
+      </button>
+    </div>
+  }
+</div>

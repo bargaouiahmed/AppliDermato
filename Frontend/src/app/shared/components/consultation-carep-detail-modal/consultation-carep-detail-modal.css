@@ -1,0 +1,260 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: #fffff0;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 460px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e0e0d8;
+  flex-shrink: 0;
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #c89568;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #175042;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: opacity 0.2s;
+}
+
+.modal-close:hover {
+  opacity: 0.7;
+}
+
+.modal-body {
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #e0e0d8;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #175042;
+  color: #fff;
+  border: none;
+  border-radius: 0.35rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-print:hover {
+  background: #0f3a2e;
+}
+
+.btn-secondary {
+  background: #93ae88;
+  color: #fff;
+  border: none;
+  border-radius: 0.35rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #175042;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.error-state {
+  color: #b24040;
+}
+
+.detail-section {
+  margin-bottom: 1rem;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #175042;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.detail-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.detail-tag {
+  background-color: #93ae88;
+  color: #fff;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Ordonnance */
+.drug-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drug-item {
+  background: #f5f7f3;
+  border-radius: 0.3rem;
+  padding: 0.5rem 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  align-items: baseline;
+}
+
+.drug-name {
+  font-weight: 600;
+  color: #175042;
+  font-size: 0.88rem;
+}
+
+.drug-class {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+.drug-meta {
+  font-size: 0.78rem;
+  color: #888;
+  width: 100%;
+}
+
+/* Bilan sanguin */
+.test-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.test-item-expanded {
+  padding: 0.75rem;
+  background: #fdfdf8;
+  border: 1px solid #e0e0d8;
+  border-radius: 0.4rem;
+}
+
+.test-header {
+  margin-bottom: 0.5rem;
+}
+
+.test-name {
+  font-weight: 600;
+  color: #175042;
+  font-size: 0.88rem;
+}
+
+.detail-tag-small {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.72rem;
+  background-color: #eef4ea;
+  color: #175042;
+  border: 1px solid #d1dfca;
+  font-weight: 600;
+  border-radius: 0.2rem;
+}
+
+/* CNAM */
+.cnam-section {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.cnam-badge {
+  display: inline-block;
+  background: #175042;
+  color: #fff;
+  padding: 0.4rem 1.2rem;
+  border-radius: 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.cnam-hint {
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+  color: #666;
+}

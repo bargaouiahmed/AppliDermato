@@ -1,0 +1,52 @@
+.tab-panel {
+  min-height: 260px;
+  padding: 0.75rem;
+  color: #175042;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.tab-panel,
+.tab-panel input,
+.tab-panel textarea,
+.tab-panel select,
+.tab-panel button,
+.tab-panel .ng-select,
+.tab-panel .ng-select-container {
+  font-family: var(--app-font-family) !important;
+}
+
+.tab-panel label,
+.tab-panel .form-label,
+.tab-panel th,
+.tab-panel .antecedent-header,
+.tab-panel .antecedent-form-title,
+.tab-panel .custom-description-field > span,
+.tab-panel .antecedent-form-grid > label > span,
+.tab-panel .antecedent-form-grid > div > span {
+  color: #175042 !important;
+  font-weight: 700 !important;
+}
+
+.tab-panel p,
+.tab-panel td,
+.tab-panel .antecedent-date,
+.tab-panel .ng-value-label,
+.tab-panel .ng-option-label,
+.tab-panel .antecedent-option-label {
+  color: #121822;
+  font-weight: 400 !important;
+}
+
+.btn-color-green {
+  background-color: #93ae88 !important;
+  color: white !important;
+  border: 1px solid transparent !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.btn-color-green:hover {
+  background-color: #175042 !important;
+  color: white !important;
+  border-color: #175042 !important;
+}

@@ -1,0 +1,194 @@
+/* Styles pour le modal des jours fériés */
+.modal-header {
+    color: white;
+    border-bottom: none;
+}
+
+.modal-header .exit {
+    color: white;
+    opacity: 0.8;
+}
+
+.modal-header .exit:hover {
+    opacity: 1;
+}
+
+/* Container principal avec scroll */
+.all-holidays-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.holiday-section {
+    margin-bottom: 2rem;
+}
+
+.holiday-section:last-child {
+    margin-bottom: 0;
+}
+
+.holiday-item {
+    margin-bottom: 0.75rem;
+}
+
+.holiday-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.holiday-card:hover {
+    border-color: #28a745;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* .holiday-card.selected {
+    border-color: #28a745;
+    background-color: #f8fff9;
+} */
+
+.holiday-info {
+    display: flex;
+    align-items: flex-start;
+    flex: 1;
+    gap: 1rem;
+}
+
+/* Badge pour dates fixes */
+.holiday-date-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+    height: 60px;
+    background: #93ae88;
+    color: white;
+    border-radius: 10px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.holiday-date-badge .month {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+}
+
+.holiday-date-badge .day {
+    font-size: 1.2rem;
+}
+
+/* Badge pour fêtes variables */
+.holiday-date-badge.variable-badge {
+    font-size: 1.2rem;
+}
+
+.holiday-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.holiday-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.holiday-date-full {
+    font-size: 0.8rem;
+}
+
+.date-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.date-input-container .form-control {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 0.375rem 0.75rem;
+}
+
+.holiday-toggle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.holiday-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.selection-summary {
+    border: 1px solid #dee2e6;
+}
+
+/* Scrollbar personnalisée */
+.all-holidays-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.all-holidays-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.all-holidays-container::-webkit-scrollbar-thumb {
+    background: #175042;
+    border-radius: 4px;
+}
+
+.all-holidays-container::-webkit-scrollbar-thumb:hover {
+    background: #175042;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .holiday-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .holiday-info {
+        width: 100%;
+    }
+    
+    .holiday-toggle {
+        align-self: flex-end;
+        margin-left: 0;
+    }
+    
+    .date-input-container .form-control {
+        max-width: 100% !important;
+    }
+}
+
+/* Section titles */
+.holiday-section h6 {
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.text-primary {
+    color: #175042 !important;
+}
+
+.alert-info {
+    color: #fff;
+    background-color: #93ae88;
+}

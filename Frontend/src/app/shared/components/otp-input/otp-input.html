@@ -1,0 +1,14 @@
+<div class="flex justify-center gap-2" (paste)="onPaste($event)">
+  @for (digit of digits(); track $index) {
+    <input
+      #box
+      type="text"
+      inputmode="numeric"
+      maxlength="1"
+      class="w-11 h-12 rounded border border-gray-300 text-center text-lg font-semibold outline-none focus:border-[#175042] focus:ring-1 focus:ring-[#175042] transition"
+      [value]="digit"
+      (input)="onInput($event, $index)"
+      (keydown)="onKeydown($event, $index)"
+    />
+  }
+</div>

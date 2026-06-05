@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.conduite-card {
+  background: #fff;
+  border: 1px solid #ddd6ca;
+  border-radius: 0.35rem;
+  padding: 1rem;
+}
+
+.conduite-card-header h3 {
+  margin: 0 0 0.8rem;
+  color: #c89568;
+  font-size: 1.2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+label span {
+  color: #175042;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #c6d8ce;
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.86rem;
+  color: #153833;
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #93ae88;
+  box-shadow: 0 0 0 0.14rem rgba(147, 174, 136, 0.2);
+}
+
+textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.certificat-actions {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-color-green {
+  background-color: #93ae88 !important;
+  color: white !important;
+  border: 1px solid transparent !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.btn-color-green:hover {
+  background-color: #175042 !important;
+  color: white !important;
+  border-color: #175042 !important;
+}
+
+.certificat-print-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.86rem;
+  padding: 0.52rem 1rem;
+}
+
+.certificat-print-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

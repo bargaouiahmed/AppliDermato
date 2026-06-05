@@ -1,0 +1,440 @@
+<div
+  class="card bg-camel shadow-sm p-3 my-3 antecedent-section-wrapper"
+  [attr.dir]="dir"
+  [class.section-expanded]="!isSectionCollapsible || antecedentsGenerauxExpanded || antecedentsDropdownOpen"
+  [class.rtl-layout]="isRtl"
+  (mouseenter)="onAntecedentsWrapperEnter()"
+  (mouseleave)="onAntecedentsWrapperLeave()"
+>
+  <div
+    class="card-header border-bottom-0 d-flex justify-content-between align-items-center"
+    [class.non-collapsible]="!isSectionCollapsible"
+    (click)="toggleAntecedentsGeneraux($event)"
+  >
+    <h3 class="mb-0">{{ 'consultation.page.interrogatoire.antecedents.title' | translate }}</h3>
+    <i *ngIf="isSectionCollapsible" class="bi bi-chevron-down collapse-indicator"></i>
+  </div>
+
+  <div class="antecedent-collapsible-body">
+    <div class="mb-2">
+      <ng-select
+        #selAnteGeneraux
+        class="antecedent-select"
+        [ngModel]="selectedAntecedentsGenerauxList"
+        (ngModelChange)="onAntecedentsModelChange($event)"
+        [items]="combinedAntGenerauxList"
+        [virtualScroll]="false"
+        [clearable]="false"
+        [multiple]="true"
+        [searchable]="true"
+        [markFirst]="true"
+        [selectOnTab]="true"
+        [clearSearchOnAdd]="true"
+        [dropdownPosition]="'bottom'"
+        [closeOnSelect]="true"
+        [hideSelected]="false"
+        [dir]="dir"
+        [addTag]="addInputAntecedentGeneraux.bind(this)"
+        bindLabel="label"
+        bindValue="value"
+        [placeholder]="'consultation.page.interrogatoire.antecedents.empty' | translate"
+        (open)="onAntecedentsSelectOpen()"
+        (close)="onAntecedentsSelectClose()"
+      >
+        <ng-template ng-multi-label-tmp let-items="items"></ng-template>
+
+        <ng-template ng-option-tmp let-item="item">
+          <div class="d-flex align-items-center w-100 antecedent-option-row">
+            <span class="antecedent-option-label">{{ displayOptionLabel($any(item)) }}</span>
+            <button
+              *ngIf="isCustomOption($any(item)?.value ?? item)"
+              type="button"
+              class="btn btn-link btn-sm p-0 option-trash-btn text-danger"
+              [title]="'consultation.page.interrogatoire.antecedents.forms.deleteCustomTypeTitle' | translate"
+              [attr.aria-label]="'consultation.page.interrogatoire.antecedents.forms.delete' | translate"
+              (mousedown)="$event.stopPropagation(); $event.preventDefault()"
+              (click)="deleteAntecedentGeneral($any(item)?.value ?? item, $event); $event.stopPropagation(); $event.preventDefault()"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </ng-template>
+
+        <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+          <div
+            class="ng-option"
+            style="cursor: pointer"
+            (mousedown)="$event.preventDefault(); $event.stopPropagation(); addInputAntecedentGeneraux(searchTerm)"
+          >
+            {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+          </div>
+        </ng-template>
+      </ng-select>
+
+      @if (selectedAntecedentsGenerauxList.length > 0) {
+        <div class="mt-2">
+          @for (item of selectedAntecedentsGenerauxList; track item) {
+            <span
+              class="badge badge-secondary mr-1 mb-1 d-inline-flex align-items-center antecedent-chip"
+              (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+              (click)="toggleAntecedentForm(item); $event.stopPropagation()"
+            >
+              {{ displayAntecedentLabel(item) }}
+              <span class="antecedent-date">{{ getAntecedentDate(item) }}</span>
+              <span
+                aria-hidden="true"
+                (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+                (click)="removeAntecedentGeneral(item); $event.stopPropagation(); $event.preventDefault()"
+                class="chip-remove"
+              >&times;</span>
+            </span>
+          }
+        </div>
+      }
+
+      @if (activeAntecedentForm && activeFormState; as form) {
+        <div class="antecedent-form-card">
+          <label class="antecedent-form-title">{{ displayAntecedentLabel(activeAntecedentForm) }}</label>
+
+          @if (activeAntecedentIsCustom || !activeStandardDefinition) {
+            <label class="custom-description-field">
+              <span>{{ 'consultation.page.interrogatoire.fields.description' | translate }}</span>
+              <input
+                type="text"
+                class="form-control"
+                [placeholder]="'consultation.page.interrogatoire.fields.description' | translate"
+                [value]="getAntecedentCustomDescription(activeAntecedentForm)"
+                (input)="updateAntecedentCustomDescription(activeAntecedentForm, $any($event.target).value)"
+                (mousedown)="$event.stopPropagation()"
+              />
+            </label>
+          } @else {
+            @switch (activeStandardDefinition.formKind) {
+              @case ('grossesse') {
+                <div class="antecedent-form-grid">
+                  <label class="wide">
+                    <span>{{ 'consultation.page.interrogatoire.fields.description' | translate }}</span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="form.description"
+                      (ngModelChange)="emitAnomaliesChange()"
+                      (mousedown)="$event.stopPropagation()"
+                      [placeholder]="'consultation.page.interrogatoire.fields.description' | translate"
+                    />
+                  </label>
+                </div>
+              }
+
+              @case ('list') {
+                <div class="antecedent-form-grid">
+                  <label class="wide">
+                    <ng-select
+                      [(ngModel)]="activeNamedValueModel"
+                      [items]="activeListSuggestions"
+                      [virtualScroll]="true"
+                      [clearable]="false"
+                      [addTag]="addActiveNamedValueTag.bind(this)"
+                      (change)="onActiveNamedValueChange($event)"
+                      class="antecedent-inline-select"
+                      [placeholder]="'consultation.page.interrogatoire.antecedents.forms.selectPlaceholder' | translate"
+                    >
+                      <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                        <div
+                          class="ng-option"
+                          style="cursor: pointer"
+                          (mousedown)="$event.preventDefault(); $event.stopPropagation(); addActiveNamedValue(searchTerm); activeNamedValueModel = searchTerm"
+                        >
+                          {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                        </div>
+                      </ng-template>
+                    </ng-select>
+                  </label>
+
+                  <label class="wide">
+                    <div class="mt-2">
+                      @for (item of form.valeurs; track item.name + '-' + item.date) {
+                        <span class="badge badge-secondary mr-2 mb-1 antecedent-value-chip">
+                          {{ item.name }}
+                          <a
+                            type="button"
+                            [title]="'consultation.page.interrogatoire.antecedents.forms.delete' | translate"
+                            (click)="removeActiveNamedValue(item.name)"
+                          >
+                            <i class="bi bi-trash-fill ml-1"></i>
+                          </a>
+                        </span>
+                      }
+                    </div>
+                  </label>
+                </div>
+              }
+
+              @case ('diabete') {
+                <div class="antecedent-form-grid">
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.type' | translate }}</span>
+                    <select class="form-control" [(ngModel)]="form.diabeteType" (ngModelChange)="emitAnomaliesChange()">
+                      <option value="">{{ 'consultation.page.interrogatoire.antecedents.forms.selectPlaceholder' | translate }}</option>
+                      @for (item of diabeteTypes; track item) {
+                        <option [value]="item">{{ item }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.seniority' | translate }}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      class="form-control"
+                      [(ngModel)]="form.diabeteAnciennete"
+                      (ngModelChange)="emitAnomaliesChange()"
+                      placeholder="0"
+                    />
+
+                    <div class="diabete-anciennete-units" role="group" [attr.aria-label]="'consultation.page.interrogatoire.antecedents.forms.seniorityUnit' | translate">
+                      <button
+                        type="button"
+                        class="diabete-unit-btn"
+                        [class.active]="form.diabeteAncienneteUnit === 'jours'"
+                        (click)="setDiabeteAncienneteUnit('jours')"
+                      >
+                        {{ 'consultation.page.interrogatoire.antecedents.forms.units.days' | translate }}
+                      </button>
+                      <button
+                        type="button"
+                        class="diabete-unit-btn"
+                        [class.active]="form.diabeteAncienneteUnit === 'mois'"
+                        (click)="setDiabeteAncienneteUnit('mois')"
+                      >
+                        {{ 'consultation.page.interrogatoire.antecedents.forms.units.months' | translate }}
+                      </button>
+                      <button
+                        type="button"
+                        class="diabete-unit-btn"
+                        [class.active]="form.diabeteAncienneteUnit === 'ans'"
+                        (click)="setDiabeteAncienneteUnit('ans')"
+                      >
+                        {{ 'consultation.page.interrogatoire.antecedents.forms.units.years' | translate }}
+                      </button>
+                    </div>
+                  </label>
+
+                  <label class="wide">
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.treatment' | translate }}</span>
+                    <ng-select
+                      [(ngModel)]="activeDiabeteTraitementModel"
+                      [items]="diabeteTraitementSuggestions"
+                      [virtualScroll]="true"
+                      [clearable]="false"
+                      [addTag]="addActiveDiabeteTraitementTag.bind(this)"
+                      (change)="onDiabeteTraitementChange($event)"
+                      class="antecedent-inline-select"
+                      [placeholder]="'consultation.page.interrogatoire.antecedents.forms.selectPlaceholder' | translate"
+                    >
+                      <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                        <div
+                          class="ng-option"
+                          style="cursor: pointer"
+                          (mousedown)="$event.preventDefault(); $event.stopPropagation(); addActiveDiabeteTraitement(searchTerm); activeDiabeteTraitementModel = null"
+                        >
+                          {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                        </div>
+                      </ng-template>
+                    </ng-select>
+                  </label>
+
+                  <label class="wide">
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.selectedTreatments' | translate }}</span>
+                    <div class="mt-2">
+                      @for (item of form.diabeteTraitement; track item.name + '-' + item.date) {
+                        <span class="badge badge-secondary mr-2 mb-1 antecedent-value-chip">
+                          {{ item.name }}
+                          <span class="date mt-1">{{ item.date }}</span>
+                          <a
+                            type="button"
+                            [title]="'consultation.page.interrogatoire.antecedents.forms.delete' | translate"
+                            (click)="removeActiveDiabeteTraitement(item.name)"
+                          >
+                            <i class="bi bi-trash-fill ml-1"></i>
+                          </a>
+                        </span>
+                      }
+                    </div>
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.lastHba1c' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.diabeteDerniereHBAIC" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.resultHba1c' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.diabeteResultatHBAIC" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+
+                  <label class="wide">
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.treatingDoctor' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.diabeteMedecinTraitant" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+                </div>
+              }
+
+              @case ('hta') {
+                <div class="antecedent-form-grid">
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.type' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.htaType" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.treatment' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.htaTraitement" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.seniorityYears' | translate }}</span>
+                    <input type="number" min="0" step="1" class="form-control" [(ngModel)]="form.htaAnciennete" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.treatingDoctor' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.htaMedecinTraitant" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+                </div>
+              }
+
+              @case ('date-type') {
+                <div class="antecedent-form-grid">
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.date' | translate }}</span>
+                    <input type="date" class="form-control" [(ngModel)]="form.date" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+
+                  <label>
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.type' | translate }}</span>
+                    <input type="text" class="form-control" [(ngModel)]="form.type" (ngModelChange)="emitAnomaliesChange()" />
+                  </label>
+                </div>
+              }
+
+              @case ('cas-particulier') {
+                <div class="antecedent-form-grid">
+                  <label class="wide">
+                    <span>{{ 'consultation.page.interrogatoire.antecedents.forms.addOption' | translate }}</span>
+                    <select class="form-control" [ngModel]="activeCasParticulierToAdd" (ngModelChange)="addCasParticulierFromSelection($event)">
+                      <option value="">{{ 'consultation.page.interrogatoire.antecedents.forms.selectPlaceholder' | translate }}</option>
+                      @for (option of casParticulierOptions; track option.key) {
+                        <option [value]="option.key" [disabled]="getCasParticulierPresent(form, option.key)">{{ option.i18nKey | translate }}</option>
+                      }
+                    </select>
+                  </label>
+
+                  <div class="wide">
+                    @for (option of casParticulierOptions; track option.key) {
+                      @if (getCasParticulierPresent(form, option.key)) {
+                        <div class="mb-2 p-2 border rounded bg-white">
+                          <label class="check-row">
+                            <span>{{ option.i18nKey | translate }}</span>
+                            <input
+                              type="checkbox"
+                              [checked]="true"
+                              (change)="setCasParticulierPresent(form, option.key, $any($event.target).checked)"
+                            />
+                          </label>
+
+                          @if (option.key === 'seroconversionpendantlagrossesse') {
+                            <div class="antecedent-form-grid">
+                              <label>
+                                <span>{{ 'consultation.page.interrogatoire.antecedents.forms.type' | translate }}</span>
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  [ngModel]="getCasParticulierText(form, option.key, 'type')"
+                                  (ngModelChange)="updateCasParticulierText(form, option.key, 'type', $event)"
+                                />
+                              </label>
+                              <label>
+                                <span>{{ 'consultation.page.interrogatoire.antecedents.forms.sa' | translate }}</span>
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  [ngModel]="getCasParticulierText(form, option.key, 'valeur')"
+                                  (ngModelChange)="updateCasParticulierText(form, option.key, 'valeur', $event)"
+                                />
+                              </label>
+                            </div>
+                          }
+
+                          @if (option.key === 'prematurite') {
+                            <div class="antecedent-form-grid">
+                              <label>
+                                <span>{{ 'consultation.page.interrogatoire.antecedents.forms.sa' | translate }}</span>
+                                <input
+                                  type="text"
+                                  class="form-control"
+                                  [ngModel]="getCasParticulierText(form, option.key, 'valeur')"
+                                  (ngModelChange)="updateCasParticulierText(form, option.key, 'valeur', $event)"
+                                />
+                              </label>
+                              <label class="check-row">
+                                <span>{{ 'consultation.page.interrogatoire.antecedents.forms.vaginalBirth' | translate }}</span>
+                                <input
+                                  type="checkbox"
+                                  [checked]="getCasParticulierFlag(form, option.key, 'voiebasse')"
+                                  (change)="updateCasParticulierFlag(form, option.key, 'voiebasse', $any($event.target).checked)"
+                                />
+                              </label>
+                              <label class="check-row">
+                                <span>{{ 'consultation.page.interrogatoire.antecedents.forms.cesarean' | translate }}</span>
+                                <input
+                                  type="checkbox"
+                                  [checked]="getCasParticulierFlag(form, option.key, 'cesarienne')"
+                                  (change)="updateCasParticulierFlag(form, option.key, 'cesarienne', $any($event.target).checked)"
+                                />
+                              </label>
+                            </div>
+                          }
+
+                          @if (option.key === 'faiblepoidsdelanaissance' || option.key === 'souffrancefoetaleaigue') {
+                            <div class="antecedent-form-grid">
+                              <label>
+                                <span>{{ 'consultation.page.interrogatoire.antecedents.forms.value' | translate }}</span>
+                                <input
+                                  type="number"
+                                  class="form-control"
+                                  [ngModel]="getCasParticulierText(form, option.key, 'valeur')"
+                                  (ngModelChange)="updateCasParticulierText(form, option.key, 'valeur', $event)"
+                                />
+                              </label>
+                            </div>
+                          }
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              }
+
+              @default {
+                <label class="custom-description-field">
+                  <span>{{ 'consultation.page.interrogatoire.fields.description' | translate }}</span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="form.description"
+                    (ngModelChange)="emitAnomaliesChange()"
+                    [placeholder]="'consultation.page.interrogatoire.fields.description' | translate"
+                  />
+                </label>
+              }
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+

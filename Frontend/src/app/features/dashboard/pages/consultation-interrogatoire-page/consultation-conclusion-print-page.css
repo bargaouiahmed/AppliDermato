@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #fffdfa;
+}
+
+.print-shell {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.1rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.print-toolbar {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.print-btn {
+  border: 1px solid #175042;
+  background: #175042;
+  color: #fffdf8;
+  border-radius: 999px;
+  padding: 0.65rem 1.15rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.state-card {
+  border-radius: 1rem;
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(215, 207, 188, 0.9);
+  color: #24322f;
+  font-weight: 600;
+  width: min(100%, 1120px);
+}
+
+.state-card.error {
+  border-color: rgba(146, 52, 52, 0.28);
+  color: #7c2f2f;
+}
+
+@media print {
+  :host {
+    background: #fff;
+  }
+
+  .print-shell {
+    max-width: none;
+    padding: 0;
+  }
+
+  .print-toolbar {
+    display: none !important;
+  }
+}

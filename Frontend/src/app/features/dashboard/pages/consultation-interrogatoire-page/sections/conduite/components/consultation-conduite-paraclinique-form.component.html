@@ -1,0 +1,397 @@
+<article class="paraclinique-card">
+  <header class="paraclinique-card-header">
+    <div class="header-spacer" aria-hidden="true"></div>
+    <h3>Paraclinique</h3>
+
+    <div class="header-actions">
+   
+
+      <button
+        type="button"
+        class="btn-print"
+        [disabled]="!canPrintAll()"
+        (click)="requestPrintAll()"
+      >
+        {{ isPrinting ? 'Impression...' : 'Imprimer tout' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="paraclinique-list-header">
+    <h5>Liste des opérations</h5>
+    <button
+      type="button"
+      class="inline-add-btn"
+      [disabled]="!canAddRow()"
+      (click)="addRow()"
+      title="Ajouter une opération"
+    >
+      <i class="bi bi-plus-circle-fill"></i>
+    </button>
+  </div>
+
+  <div class="table-responsive paraclinique-table-container">
+    <table class="paraclinique-table">
+      <thead>
+        <tr>
+          <th class="operation-col">Type d'opération</th>
+          <th class="acte-col">Acte</th>
+          <th class="date-col">Date</th>
+          <th class="time-col">Heure</th>
+          <th class="clinique-col">Clinique</th>
+          <th class="forfait-col">Forfait</th>
+          <th class="operateur-col">Opérateur</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track row.id) {
+          <tr>
+            <td>
+              <select
+                class="form-input"
+                [attr.name]="'paracliniqueOperationType_' + row.id"
+                aria-label="Type d'opération"
+                [ngModel]="row.operationType"
+                (ngModelChange)="onOperationTypeChange(row, $event)"
+              >
+                <option [ngValue]="''">Sélectionner</option>
+                @for (option of operationTypeOptions(row); track option.value) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </td>
+
+            <td>
+              @if (row.operationType === 'Chirurgie') {
+                <ng-select
+                  [items]="chirurgieSuggestions"
+                  [inputAttrs]="{ name: 'paracliniqueActeChirurgie_' + row.id, 'aria-label': 'Acte de chirurgie' }"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="true"
+                  [ngModel]="row.typeValue"
+                  (ngModelChange)="onChirurgieTypeChange(row, $event)"
+                  placeholder="Sélectionner ou saisir"
+                >
+                  <ng-template ng-notfound-tmp>
+                    <div class="ng-option">Aucun résultat</div>
+                  </ng-template>
+                </ng-select>
+              } @else if (row.operationType === 'Imagerie') {
+                <ng-select
+                  [items]="imagerieSuggestions"
+                  [inputAttrs]="{ name: 'paracliniqueActeImagerie_' + row.id, 'aria-label': 'Acte d’imagerie' }"
+                  [multiple]="true"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [closeOnSelect]="true"
+                  [addTag]="true"
+                  [ngModel]="row.typesValue"
+                  (ngModelChange)="onImagerieTypesChange(row, $event)"
+                  placeholder="Sélectionner ou saisir"
+                >
+                  <ng-template ng-notfound-tmp>
+                    <div class="ng-option">Aucun résultat</div>
+                  </ng-template>
+                </ng-select>
+              } @else if (row.operationType === 'Bilan Sanguin') {
+                <div class="bilan-acte-cell">
+                  <ng-select
+                    [items]="bilanTypeOptions"
+                    bindLabel="name"
+                    bindValue="key"
+                    [inputAttrs]="{ name: 'paracliniqueBilanType_' + row.id, 'aria-label': 'Type de bilan sanguin' }"
+                    [searchable]="true"
+                    [clearable]="true"
+                    [ngModel]="row.selectedBilanTypeKey"
+                    (ngModelChange)="onBilanTypeSelected(row, $event)"
+                    placeholder="Ajouter un type de bilan"
+                  >
+                    <ng-template ng-option-tmp let-item="item">
+                      <div class="bilan-option-row">
+                        <span>{{ item.name }}</span>
+                        <button
+                          type="button"
+                          class="option-edit-btn"
+                          title="Modifier"
+                          (click)="onBilanTypeDropdownEdit(item.key, $event)"
+                        >
+                          <i class="bi bi-pencil-square"></i>
+                        </button>
+                      </div>
+                    </ng-template>
+
+                    <ng-template ng-notfound-tmp>
+                      <div class="ng-option">Aucun résultat</div>
+                    </ng-template>
+                  </ng-select>
+
+                  @if (row.bilanTypes.length > 0) {
+                    <div class="bilan-badges">
+                      @for (item of row.bilanTypes; track item.key) {
+                        <span class="bilan-badge">
+                          <button
+                            type="button"
+                            class="bilan-badge-main"
+                            (click)="openBilanTypeModal(row.id, item.key)"
+                          >
+                            {{ item.name }}
+                            <small>({{ checkedCount(item) }})</small>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="bilan-badge-edit"
+                            title="Modifier"
+                            (click)="openEditBilanTypeModal(item.key)"
+                          >
+                            <i class="bi bi-pencil-square"></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            class="bilan-badge-remove"
+                            title="Supprimer"
+                            (click)="removeBilanType(row, item.key)"
+                          >
+                            x
+                          </button>
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  <button
+                    type="button"
+                    class="bilan-create-btn"
+                    (click)="openCreateBilanTypeModal()"
+                  >
+                    <i class="bi bi-plus-circle"></i>
+                    Nouveau type
+                  </button>
+                </div>
+              } @else {
+                <span class="na-cell">-</span>
+              }
+            </td>
+
+            <td>
+              @if (row.operationType) {
+                <input
+                  type="date"
+                  class="form-input"
+                  [attr.name]="'paracliniqueDate_' + row.id"
+                  aria-label="Date d'opération"
+                  [ngModel]="row.date"
+                  (ngModelChange)="onRowDateChange(row, $event)"
+                />
+              } @else {
+                <span class="na-cell">-</span>
+              }
+            </td>
+
+            <td>
+              @if (row.operationType) {
+                <input
+                  type="time"
+                  class="form-input"
+                  [attr.name]="'paracliniqueTime_' + row.id"
+                  aria-label="Heure d'opération"
+                  [ngModel]="row.time"
+                  (ngModelChange)="onRowTimeChange(row, $event)"
+                />
+              } @else {
+                <span class="na-cell">-</span>
+              }
+            </td>
+
+            <td>
+              @if (supportsClinique(row)) {
+                <ng-select
+                  [items]="clinicOptions"
+                  [inputAttrs]="{ name: 'paracliniqueClinique_' + row.id, 'aria-label': 'Clinique' }"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="true"
+                  [ngModel]="row.clinique || null"
+                  (ngModelChange)="onRowCliniqueChange(row, $event)"
+                  placeholder="Sélectionner ou saisir"
+                >
+                  <ng-template ng-notfound-tmp>
+                    <div class="ng-option">Aucun résultat</div>
+                  </ng-template>
+                </ng-select>
+              } @else {
+                <span class="na-cell">-</span>
+              }
+            </td>
+
+            <td>
+              @if (supportsForfait(row)) {
+                <input
+                  type="text"
+                  class="form-input"
+                  [attr.name]="'paracliniqueForfait_' + row.id"
+                  aria-label="Forfait"
+                  [ngModel]="row.forfait"
+                  (ngModelChange)="onRowForfaitChange(row, $event)"
+                  placeholder="Forfait"
+                />
+              } @else {
+                <span class="na-cell">-</span>
+              }
+            </td>
+
+            <td>
+              @if (supportsOperateur(row)) {
+                <input
+                  type="text"
+                  class="form-input"
+                  [attr.name]="'paracliniqueOperateur_' + row.id"
+                  aria-label="Opérateur"
+                  [ngModel]="row.operateur"
+                  (ngModelChange)="onRowOperateurChange(row, $event)"
+                  placeholder="Opérateur"
+                />
+              } @else {
+                <span class="na-cell">-</span>
+              }
+            </td>
+
+            <td>
+              <div class="actions-cell">
+                <button
+                  type="button"
+                  class="row-action-btn print"
+                  [disabled]="!canPrintRow(row)"
+                  (click)="requestRowPrint(row)"
+                  title="Imprimer cette section"
+                >
+                  <i class="bi bi-printer"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="row-action-btn"
+                  [disabled]="!canAddRow()"
+                  (click)="addRow()"
+                  title="Ajouter"
+                >
+                  <i class="bi bi-plus-circle"></i>
+                </button>
+
+                <button
+                  type="button"
+                  class="row-action-btn danger"
+                  [disabled]="rows.length === 1 && !row.operationType"
+                  (click)="removeRow(row.id)"
+                  title="Supprimer"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</article>
+
+@if (showBilanTypeModal) {
+  <div class="modal-overlay" (click)="closeBilanTypeModal()">
+    <div class="modal-popup" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h4>{{ activeBilanTypeLabel }}</h4>
+        <button type="button" class="modal-close" (click)="closeBilanTypeModal()">x</button>
+      </header>
+
+      <section class="modal-body">
+        <p class="modal-help">Sélectionnez les analyses à inclure :</p>
+        <div class="checkbox-grid">
+          @for (checkbox of activeBilanTypeDefinitions(); track checkbox.key) {
+            <label class="checkbox-item">
+              <input
+                type="checkbox"
+                [checked]="popupCheckboxState[checkbox.key] === true"
+                (change)="onPopupCheckboxToggle(checkbox.key, $any($event.target).checked === true)"
+              />
+              <span>{{ checkbox.label }}</span>
+            </label>
+          }
+        </div>
+      </section>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeBilanTypeModal()">Annuler</button>
+        <button type="button" class="btn-primary" (click)="saveBilanTypeModal()">Enregistrer</button>
+      </footer>
+    </div>
+  </div>
+}
+
+@if (showCreateOrEditBilanTypeModal) {
+  <div class="modal-overlay" (click)="closeCreateOrEditBilanTypeModal()">
+    <div class="modal-popup modal-popup-wide" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h4>{{ editingBilanTypeKey ? 'Modifier un type de bilan' : 'Créer un type de bilan' }}</h4>
+        <button type="button" class="modal-close" (click)="closeCreateOrEditBilanTypeModal()">x</button>
+      </header>
+
+      <section class="modal-body">
+        <label class="custom-label" for="paraclinique-bilan-type-name">Nom du type</label>
+        <input
+          id="paraclinique-bilan-type-name"
+          type="text"
+          class="form-input"
+          name="paracliniqueBilanTypeName"
+          aria-label="Nom du type de bilan"
+          [(ngModel)]="editingBilanTypeName"
+          placeholder="Ex : Bilan hépatique complet"
+        />
+
+        <label class="custom-label mt-3" for="paraclinique-bilan-checkbox-name">Ajouter des analyses</label>
+        <div class="checkbox-editor-row">
+          <input
+            id="paraclinique-bilan-checkbox-name"
+            type="text"
+            class="form-input"
+            name="paracliniqueBilanCheckboxName"
+            aria-label="Nom de l'analyse"
+            [(ngModel)]="newBilanCheckboxLabel"
+            (keyup.enter)="addCheckboxToCustomType()"
+            placeholder="Nom de l'analyse"
+          />
+          <button type="button" class="btn-secondary" (click)="addCheckboxToCustomType()">Ajouter</button>
+        </div>
+
+        @if (editingBilanTypeCheckboxes.length > 0) {
+          <div class="checkbox-list mt-3">
+            @for (checkbox of editingBilanTypeCheckboxes; track checkbox.key; let index = $index) {
+              <div class="checkbox-list-item">
+                <span>{{ checkbox.label }}</span>
+                <button type="button" class="btn-link-danger" (click)="removeCheckboxFromCustomType(index)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeCreateOrEditBilanTypeModal()">Annuler</button>
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="!editingBilanTypeName.trim() || editingBilanTypeCheckboxes.length === 0"
+          (click)="saveCustomBilanType()"
+        >
+          {{ editingBilanTypeKey ? 'Enregistrer' : 'Créer' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}
+

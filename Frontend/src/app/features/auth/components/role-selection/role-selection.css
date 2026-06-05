@@ -1,0 +1,140 @@
+:host {
+  display: block;
+}
+
+.role-step-shell {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.role-title {
+  margin: 0;
+  color: #c89568;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.role-subtitle {
+  margin: 0.5rem 0 1.5rem;
+  color: #175042;
+  font-size: 1rem;
+}
+
+.role-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.role-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 0.95rem 1.2rem;
+  border: 1px solid rgba(0, 128, 0, 0.08);
+  border-radius: 0.85rem;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+}
+
+.role-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgba(0, 128, 0, 0.15);
+  border-color: rgba(0, 128, 0, 0.25);
+}
+
+.role-card.selected {
+  border: 2px solid #198754;
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(25, 135, 84, 0.2), 0 6px 25px rgba(25, 135, 84, 0.12);
+  background: #fff;
+}
+
+.role-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.icon-wrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  border-radius: 9999px;
+  background: rgba(0, 128, 0, 0.08);
+  color: #175042;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.role-card.selected .icon-wrap {
+  background: linear-gradient(145deg, #198754, #2ea36f);
+  color: #fff;
+}
+
+.role-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.role-name {
+  color: #175042;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.role-user {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.1;
+  margin-top: 0.15rem;
+}
+
+.continue-wrap {
+  margin-top: 2rem;
+}
+
+.continue-btn {
+  border: 1px solid transparent;
+  border-radius: 0.35rem;
+  background: #b8c9b0;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.55rem 2.1rem;
+  min-width: 120px;
+  transition: all .2s ease;
+}
+
+.continue-btn:hover:not(:disabled) {
+  background: #93ae88;
+}
+
+.continue-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .role-title {
+    font-size: 1.5rem;
+  }
+
+  .role-name {
+    font-size: 1.15rem;
+  }
+}

@@ -1,0 +1,270 @@
+<div class="modal-header">
+  <h4 class="modal-title">
+    <i class="bi bi-calendar-x me-2"></i>
+    Gestion des congés
+  </h4>
+  <a class="exit" aria-label="Close" (click)="activeModal.dismiss()">
+    <i class="fa-regular fa-circle-xmark"></i>
+  </a>
+</div>
+
+<div class="modal-body p-4">
+  <!-- Statistiques -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-3">
+              <h5 class="mb-0">{{ getLeaveStats().total }}</h5>
+              <small class="text-muted">Total</small>
+            </div>
+            <div class="col-3">
+              <h5 class="mb-0 text-primary">{{ getLeaveStats().annual }}</h5>
+              <small class="text-muted">Annuel</small>
+            </div>
+            <div class="col-3">
+              <h5 class="mb-0 text-danger">{{ getLeaveStats().sick }}</h5>
+              <small class="text-muted">Maladie</small>
+            </div>
+            <div class="col-3">
+              <h5 class="mb-0 text-warning">{{ getLeaveStats().personal }}</h5>
+              <small class="text-muted">Personnel</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtre par année -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <label>Année :</label>
+          <select class="form-select w-auto d-inline-block ms-2" [(ngModel)]="selectedYear" (change)="onYearChange()">
+            <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+          </select>
+        </div>
+        <span class="badge bg-camel text-dark">
+          {{ leaves.length }} congé(s) en {{ selectedYear }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section du formulaire -->
+  <div id="leaveFormSection" class="card mb-4 border-primary">
+    <div class="card-header bg-light">
+      <h5 class="mb-0 text-camel">
+        <i class="bi bi-plus-circle me-2"></i>
+        {{ isEditing ? 'Modifier un congé' : 'Ajouter un nouveau congé' }}
+      </h5>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="leaveForm" (ngSubmit)="onSubmit()">
+        <div class="row g-3">
+          <!-- Date -->
+          <div class="col-md-6">
+            <label>Date du congé <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" formControlName="date" [min]="today">
+            <div *ngIf="leaveForm.get('date')?.invalid && leaveForm.get('date')?.touched" class="text-danger small">
+              La date est obligatoire
+            </div>
+          </div>
+
+          <!-- Nom -->
+          <div class="col-md-6">
+            <label>Nom du congé <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="name" placeholder="Ex: Congé annuel, Formation...">
+            <div *ngIf="leaveForm.get('name')?.invalid && leaveForm.get('name')?.touched" class="text-danger small">
+              Le nom est obligatoire (max 100 caractères)
+            </div>
+          </div>
+
+          <!-- Type -->
+          <div class="col-md-6">
+            <label>Type de congé <span class="text-danger">*</span></label>
+            <select class="form-select" formControlName="type">
+              <option value="annual">Congé annuel</option>
+              <option value="sick">Congé maladie</option>
+              <option value="personal">Congé personnel</option>
+              <option value="training">Formation</option>
+              <option value="other">Autre</option>
+            </select>
+          </div>
+
+          <!-- Journée complète -->
+          <div class="col-md-6">
+            <label>Durée</label>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" id="isFullDay" formControlName="isFullDay">
+              <label class="form-check-label" for="isFullDay">Journée complète</label>
+            </div>
+          </div>
+
+          <!-- Heures (si congé partiel) -->
+          <div class="col-12" *ngIf="!leaveForm.get('isFullDay')?.value">
+            <div class="row">
+              <div class="col-md-6">
+                <label>Heure de début <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" formControlName="startTime">
+                <div *ngIf="leaveForm.get('startTime')?.invalid && leaveForm.get('startTime')?.touched"
+                  class="text-danger small">
+                  L'heure de début est requise
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label>Heure de fin <span class="text-danger">*</span></label>
+                <input type="time" class="form-control" formControlName="endTime">
+                <div *ngIf="leaveForm.get('endTime')?.invalid && leaveForm.get('endTime')?.touched"
+                  class="text-danger small">
+                  L'heure de fin est requise
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Récurrent -->
+          <div class="col-md-6">
+            <label>Récurrence</label>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="isRecurring" formControlName="isRecurring">
+              <label class="form-check-label" for="isRecurring">Répéter chaque année</label>
+            </div>
+            <small class="text-muted">Ce congé se répétera automatiquement chaque année</small>
+          </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <label>Description</label>
+            <textarea class="form-control" formControlName="description" rows="3"
+              placeholder="Description détaillée du congé..."></textarea>
+            <div class="form-text">Maximum 500 caractères</div>
+          </div>
+
+          <!-- Boutons du formulaire -->
+          <div class="col-12">
+            <div class="d-flex justify-content-end gap-2">
+
+              <button type="button" class="btn btn-secondary" (click)="resetForm()" *ngIf="!isEditing">
+                <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+              </button>
+
+              <button type="button" class="btn btn-outline-secondary" (click)="cancelEdit()" *ngIf="isEditing">
+                <i class="bi bi-x-circle"></i> Annuler
+              </button>
+
+              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || leaveForm.invalid">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isSubmitting" class="bi" [ngClass]="isEditing ? 'bi-check-circle' : 'bi-plus-circle'"></i>
+                {{ isSubmitting ? 'Enregistrement...' : (isEditing ? 'Modifier' : 'Ajouter') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Liste des congés -->
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0 text-camel">
+        <i class="bi bi-list-check me-2"></i>
+        Liste des congés programmés
+      </h5>
+    </div>
+    <div class="card-body">
+      <!-- Loading state -->
+      <div *ngIf="isLoading" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+        <p class="mt-2 text-muted">Chargement des congés...</p>
+      </div>
+
+      <!-- Liste des congés -->
+      <div *ngIf="!isLoading">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Durée</th>
+                <th>Récurrent</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let leave of leaves" [class.table-primary]="isEditing && currentLeaveId === leave._id">
+                <td>
+                  <strong>{{ leave.date | date:'dd/MM/yyyy' }}</strong>
+                  <div *ngIf="leave.description" class="small text-muted">
+                    {{ leave.description }}
+                  </div>
+                </td>
+                <td>{{ leave.name }}</td>
+                <td>
+                  <span [class]="getTypeBadgeClass(leave.type)">
+                    {{ getTypeLabel(leave.type) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark">
+                    {{ getDurationDisplay(leave) }}
+                  </span>
+                </td>
+                <td>
+                  <i class="bi"
+                    [ngClass]="leave.isRecurring ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-secondary'"></i>
+                  <span class="ms-1 small">{{ leave.isRecurring ? 'Oui' : 'Non' }}</span>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-secondary me-2" (click)="editLeave(leave)" title="Modifier">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary" (click)="deleteLeave(leave._id!)" title="Supprimer">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="leaves.length === 0 && !isLoading">
+                <td colspan="6" class="text-center py-5">
+                  <i class="bi bi-calendar-x display-4 text-muted"></i>
+                  <h5 class="mt-3 text-muted">Aucun congé programmé</h5>
+                  <p class="text-muted">Ajoutez votre premier congé en utilisant le formulaire ci-dessus</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination/statistics footer -->
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Les congés marqués comme récurrents se répètent automatiquement chaque année
+          </small>
+          <small class="text-muted">
+            {{ leaves.length }} congé(s) trouvé(s)
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss()">
+    <i class="bi bi-x-circle me-1"></i> Annuler
+  </button>
+  <button type="button" class="btn btn-primary" (click)="close()">
+    <i class="bi bi-check-circle me-1"></i> Enregistrer
+  </button>
+</div>

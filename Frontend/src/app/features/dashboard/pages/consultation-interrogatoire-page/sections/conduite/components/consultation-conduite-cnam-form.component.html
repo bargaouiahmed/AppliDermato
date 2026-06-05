@@ -1,0 +1,274 @@
+<article class="conduite-card">
+  <header class="conduite-card-header">
+    <h3>{{ 'consultation.conduite.cnam.title' | translate }}</h3>
+  </header>
+
+  <div class="form-grid">
+    <label class="wide">
+      <span>{{ 'consultation.conduite.cnam.typeSelector.label' | translate }}</span>
+      <select
+        name="cnam-form-type"
+        [ngModel]="selectedFormType"
+        (ngModelChange)="onSelectedFormTypeChange($event)"
+      >
+        @for (typeOption of formTypeOptions; track typeOption.value) {
+          <option [value]="typeOption.value">
+            {{ typeOption.labelKey | translate }}
+          </option>
+        }
+      </select>
+    </label>
+
+    @if (selectedFormType === 'ap1') {
+      <h4 class="section-title wide">{{ 'consultation.conduite.cnam.types.ap1' | translate }}</h4>
+
+      <label class="wide">
+        <span>{{ 'consultation.conduite.cnam.fields.codeConventionnel' | translate }}</span>
+        <input
+          name="cnam-ap1-code-conventionnel"
+          [(ngModel)]="ap1.codeConventionnel"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+
+      <div class="wide medication-lines-card">
+        <div class="medication-lines-header">
+          <h5>{{ 'consultation.conduite.cnam.fields.medicationLines' | translate }}</h5>
+          <button type="button" class="line-action-btn" (click)="addMedicationLine()">
+            {{ 'consultation.conduite.cnam.actions.addLine' | translate }}
+          </button>
+        </div>
+
+        <div class="medication-lines-table">
+          <div class="medication-line medication-line-head">
+            <span>{{ 'consultation.conduite.cnam.fields.code' | translate }}</span>
+            <span>{{ 'consultation.conduite.cnam.fields.designation' | translate }}</span>
+            <span>{{ 'consultation.conduite.cnam.fields.posologie' | translate }}</span>
+            <span>{{ 'consultation.conduite.cnam.fields.dureeTraitement' | translate }}</span>
+            <span></span>
+          </div>
+
+          @for (line of ap1.medicationLines; track trackMedicationLine($index)) {
+            <div class="medication-line">
+              <input
+                name="cnam-ap1-line-code-{{ $index }}"
+                [(ngModel)]="line.code"
+                (ngModelChange)="onFieldChange()"
+              />
+              <input
+                name="cnam-ap1-line-designation-{{ $index }}"
+                [(ngModel)]="line.designation"
+                (ngModelChange)="onFieldChange()"
+              />
+              <input
+                name="cnam-ap1-line-posologie-{{ $index }}"
+                [(ngModel)]="line.posologie"
+                (ngModelChange)="onFieldChange()"
+              />
+              <input
+                name="cnam-ap1-line-duree-{{ $index }}"
+                [(ngModel)]="line.dureeTraitement"
+                (ngModelChange)="onFieldChange()"
+              />
+              <button
+                type="button"
+                class="line-action-btn line-remove-btn"
+                (click)="removeMedicationLine($index)"
+              >
+                {{ 'consultation.conduite.cnam.actions.removeLine' | translate }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.diagnostic' | translate }}</span>
+        <textarea
+          name="cnam-ap1-diagnostic"
+          [(ngModel)]="ap1.diagnostic"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.clinic' | translate }}</span>
+        <textarea
+          name="cnam-ap1-clinique"
+          [(ngModel)]="ap1.clinique"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.donneesCliniquesParacliniques' | translate }}</span>
+        <textarea
+          name="cnam-ap1-donnees-cliniques"
+          [(ngModel)]="ap1.donneesCliniquesParacliniques"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+    }
+
+    @if (selectedFormType === 'ap2') {
+      <h4 class="section-title wide">{{ 'consultation.conduite.cnam.types.ap2' | translate }}</h4>
+
+      <label class="wide">
+        <span>{{ 'consultation.conduite.cnam.fields.clinic' | translate }}</span>
+        <input
+          name="cnam-ap2-clinique"
+          list="cnam-clinic-options"
+          [(ngModel)]="ap2.clinique"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.diagnostic' | translate }}</span>
+        <textarea
+          name="cnam-ap2-diagnostic"
+          [(ngModel)]="ap2.diagnostic"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.therapeutique' | translate }}</span>
+        <textarea
+          name="cnam-ap2-therapeutique"
+          [(ngModel)]="ap2.therapeutique"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label>
+        <span>{{ 'consultation.conduite.cnam.fields.natureExamen' | translate }}</span>
+        <input
+          name="cnam-ap2-nature-examen"
+          [(ngModel)]="ap2.natureExamen"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+
+      <label>
+        <span>{{ 'consultation.conduite.cnam.fields.dateExamen' | translate }}</span>
+        <input
+          name="cnam-ap2-date-examen"
+          type="date"
+          [(ngModel)]="ap2.dateExamen"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+    }
+
+    @if (selectedFormType === 'ap3') {
+      <h4 class="section-title wide">{{ 'consultation.conduite.cnam.types.ap3' | translate }}</h4>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.donneesCliniquesParacliniques' | translate }}</span>
+        <textarea
+          name="cnam-ap3-clinique-paraclinique"
+          [(ngModel)]="ap3.donneesCliniquesParacliniques"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.diagnosticsPlural' | translate }}</span>
+        <textarea
+          name="cnam-ap3-diagnostics"
+          [(ngModel)]="ap3.diagnostics"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+    }
+
+    @if (selectedFormType === 'ap4') {
+      <h4 class="section-title wide">{{ 'consultation.conduite.cnam.types.ap4' | translate }}</h4>
+
+      <label class="wide extra-tall-field">
+        <span>{{ 'consultation.conduite.cnam.fields.pathologieOrigine' | translate }}</span>
+        <textarea
+          name="cnam-ap4-pathologie-origine"
+          [(ngModel)]="ap4.pathologieOrigine"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.traitement' | translate }}</span>
+        <textarea
+          name="cnam-ap4-traitement"
+          [(ngModel)]="ap4.traitement"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.etatSante' | translate }}</span>
+        <textarea
+          name="cnam-ap4-etat-sante"
+          [(ngModel)]="ap4.etatSante"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.bilanFonctionnel' | translate }}</span>
+        <textarea
+          name="cnam-ap4-bilan-fonctionnel"
+          [(ngModel)]="ap4.bilanFonctionnel"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.prolongation' | translate }}</span>
+        <textarea
+          name="cnam-ap4-prolongation"
+          [(ngModel)]="ap4.prolongation"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+    }
+
+    @if (selectedFormType === 'apci') {
+      <h4 class="section-title wide">{{ 'consultation.conduite.cnam.types.apci' | translate }}</h4>
+
+      <label class="wide description-field">
+        <span>{{ 'consultation.conduite.cnam.fields.diagnostic' | translate }}</span>
+        <textarea
+          name="cnam-apci-diagnostic"
+          [(ngModel)]="apci.diagnostic"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+
+      <label class="wide extra-tall-field">
+        <span>{{ 'consultation.conduite.cnam.fields.observation' | translate }}</span>
+        <textarea
+          name="cnam-apci-observation"
+          [(ngModel)]="apci.observation"
+          (ngModelChange)="onFieldChange()"
+        ></textarea>
+      </label>
+    }
+  </div>
+
+  <datalist id="cnam-clinic-options">
+    @for (clinicName of clinicOptions; track clinicName) {
+      <option [value]="clinicName"></option>
+    }
+  </datalist>
+
+  <div class="cnam-actions">
+    <button
+      type="button"
+      class="btn btn-color-green btn-primary btn-gg cnam-print-btn"
+      [disabled]="isPrinting"
+      (click)="onPrintClick()"
+    >
+      {{ isPrinting ? ('consultation.documents.actions.printing' | translate) : ('consultation.documents.actions.print' | translate) }}
+    </button>
+  </div>
+</article>

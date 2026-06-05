@@ -1,0 +1,268 @@
+﻿.treatment-section-wrapper {
+  border: 1px solid #ddd6ca;
+  border-radius: 0.35rem;
+  background: rgba(212, 118, 35, 0.16);
+  overflow: visible;
+  position: relative;
+}
+
+.treatment-collapsible-body {
+  width: 100%;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s ease;
+}
+
+.treatment-section-wrapper:hover .treatment-collapsible-body,
+.treatment-section-wrapper.section-expanded .treatment-collapsible-body {
+  max-height: 5000px;
+  overflow: visible;
+  transition: max-height 0.5s ease-in;
+}
+
+.treatment-section-wrapper .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.treatment-section-wrapper .card-header.non-collapsible {
+  cursor: default;
+}
+
+.treatment-section-wrapper .card-header h3 {
+  margin: 0;
+  color: #c89568;
+  font-size: 1.75rem;
+  font-weight: 400 !important;
+}
+
+.treatment-mode-link {
+  color: #c89568 !important;
+  text-decoration: none;
+}
+
+.treatment-mode-link.active {
+  color: #c89568 !important;
+  font-weight: 700;
+}
+
+.ordonnance-timeline-inline {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.ordonnance-date-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #175042;
+  text-decoration: underline;
+  font-size: 0.82rem;
+}
+
+.ordonnance-date-link.active {
+  color: #c89568;
+  font-weight: 700;
+}
+
+.ordonnance-separator,
+.timeline-loading {
+  color: #6c757d;
+  font-size: 0.82rem;
+}
+
+.treatment-section-wrapper .card-header .collapse-indicator {
+  color: #425e57;
+  transition: transform 0.2s ease;
+  font-size: 1rem;
+}
+
+.treatment-section-wrapper.section-expanded .card-header .collapse-indicator {
+  transform: rotate(180deg);
+}
+
+.treatment-body {
+  padding: 0 0.35rem 0.25rem;
+}
+
+#traitement {
+  overflow: visible;
+}
+
+#traitement .table-responsive {
+  overflow: visible;
+}
+
+.table-traitement {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.tec-table {
+  background: transparent;
+  margin-bottom: 0;
+}
+
+.tec-table thead tr th {
+  color: #175042 !important;
+  font-size: 1rem;
+  font-weight: bold !important;
+  border-bottom: 0 !important;
+  padding: 0.6rem 0.5rem;
+  background-color:rgba(219, 216, 215, 0) !important;
+  white-space: nowrap;
+}
+
+.header-plus-icon {
+  color: #93ae88;
+  margin-inline-start: 0.3rem;
+  font-size: 0.72em;
+}
+
+.tec-table tbody tr td {
+  border-top: 0 !important;
+  padding: 0.42rem;
+  vertical-align: middle;
+  white-space: nowrap;
+  color: #121822;
+}
+
+.ligne-paire {
+  background-color: rgba(200, 149, 104, 0.2) !important;
+}
+
+.ligne-impaire {
+  background-color: rgba(147, 174, 136, 0.1) !important;
+}
+
+.tec-table .form-control {
+  border: 1px solid #ced4da;
+  border-radius: 0.3rem;
+  background: #fff;
+  color: #495057;
+  padding: 0.42rem 0.55rem;
+  font-size: 0.86rem;
+}
+
+.tec-table .form-control:focus {
+  border-color: #175042;
+  box-shadow: 0 0 0 0.2rem rgba(147, 174, 136, 0.25);
+}
+
+:host ::ng-deep .tec-table ng-select .ng-select-container {
+  border: 1px solid #ced4da !important;
+  background: #fff !important;
+  min-height: 34px !important;
+  box-shadow: none;
+}
+
+:host ::ng-deep #traitement .ng-dropdown-panel {
+  position: absolute;
+  z-index: 4200 !important;
+  background-color: #fffff8 !important;
+  border: 1px solid #d9d3c5 !important;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.actions-cell .btn-link,
+.treatment-add-btn {
+  color: #93ae88;
+}
+
+.actions-cell .btn-link:hover,
+.treatment-add-btn:hover {
+  color: #175042;
+}
+
+.actions-cell .btn-link.disabled {
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.treatment-add-btn {
+  line-height: 1;
+  font-size: 1.05rem;
+}
+
+.date-small {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.rtl-layout {
+  direction: rtl;
+}
+
+.rtl-layout .card-header {
+  flex-direction: row-reverse;
+}
+
+.rtl-layout .card-header h3 {
+  text-align: right;
+}
+
+@media (max-width: 1400px) {
+  #traitement .table-responsive {
+    overflow-x: auto;
+  }
+
+  .table-traitement {
+    min-width: 860px;
+  }
+}
+
+@media (max-width: 900px) {
+  .treatment-section-wrapper .card-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .tec-table thead tr th {
+    font-size: 0.92rem;
+  }
+
+  .tec-table tbody tr td {
+    min-width: 170px;
+  }
+}
+:host label,
+:host .form-label,
+:host .antecedent-header,
+:host .antecedent-form-title,
+:host .custom-description-field > span,
+:host .antecedent-form-grid > label > span,
+:host .antecedent-form-grid > div > span,
+:host .treatment-section-wrapper label {
+  font-family: var(--app-font-family) !important;
+  font-weight: 700 !important;
+}
+
+.readonly-cell {
+  display: inline-block;
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid #d8dfd2;
+  border-radius: 0.3rem;
+  background: #fff;
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+}
+
+:host .antecedent-date,
+:host .treatment-section-wrapper span,
+:host .treatment-section-wrapper td,
+:host ::ng-deep .ng-value-label,
+:host ::ng-deep .ng-option-label,
+:host ::ng-deep .antecedent-option-label {
+  font-family: var(--app-font-family) !important;
+  font-weight: 400 !important;
+}

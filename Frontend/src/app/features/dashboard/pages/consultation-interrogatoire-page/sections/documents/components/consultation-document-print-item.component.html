@@ -1,0 +1,6 @@
+<div class="document-item">
+  <span class="document-label">{{ label }}</span>
+  <button type="button" class="btn btn-secondary btn-sm" [disabled]="isLoading" (click)="onPrint()">
+    {{ isLoading ? t('consultation.documents.actions.printing') : t('consultation.documents.actions.print') }}
+  </button>
+</div>

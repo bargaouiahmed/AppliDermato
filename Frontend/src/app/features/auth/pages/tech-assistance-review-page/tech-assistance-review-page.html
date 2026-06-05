@@ -1,0 +1,83 @@
+<main class="review-page">
+  @if (!unlocked()) {
+    <form class="unlock-panel" (ngSubmit)="unlock()">
+      <p class="eyebrow">Tech lead review</p>
+      <h1>Read-only assistance conversation</h1>
+      <label>
+        <span>Password</span>
+        <input
+          type="password"
+          autocomplete="current-password"
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          name="password"
+        />
+      </label>
+      @if (error()) {
+        <div class="error-box">{{ error() }}</div>
+      }
+      <button class="primary-btn" type="submit" [disabled]="loading() || !password().trim()">
+        Open review
+      </button>
+    </form>
+  } @else if (ticket(); as item) {
+    <section class="review-shell">
+      <header class="review-header">
+        <div>
+          <p class="eyebrow">Tech assistance</p>
+          <h1>{{ item.subject }}</h1>
+          <p>{{ item.doctorDisplayName }} · {{ item.doctorEmail }}</p>
+        </div>
+        <span class="status-pill">{{ item.status }}</span>
+      </header>
+
+      <aside class="participants">
+        <h2>Participants</h2>
+        <div class="participant-list">
+          @for (participant of item.participants; track participant.doctorId) {
+            <div class="participant">
+              <strong>{{ participant.displayName }}</strong>
+              <span>{{ roleLabel(participant.role) }} · {{ participant.email }}</span>
+            </div>
+          }
+        </div>
+      </aside>
+
+      <article class="thread">
+        @for (msg of item.messages; track msg.id) {
+          <div class="message-row" [class.admin]="isAdminMessage(msg)">
+            <div class="message-bubble">
+              <div class="message-meta">
+                <strong>{{ msg.senderDisplayName }}</strong>
+                <span>{{ roleLabel(msg.senderRole) }} · {{ msg.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              @if (msg.message) {
+                <p>{{ msg.message }}</p>
+              }
+              @if (msg.attachments.length > 0) {
+                <div class="attachments-grid">
+                  @for (attachment of msg.attachments; track attachment.id) {
+                    <a
+                      class="attachment-card"
+                      [href]="attachmentUrl(attachment)"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      @if (isImageAttachment(attachment)) {
+                        <img [src]="attachmentUrl(attachment)" [alt]="attachment.originalFileName" />
+                      } @else {
+                        <span class="file-icon"><i class="bi bi-file-earmark"></i></span>
+                      }
+                      <span class="file-name">{{ attachment.originalFileName }}</span>
+                      <span class="file-size">{{ fileSize(attachment.fileSizeBytes) }}</span>
+                    </a>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </article>
+    </section>
+  }
+</main>

@@ -1,0 +1,38 @@
+@if (isOpen && data) {
+  <div class="modal-backdrop" #modalBackdrop (click)="onBackdropClick($event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-heading">
+          <h4>{{ 'patients.details.history.actions.previewConclusion' | translate }}</h4>
+          <span class="modal-subtitle">{{ data.consultationDate | date: 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <button type="button" class="modal-close" (click)="close()" title="Fermer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="modal-body preview-body">
+        @if (loadError) {
+          <div class="modal-state error">
+            {{ loadError | translate }}
+          </div>
+        }
+
+        @if (viewModel) {
+          <app-consultation-conclusion-report [viewModel]="viewModel" [displayMode]="'compact'" />
+        } @else {
+          <div class="modal-state">
+            {{ (isLoading ? 'consultation.page.loading' : 'consultation.page.conclusion.loadError') | translate }}
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-print" (click)="printConsultation()">
+          <i class="bi bi-printer"></i>
+          {{ 'consultation.page.conclusion.actions.print' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

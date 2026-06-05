@@ -1,0 +1,8 @@
+<section class="print-loading-shell" *ngIf="isLoading">
+  <p>Preparation du document...</p>
+</section>
+
+<section class="print-error-shell" *ngIf="!isLoading && errorMessage">
+  <p>{{ errorMessage }}</p>
+  <button type="button" class="btn btn-secondary" (click)="retry()">Reessayer</button>
+</section>

@@ -1,0 +1,416 @@
+<div class="patients-page bg-color">
+  <div class="header-row">
+    <h3>{{ 'patients.list.title' | translate }}</h3>
+    <div class="header-actions">
+      <label class="sort-control">
+        <span>
+          <i class="fa-solid fa-sort"></i>
+          {{ 'patients.list.sort.label' | translate }}
+        </span>
+        <select [ngModel]="selectedSort" (ngModelChange)="onSortChange($event)">
+          @for (option of sortOptions; track option) {
+            <option [value]="option">{{ sortLabelKeys[option] | translate }}</option>
+          }
+        </select>
+      </label>
+
+      <button class="secondary-btn" type="button" [disabled]="isExporting" (click)="exportPatientsCsv()">
+        @if (isExporting) {
+          {{ 'patients.list.export.loading' | translate }}
+        } @else {
+          {{ 'patients.list.export.action' | translate }}
+        }
+      </button>
+
+      <a class="add-btn" [routerLink]="['/patients/new']">
+        {{ 'patients.list.actions.add' | translate }}
+      </a>
+    </div>
+  </div>
+
+  <div class="card filters-card">
+    <div class="filters-grid">
+      <label class="field">
+        <span>{{ 'patients.list.filters.dossierNumber' | translate }}</span>
+        <input
+          type="text"
+          [ngModel]="searchDossierNumber"
+          (ngModelChange)="onFilterChange('searchDossierNumber', $event)"
+          placeholder="Ex: 123"
+        />
+      </label>
+
+      <label class="field">
+        <span>{{ 'patients.list.filters.lastname' | translate }}</span>
+        <input
+          type="text"
+          [ngModel]="searchLastname"
+          (ngModelChange)="onFilterChange('searchLastname', $event)"
+          placeholder="Ex: Ahmed"
+        />
+      </label>
+
+      <label class="field">
+        <span>{{ 'patients.list.filters.firstname' | translate }}</span>
+        <input
+          type="text"
+          [ngModel]="searchFirstname"
+          (ngModelChange)="onFilterChange('searchFirstname', $event)"
+          placeholder="Ex: Ali"
+        />
+      </label>
+
+      <label class="field">
+        <span>{{ 'patients.list.filters.dateOfBirth' | translate }}</span>
+        <input
+          type="text"
+          [ngModel]="searchDateOfBirth"
+          (ngModelChange)="onFilterChange('searchDateOfBirth', $event)"
+          placeholder="DD/MM/YYYY"
+        />
+        <small>Format : JJ/MM/AAAA</small>
+      </label>
+
+      <label class="field">
+        <span>{{ 'patients.list.filters.age' | translate }}</span>
+        <input
+          type="text"
+          [ngModel]="searchAge"
+          (ngModelChange)="onFilterChange('searchAge', $event)"
+          placeholder="Ex: 35"
+        />
+      </label>
+
+      <div class="filter-actions">
+        <label class="field field-size">
+          <span>{{ 'patients.list.pageSize' | translate }}</span>
+          <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+            @for (size of pageSizeOptions; track size) {
+              <option [value]="size">{{ size }}</option>
+            }
+          </select>
+        </label>
+
+        <button type="button" class="clear-btn" (click)="clearFilters()">
+          <i class="fa-solid fa-rotate-left"></i>
+          {{ 'patients.list.filters.clear' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    @if (isLoading) {
+      <div class="state">{{ 'patients.list.loading' | translate }}</div>
+    } @else if (!hasPatients) {
+      <div class="state">{{ 'patients.list.empty' | translate }}</div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr class="ligne-paire">
+              <th class="expand-col"></th>
+              <th class="avatar-col"></th>
+              <th>{{ 'patients.list.columns.dossier' | translate }}</th>
+              <th>{{ 'patients.list.columns.lastname' | translate }}</th>
+              <th>{{ 'patients.list.columns.firstname' | translate }}</th>
+              <th>{{ 'patients.list.columns.birthDate' | translate }}</th>
+              <th>{{ 'patients.list.columns.age' | translate }}</th>
+              <th>{{ 'patients.list.columns.phone' | translate }}</th>
+              <th>{{ 'patients.list.columns.profession' | translate }}</th>
+              <th>{{ 'patients.list.columns.consultationCount' | translate }}</th>
+              <th>{{ 'patients.list.columns.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (patient of patients; track patient.id; let idx = $index) {
+              <tr
+                class="patient-row"
+                [class.ligne-impaire]="idx % 2 === 0"
+                [class.ligne-paire]="idx % 2 !== 0"
+                [class.expanded]="expandedPatientId === patient.id"
+                tabindex="0"
+                (click)="toggleExpand($event, patient.id)"
+                (keydown.enter)="toggleExpand($event, patient.id)"
+              >
+                <td class="expand-cell">
+                  <i class="fa-solid" [class.fa-chevron-down]="expandedPatientId !== patient.id" [class.fa-chevron-up]="expandedPatientId === patient.id"></i>
+                </td>
+                <td class="avatar-cell">
+                  <div class="patient-avatar" aria-hidden="true">
+                    <i class="bi bi-person-circle"></i>
+                  </div>
+                </td>
+                <td>{{ patient.dossierNumber || '-' }}</td>
+                <td>{{ patient.lastname || '-' }}</td>
+                <td>{{ patient.firstname || '-' }}</td>
+                <td>{{ patient.dateOfBirth ? (patient.dateOfBirth | date: 'dd/MM/yyyy') : '-' }}</td>
+                <td>{{ patient.dateOfBirth ? (getPatientAge(patient.dateOfBirth) ?? '-') : '-' }}</td>
+                <td>{{ patient.phoneNumber || '-' }}</td>
+                <td>{{ patient.profession || '-' }}</td>
+                <td>{{ patient.consultationCount || 0 }}</td>
+                <td class="actions-cell">
+                  <button
+                    class="icon-action-btn"
+                    type="button"
+                    [attr.title]="'patients.list.actions.newConsultation' | translate"
+                    (click)="openConsultationModal($event, patient)"
+                  >
+                    <i class="fa-solid fa-plus-circle"></i>
+                  </button>
+                  <button
+                    class="icon-action-btn"
+                    type="button"
+                    [attr.title]="'patients.list.actions.details' | translate"
+                    (click)="$event.stopPropagation(); openPatientDetails(patient.id)"
+                  >
+                    <i class="fa-solid fa-clipboard-check"></i>
+                  </button>
+                  <button
+                    class="icon-action-btn danger"
+                    type="button"
+                    [attr.title]="'patients.list.actions.deletePatient' | translate"
+                    [disabled]="deletingPatientId === patient.id"
+                    (click)="deletePatient($event, patient.id)"
+                  >
+                    @if (deletingPatientId === patient.id) {
+                      <span class="delete-spinner" aria-hidden="true"></span>
+                    } @else {
+                      <i class="fa-solid fa-trash"></i>
+                    }
+                  </button>
+                </td>
+              </tr>
+
+              @if (expandedPatientId === patient.id) {
+                <tr class="expanded-row">
+                  <td colspan="12">
+                    <div class="expanded-content card">
+                      <h4>{{ 'patients.details.history.title' | translate }}</h4>
+
+                      @if (isExpandedLoading) {
+                        <div class="state">{{ 'patients.details.history.loading' | translate }}</div>
+                      } @else if (expandedConsultations.length === 0) {
+                        <div class="state">{{ 'patients.details.history.empty' | translate }}</div>
+                      } @else {
+                        <div class="table-wrap expanded-table-wrap">
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>{{ 'patients.details.history.columns.date' | translate }}</th>
+                                <th>{{ 'patients.details.history.columns.motifs' | translate }}</th>
+                                <th>{{ 'patients.details.history.columns.diagnostics' | translate }}</th>
+                                <th>{{ 'patients.details.history.columns.cat' | translate }}</th>
+                                <th>{{ 'patients.details.history.columns.duration' | translate }}</th>
+                                <th>{{ 'patients.details.history.columns.actions' | translate }}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (consultation of expandedConsultations; track consultation.id) {
+                                <tr>
+                                  <td class="date-cell">
+                                    <i class="fa fa-calendar-alt"></i>
+                                    {{ consultation.consultationDate | date: 'dd/MM/yyyy' }}
+                                    <i class="fa fa-clock"></i>
+                                    {{ consultation.consultationDate | date: 'HH:mm' }}
+                                  </td>
+                                  <td>
+                                    @if (consultation.motifs.length > 0) {
+                                      <div class="motif-wrap">
+                                        @for (motif of consultation.motifs; track motif) {
+                                          <span class="motif-badge">{{ motif }}</span>
+                                        }
+                                      </div>
+                                    } @else {
+                                      <span>-</span>
+                                    }
+                                  </td>
+                                  <td>
+                                    @if (consultation.diagnostics.length > 0) {
+                                      <div class="diagnostic-wrap">
+                                        @for (diagnostic of consultation.diagnostics; track diagnostic) {
+                                          <button
+                                            type="button"
+                                            class="diagnostic-badge clickable"
+                                            (click)="openDetailModal(patient, consultation)"
+                                          >
+                                            {{ diagnostic }}
+                                          </button>
+                                        }
+                                      </div>
+                                    } @else {
+                                      <span>-</span>
+                                    }
+                                  </td>
+                                  <td>
+                                    @if (consultation.conduiteActions.length > 0) {
+                                      <div class="cat-wrap">
+                                        @for (action of consultation.conduiteActions; track action) {
+                                          <div class="cat-badge-group">
+                                            <button
+                                              type="button"
+                                              class="cat-badge clickable"
+                                              (click)="openCarepDetailModal(patient, consultation, action)"
+                                            >
+                                              {{ action }}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              class="cat-print-btn"
+                                              (click)="printAction(consultation, action)"
+                                              [title]="'consultation.documents.actions.print' | translate"
+                                            >
+                                              <i class="bi bi-printer"></i>
+                                            </button>
+                                          </div>
+                                        }
+                                      </div>
+                                    } @else {
+                                      <span>-</span>
+                                    }
+                                  </td>
+                                  <td>{{ consultation.duration || '00:00:00' }}</td>
+                                  <td class="actions-col">
+                                    <button
+                                      type="button"
+                                      class="table-action"
+                                      [attr.title]="'patients.details.history.actions.open' | translate"
+                                      (click)="openConsultation(consultation.id)"
+                                    >
+                                      <i class="fa-solid fa-pencil"></i>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      class="table-action"
+                                      [attr.title]="'patients.details.history.actions.previewConclusion' | translate"
+                                      (click)="openDetailModal(patient, consultation)"
+                                    >
+                                      <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      class="table-action"
+                                      [attr.title]="'patients.details.history.actions.openDocuments' | translate"
+                                      (click)="openConsultationDocuments(consultation.id)"
+                                    >
+                                      <i class="fa-solid fa-file-text"></i>
+                                    </button>
+                                    @if (canDeleteExpandedConsultation(consultation)) {
+                                      <button
+                                        type="button"
+                                        class="table-action danger"
+                                        [attr.title]="'patients.details.history.actions.delete' | translate"
+                                        [disabled]="deletingConsultationId === consultation.id"
+                                        (click)="deleteConsultation(consultation)"
+                                      >
+                                        @if (deletingConsultationId === consultation.id) {
+                                          <span class="delete-spinner" aria-hidden="true"></span>
+                                        } @else {
+                                          <i class="fa-solid fa-trash"></i>
+                                        }
+                                      </button>
+                                    }
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+
+                        @if (expandedVisiblePages.length > 1) {
+                          <div class="pagination expanded-pagination">
+                            <button
+                              type="button"
+                              [disabled]="expandedPageNumber <= 1"
+                              (click)="goToExpandedPage(expandedPageNumber - 1)"
+                            >
+                              {{ 'patients.list.pagination.previous' | translate }}
+                            </button>
+
+                            @for (page of expandedVisiblePages; track page) {
+                              <button
+                                type="button"
+                                [class.active]="page === expandedPageNumber"
+                                (click)="goToExpandedPage(page)"
+                              >
+                                {{ page }}
+                              </button>
+                            }
+
+                            <button
+                              type="button"
+                              [disabled]="expandedPageNumber >= expandedTotalPages"
+                              (click)="goToExpandedPage(expandedPageNumber + 1)"
+                            >
+                              {{ 'patients.list.pagination.next' | translate }}
+                            </button>
+                          </div>
+                        }
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer-row">
+        <p>
+          {{ fromItem }} - {{ toItem }} / {{ totalCount }}
+          {{ 'patients.list.resultsSuffix' | translate }}
+        </p>
+
+        @if (visiblePages.length > 1) {
+          <div class="pagination">
+            <button
+              type="button"
+              [disabled]="pageNumber <= 1"
+              (click)="goToPage(pageNumber - 1)"
+            >
+              {{ 'patients.list.pagination.previous' | translate }}
+            </button>
+
+            @for (page of visiblePages; track page) {
+              <button
+                type="button"
+                [class.active]="page === pageNumber"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+
+            <button
+              type="button"
+              [disabled]="pageNumber >= totalPages"
+              (click)="goToPage(pageNumber + 1)"
+            >
+              {{ 'patients.list.pagination.next' | translate }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <app-consultation-init-modal
+    [isOpen]="consultationModalOpen"
+    [patientId]="selectedPatientForConsultation?.id ?? ''"
+    (closed)="closeConsultationModal()"
+    (created)="onConsultationCreated($event)"
+  />
+
+  <app-consultation-detail-modal
+    [isOpen]="detailModalOpen"
+    [data]="detailModalData"
+    (closed)="closeDetailModal()"
+  />
+
+  <app-consultation-carep-detail-modal
+    [isOpen]="carepModalOpen"
+    [data]="carepModalData"
+    (closed)="closeCarepDetailModal()"
+  />
+</div>

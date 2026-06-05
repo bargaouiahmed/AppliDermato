@@ -1,0 +1,476 @@
+<section class="stats-shell">
+  <div class="stats-topbar">
+    <div>
+      <h4>{{ 'statistics.title' | translate }}</h4>
+      <span>{{ 'statistics.subtitle' | translate }}</span>
+    </div>
+    <div class="topbar-actions">
+      @if (patientStats) {
+        <div class="stats-view-selector" role="tablist" [attr.aria-label]="'statistics.viewSelector.aria' | translate">
+          <button type="button" role="tab" [attr.aria-selected]="!isPatientStatsOpen" [class.active]="!isPatientStatsOpen" (click)="showConsultationStats()">
+            {{ 'statistics.view.consultations' | translate }}
+          </button>
+          <button type="button" role="tab" [attr.aria-selected]="isPatientStatsOpen" [class.active]="isPatientStatsOpen" (click)="showPatientStats()">
+            {{ 'statistics.view.patients' | translate }}
+          </button>
+        </div>
+      }
+      @if (isLoading) {
+        <span class="loading-pill">{{ 'common.loading' | translate }}</span>
+      }
+      <button type="button" class="refresh-btn" (click)="loadStatistics()" [disabled]="isLoading">
+        {{ 'statistics.actions.refresh' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage) {
+    <div class="stats-state error">{{ errorMessage }}</div>
+  }
+
+  @if (!overview && isLoading) {
+    <div class="stats-state">{{ 'common.loading' | translate }}</div>
+  } @else if (overview) {
+    <div class="stats-carousel" [class.is-patient-view]="isPatientStatsOpen" [class.is-prev]="carouselDirection === 'prev'">
+      @if (!isPatientStatsOpen) {
+        <div class="carousel-pane consultation-pane">
+          @if (consultationStats; as consultation) {
+      <section class="stats-block">
+        <div class="block-header">
+          <div>
+            <h5>{{ 'statistics.consultations.title' | translate }}</h5>
+            <span>{{ periodLabelKey() | translate }} {{ 'statistics.labels.by' | translate }} {{ chartGranularityLabelKey() | translate }}</span>
+          </div>
+          <div class="consultation-filters">
+            <label>
+              <span>{{ 'statistics.filters.period' | translate }}</span>
+              <select name="period" [(ngModel)]="filters.period" (ngModelChange)="onPeriodChange()">
+                @for (option of periodOptions; track option.value) {
+                  <option [value]="option.value">{{ option.labelKey | translate }}</option>
+                }
+              </select>
+            </label>
+
+            @if (filters.period === 'custom') {
+              <label>
+                <span>{{ 'statistics.filters.from' | translate }}</span>
+                <input type="date" name="startDate" [(ngModel)]="filters.startDate" (ngModelChange)="onConsultationFilterChange()" />
+              </label>
+
+              <label>
+                <span>{{ 'statistics.filters.to' | translate }}</span>
+                <input type="date" name="endDate" [(ngModel)]="filters.endDate" (ngModelChange)="onConsultationFilterChange()" />
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="metric-grid consultation-metrics">
+          <div class="metric-tile">
+            <span>{{ 'statistics.metrics.totalConsultations' | translate }}</span>
+            <strong>{{ consultation.totalConsultations }}</strong>
+          </div>
+          <div class="metric-tile">
+            <span>{{ 'statistics.metrics.completed' | translate }}</span>
+            <strong>{{ consultation.completedConsultations }}</strong>
+            <em>{{ completionRate() }}</em>
+          </div>
+          <div class="metric-tile">
+            <span>{{ 'statistics.metrics.notCompleted' | translate }}</span>
+            <strong>{{ consultation.notCompletedConsultations }}</strong>
+          </div>
+          <div class="metric-tile">
+            <span>{{ 'statistics.metrics.averageDuration' | translate }}</span>
+            <strong>{{ consultation.averageDuration }}</strong>
+          </div>
+        </div>
+
+        <div class="consultation-grid">
+          <article class="panel timeline-panel">
+            <div class="panel-title">
+              <h6>{{ 'statistics.consultations.countTitle' | translate }}</h6>
+              <span>{{ consultation.timeline.length }} {{ 'statistics.labels.periods' | translate }}</span>
+            </div>
+
+            @if (consultation.timeline.length > 0) {
+              <div class="timeline-chart" role="img" [attr.aria-label]="('statistics.consultations.countBy' | translate) + ' ' + (chartGranularityLabelKey() | translate)">
+                @for (item of consultation.timeline; track item.label) {
+                  <div class="chart-column" [title]="item.label + ' : ' + item.count">
+                    <span class="chart-value" [class.is-empty]="item.count <= 0">{{ item.count > 0 ? item.count : '' }}</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill" [class.is-empty]="item.count <= 0" [style.height.%]="barHeight(item.count, consultation.timeline)"></div>
+                    </div>
+                    <span class="chart-label">{{ item.label }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-panel">{{ 'statistics.empty.noConsultation' | translate }}</p>
+            }
+          </article>
+
+          <div class="side-panels">
+            <article class="panel">
+              <div class="panel-title">
+                <h6>{{ 'statistics.labels.diagnostics' | translate }}</h6>
+                <span>{{ 'statistics.labels.frequency' | translate }}</span>
+              </div>
+              @if (consultation.diagnosticFrequency.length > 0) {
+                @for (item of consultation.diagnosticFrequency; track item.label) {
+                  <div class="distribution-row">
+                    <div>
+                      <span>{{ item.label }}</span>
+                      <strong>{{ percentageLabel(item.percentage) }}</strong>
+                    </div>
+                    <div class="bar-track">
+                      <div class="bar-fill diagnostic-fill" [style.width.%]="barWidth(item.count, consultation.diagnosticFrequency)"></div>
+                    </div>
+                    <em>{{ item.count }}</em>
+                  </div>
+                }
+              } @else {
+                <p class="empty-panel">{{ 'statistics.empty.noDiagnostic' | translate }}</p>
+              }
+            </article>
+
+            <article class="panel">
+              <div class="panel-title">
+                <h6>{{ 'statistics.consultations.cnamForms' | translate }}</h6>
+                <span>{{ 'statistics.labels.usage' | translate }}</span>
+              </div>
+              @if (consultation.cnamForms.length > 0) {
+                @for (item of consultation.cnamForms; track item.label) {
+                  <div class="distribution-row compact">
+                    <div>
+                      <span>{{ item.label }}</span>
+                      <strong>{{ percentageLabel(item.percentage) }}</strong>
+                    </div>
+                    <div class="bar-track">
+                      <div class="bar-fill cnam-fill" [style.width.%]="barWidth(item.count, consultation.cnamForms)"></div>
+                    </div>
+                    <em>{{ item.count }}</em>
+                  </div>
+                }
+              } @else {
+                <p class="empty-panel">{{ 'statistics.empty.noCnamForm' | translate }}</p>
+              }
+            </article>
+          </div>
+        </div>
+      </section>
+          }
+        </div>
+
+      } @else {
+        @if (patientStats; as patientsStats) {
+          <div class="carousel-pane patient-pane">
+
+      <section class="stats-block">
+        <div class="block-header patient-header">
+          <div>
+            <h5>{{ 'statistics.patients.title' | translate }}</h5>
+            <span>{{ patientsStats.totalPatients }} {{ 'statistics.patients.filteredPatients' | translate }}</span>
+          </div>
+          <div class="patient-header-actions">
+            <button type="button" class="clear-btn" (click)="resetFilters()" [disabled]="isLoading">{{ 'statistics.actions.reset' | translate }}</button>
+          </div>
+        </div>
+
+        <div class="patient-filters">
+          <label class="diagnostic-filter">
+            <span>{{ 'statistics.labels.diagnostics' | translate }}</span>
+            <ng-select
+              class="statistics-diagnostic-select"
+              name="diagnostics"
+              [items]="diagnosticCatalog"
+              [(ngModel)]="filters.diagnostics"
+              (ngModelChange)="onPatientFilterChange()"
+              [multiple]="true"
+              [closeOnSelect]="true"
+              [clearable]="true"
+              [searchable]="true"
+              [placeholder]="'statistics.filters.allDiagnostics' | translate"
+            ></ng-select>
+          </label>
+
+          <label>
+            <span>{{ 'statistics.labels.sex' | translate }}</span>
+            <select name="sex" [(ngModel)]="filters.sex" (ngModelChange)="onPatientFilterChange()">
+              @for (option of sexOptions; track option.value) {
+                <option [value]="option.value">{{ option.labelKey | translate }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>{{ 'statistics.labels.age' | translate }}</span>
+            <select name="ageGroup" [(ngModel)]="filters.ageGroup" (ngModelChange)="onPatientFilterChange()">
+              @for (option of ageGroupOptions; track option.value) {
+                <option [value]="option.value">{{ option.labelKey | translate }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>{{ 'statistics.labels.cnam' | translate }}</span>
+            <select name="cnamStatus" [(ngModel)]="filters.cnamStatus" (ngModelChange)="onPatientFilterChange()">
+              @for (option of cnamOptions; track option.value) {
+                <option [value]="option.value">{{ option.labelKey | translate }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>{{ 'statistics.filters.perPage' | translate }}</span>
+            <select name="pageSize" [(ngModel)]="filters.pageSize" (ngModelChange)="onPageSizeChange()">
+              @for (size of pageSizeOptions; track size) {
+                <option [ngValue]="size">{{ size }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if ((filters.diagnostics ?? []).length > 0) {
+          <div class="selected-diagnostics">
+            @for (diagnostic of filters.diagnostics ?? []; track diagnostic) {
+              <button type="button" class="selected-diagnostic-badge" (click)="removeDiagnostic(diagnostic)">
+                <span>{{ diagnostic }}</span>
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            }
+          </div>
+        }
+
+        <div class="metric-grid patient-metrics">
+          <div class="metric-tile">
+            <span>{{ 'statistics.metrics.totalPatients' | translate }}</span>
+            <strong>{{ patientsStats.totalPatients }}</strong>
+          </div>
+          <div class="metric-tile">
+            <span>{{ 'statistics.metrics.withDiagnostic' | translate }}</span>
+            <strong>{{ patientsStats.patientsWithDiagnostics }}</strong>
+            <em>{{ patientDiagnosticRate() }}</em>
+          </div>
+          <div class="metric-tile cnam-summary-tile">
+            <span>{{ 'statistics.labels.cnam' | translate }}</span>
+            <strong>{{ percentageLabel(patientsStats.cnamCoverage.withCnamPercentage) }}</strong>
+            <div class="cnam-mini-split">
+              <span>{{ 'statistics.labels.with' | translate }} {{ patientsStats.cnamCoverage.withCnam }}</span>
+              <span>{{ 'statistics.labels.without' | translate }} {{ patientsStats.cnamCoverage.withoutCnam }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="patient-distribution-grid">
+          <article class="panel">
+            <div class="panel-title">
+              <h6>{{ 'statistics.labels.sex' | translate }}</h6>
+              <span>{{ 'statistics.labels.distribution' | translate }}</span>
+            </div>
+            @if (patientsStats.sexDistribution.length > 0) {
+              <div class="bucket-chart" role="img" [attr.aria-label]="'statistics.labels.sex' | translate">
+                @for (item of patientsStats.sexDistribution; track item.label) {
+                  <div class="chart-column" [title]="(distributionLabelKey(item.label) | translate) + ' : ' + item.count + ' (' + percentageLabel(item.percentage) + ')'">
+                    <span class="chart-value" [class.is-empty]="item.count <= 0">{{ item.count > 0 ? item.count : '' }}</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill sex-chart-fill" [class.is-empty]="item.count <= 0" [style.height.%]="barHeight(item.count, patientsStats.sexDistribution)"></div>
+                    </div>
+                    <span class="chart-label">{{ distributionLabelKey(item.label) | translate }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-panel">{{ 'statistics.empty.noPatient' | translate }}</p>
+            }
+          </article>
+
+          <article class="panel">
+            <div class="panel-title">
+              <h6>{{ 'statistics.labels.age' | translate }}</h6>
+              <span>{{ 'statistics.labels.distribution' | translate }}</span>
+            </div>
+            @if (patientsStats.ageGroupDistribution.length > 0) {
+              <div class="bucket-chart" role="img" [attr.aria-label]="'statistics.labels.age' | translate">
+                @for (item of patientsStats.ageGroupDistribution; track item.label) {
+                  <div class="chart-column" [title]="(distributionLabelKey(item.label) | translate) + ' : ' + item.count + ' (' + percentageLabel(item.percentage) + ')'">
+                    <span class="chart-value" [class.is-empty]="item.count <= 0">{{ item.count > 0 ? item.count : '' }}</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill age-chart-fill" [class.is-empty]="item.count <= 0" [style.height.%]="barHeight(item.count, patientsStats.ageGroupDistribution)"></div>
+                    </div>
+                    <span class="chart-label">{{ distributionLabelKey(item.label) | translate }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-panel">{{ 'statistics.empty.noPatient' | translate }}</p>
+            }
+          </article>
+
+        </div>
+
+        <article class="patients-panel">
+          <div class="panel-title list-title">
+            <h6>{{ 'statistics.patients.relevant' | translate }}</h6>
+            <span>{{ patientRangeStart }}-{{ patientRangeEnd }} / {{ patientsStats.pagination.totalCount }}</span>
+          </div>
+
+          @if (patientsStats.patients.length === 0) {
+            <p class="empty-panel list-empty">{{ 'statistics.empty.noMatchingPatient' | translate }}</p>
+          } @else {
+            <div class="patients-list">
+              @for (patient of patientsStats.patients; track patient.id) {
+                <div class="patient-item">
+                  <button type="button" class="patient-row" (click)="togglePatient(patient)">
+                    <span class="patient-name">#{{ patient.dossierNumber }} - {{ patient.lastname }} {{ patient.firstname }}</span>
+                    <span>{{ patient.age }} {{ 'statistics.labels.yearsOld' | translate }}</span>
+                    <span>{{ patient.sex || '-' }}</span>
+                    <span class="status-badge" [class.has-cnam]="patient.hasCnam">{{ patient.hasCnam ? ('statistics.labels.cnam' | translate) : ('statistics.labels.withoutCnam' | translate) }}</span>
+                    <strong>{{ patient.matchingConsultationCount }}</strong>
+                  </button>
+
+                  @if (expandedPatientId === patient.id) {
+                    <div class="history-panel">
+                      @if (patient.consultations.length === 0) {
+                        <div class="empty-history">{{ 'statistics.empty.noRelevantConsultation' | translate }}</div>
+                      } @else {
+                        <div class="history-table-wrap">
+                          <table class="history-table">
+                            <thead>
+                              <tr>
+                                <th>{{ 'statistics.table.consultationDate' | translate }}</th>
+                                <th>{{ 'statistics.table.motifs' | translate }}</th>
+                                <th>{{ 'statistics.labels.diagnostics' | translate }}</th>
+                                <th>{{ 'statistics.table.carePlan' | translate }}</th>
+                                <th>{{ 'statistics.table.duration' | translate }}</th>
+                                <th>{{ 'statistics.table.actions' | translate }}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (consultation of patient.consultations; track consultation.id) {
+                                <tr>
+                                  <td class="date-cell">
+                                    <i class="fa fa-calendar-alt"></i>
+                                    {{ consultation.consultationDate | date:'dd/MM/yyyy' }}
+                                    <i class="fa fa-clock"></i>
+                                    {{ consultation.consultationDate | date:'HH:mm' }}
+                                  </td>
+                                  <td>
+                                    @if (consultation.motifs.length > 0) {
+                                      <div class="tag-wrap">
+                                        @for (motif of consultation.motifs; track motif) {
+                                          <span class="tag motif">{{ motif }}</span>
+                                        }
+                                      </div>
+                                    } @else {
+                                      <span>-</span>
+                                    }
+                                  </td>
+                                  <td>
+                                    @if (consultation.diagnostics.length > 0) {
+                                      <div class="tag-wrap">
+                                        @for (diagnostic of consultation.diagnostics; track diagnostic) {
+                                          <button type="button" class="tag diagnostic" (click)="openDetailModal(patient, consultation)">
+                                            {{ diagnostic }}
+                                          </button>
+                                        }
+                                      </div>
+                                    } @else {
+                                      <span>-</span>
+                                    }
+                                  </td>
+                                  <td>
+                                    @if (consultation.conduiteActions.length > 0) {
+                                      <div class="carep-wrap">
+                                        @for (action of consultation.conduiteActions; track action) {
+                                          <div class="carep-group">
+                                            <button type="button" class="carep-badge" (click)="openCarepDetailModal(patient, consultation, action)">
+                                              {{ action }}
+                                            </button>
+                                            <button type="button" class="carep-print" (click)="printAction(consultation, action)" [title]="'statistics.actions.print' | translate">
+                                              <i class="bi bi-printer"></i>
+                                            </button>
+                                          </div>
+                                        }
+                                      </div>
+                                    } @else {
+                                      <span>-</span>
+                                    }
+                                  </td>
+                                  <td>{{ consultation.duration || '00:00:00' }}</td>
+                                  <td class="actions-col">
+                                    <div>
+                                      <button type="button" class="table-action" (click)="openConsultation(consultation.id)" [title]="'statistics.actions.open' | translate">
+                                        <i class="fa-solid fa-pencil"></i>
+                                      </button>
+                                      <button type="button" class="table-action" (click)="openDetailModal(patient, consultation)" [title]="'statistics.actions.view' | translate">
+                                        <i class="fa-solid fa-eye"></i>
+                                      </button>
+                                      <button type="button" class="table-action" (click)="openConsultationDocuments(consultation.id)" [title]="'statistics.actions.documents' | translate">
+                                        <i class="fa-solid fa-file-text"></i>
+                                      </button>
+                                      @if (canDeleteConsultation(consultation)) {
+                                        <button
+                                          type="button"
+                                          class="table-action danger"
+                                          [disabled]="deletingConsultationId === consultation.id"
+                                          (click)="deleteConsultation(consultation)"
+                                          [title]="'statistics.actions.delete' | translate"
+                                        >
+                                          @if (deletingConsultationId === consultation.id) {
+                                            <span class="delete-spinner" aria-hidden="true"></span>
+                                          } @else {
+                                            <i class="fa-solid fa-trash"></i>
+                                          }
+                                        </button>
+                                      }
+                                    </div>
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (patientsStats.pagination.totalCount > 0) {
+            <div class="pagination">
+              <button type="button" [disabled]="(filters.pageNumber ?? 1) === 1" (click)="goToPatientPage((filters.pageNumber ?? 1) - 1)">
+                {{ 'statistics.pagination.previous' | translate }}
+              </button>
+              @for (page of patientVisiblePages; track page) {
+                <button type="button" [class.active]="page === (filters.pageNumber ?? 1)" (click)="goToPatientPage(page)">
+                  {{ page }}
+                </button>
+              }
+              <button type="button" [disabled]="(filters.pageNumber ?? 1) === patientTotalPages" (click)="goToPatientPage((filters.pageNumber ?? 1) + 1)">
+                {{ 'statistics.pagination.next' | translate }}
+              </button>
+            </div>
+          }
+        </article>
+      </section>
+          </div>
+        }
+      }
+    </div>
+  }
+</section>
+
+<app-consultation-detail-modal
+  [isOpen]="detailModalOpen"
+  [data]="detailModalData"
+  (closed)="closeDetailModal()"
+/>
+
+<app-consultation-carep-detail-modal
+  [isOpen]="carepModalOpen"
+  [data]="carepModalData"
+  (closed)="closeCarepDetailModal()"
+/>
+

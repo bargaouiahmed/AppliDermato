@@ -1,0 +1,123 @@
+<div class="modal-header">
+    <h4 class="modal-title">
+        <i class="fa-solid fa-calendar-star me-2"></i>
+        Jours fériés annuels
+    </h4>
+    <a class="exit" aria-label="Close" (click)="modal.dismiss('Cross click')">
+        <i class="fa-regular fa-circle-xmark"></i>
+    </a>
+</div>
+
+<div class="modal-body">
+    <!-- Description -->
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fa-solid fa-circle-info me-2"></i>
+            <div>
+                <strong>Information :</strong> Les jours fériés sélectionnés seront affichés comme jours de fermeture dans le calendrier.
+            </div>
+        </div>
+    </div>
+
+    <!-- Container unique avec scroll -->
+    <div class="all-holidays-container">
+        <!-- Jours fériés fixes -->
+        <div class="holiday-section">
+            <h6 class="text-primary fw-bold mb-3">
+                <i class="fa-solid fa-calendar-day me-2"></i>
+                Jours fériés fixes
+            </h6>
+            
+            <div *ngFor="let holiday of fixedHolidays; let i = index" 
+                 class="holiday-item">
+                <div class="holiday-card" [class.selected]="isHolidaySelected(holiday.date)">
+                    <div class="holiday-info">
+                        <div class="holiday-date-badge">
+                            <span class="month">{{ getMonthName(holiday.date) }}</span>
+                            <span class="day">{{ getDay(holiday.date) }}</span>
+                        </div>
+                        <div class="holiday-details">
+                            <span class="holiday-name">{{ holiday.name }}</span>
+                            <small class="holiday-date-full text-muted">
+                                {{ getFullDate(holiday.date) }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="holiday-toggle">
+                        <input type="checkbox"
+                               [id]="'fixed-holiday-' + i"
+           [checked]="isHolidayInDb(holiday.date)"
+                               (change)="toggleHoliday(holiday.date, $event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jours fériés variables -->
+        <div class="holiday-section">
+            <h6 class="text-primary fw-bold mb-3">
+                <i class="fa-solid fa-moon me-2"></i>
+                Fêtes religieuses (dates variables)
+            </h6>
+            
+            <div *ngFor="let holiday of variableHolidays; let i = index" 
+                 class="holiday-item">
+                <div class="holiday-card" [class.selected]="holiday.checked">
+                    <div class="holiday-info">
+                        <div class="holiday-date-badge variable-badge">
+                            <i class="fa-solid" [ngClass]="getHolidayIcon(holiday.name)"></i>
+                        </div>
+                        <div class="holiday-details">
+                            <span class="holiday-name">{{ holiday.name }}</span>
+                            <small class="holiday-date-full text-muted">
+                                {{ holiday.description }}
+                            </small>
+                            <div class="date-input-container mt-2">
+                                <input type="date" 
+                                       class="form-control form-control-sm"
+                                       [value]="holiday.selectedDate"
+                                       (change)="onVariableHolidayDateChange(holiday, $event)"
+                                       style="max-width: 150px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="holiday-toggle">
+                        <input type="checkbox"
+                               [id]="'variable-holiday-' + i"
+            [checked]="isHolidayInDb(holiday.selectedDate)"
+                               (change)="toggleVariableHoliday(holiday, $event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résumé de sélection -->
+    <div class="selection-summary mt-4 p-3 bg-light rounded">
+        <div class="row text-center">
+            <div class="col-4">
+                <span class="fw-semibold text-success">{{ getTotalSelectedHolidays() }}</span>
+                <small class="text-muted d-block">Total sélectionnés</small>
+            </div>
+            <div class="col-4">
+                <span class="fw-semibold text-primary">{{ getSelectedFixedHolidays() }}</span>
+                <small class="text-muted d-block">Fêtes fixes</small>
+            </div>
+            <div class="col-4">
+                <span class="fw-semibold text-info">{{ getSelectedVariableHolidays() }}</span>
+                <small class="text-muted d-block">Fêtes variables</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-footer border-top-0">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">
+        <i class="fa-solid fa-times me-2"></i>
+        Annuler
+    </button>
+    <button type="button" class="btn btn-primary" (click)="saveHolidays()">
+        <i class="fa-solid fa-floppy-disk me-2"></i>
+        Enregistrer
+    </button>
+</div>

@@ -1,0 +1,141 @@
+<section class="suggestions-page" [attr.dir]="isRtl() ? 'rtl' : 'ltr'">
+  <div class="suggestions-header">
+    <div>
+      <p class="eyebrow">{{ 'suggestions.eyebrow' | translate }}</p>
+      <h1>{{ 'suggestions.title' | translate }}</h1>
+    </div>
+    <button class="refresh-btn" type="button" (click)="loadSuggestions()" [disabled]="loading()">
+      <i class="bi bi-arrow-clockwise"></i>
+      <span>{{ 'suggestions.refresh' | translate }}</span>
+    </button>
+  </div>
+
+  <div class="suggestions-layout">
+    @if (!isAdmin()) {
+      <form class="suggestion-compose" (ngSubmit)="createSuggestion()">
+        <h2>{{ 'suggestions.new.title' | translate }}</h2>
+        <label>
+          <span>{{ 'suggestions.subject' | translate }}</span>
+          <input
+            type="text"
+            maxlength="180"
+            [ngModel]="subject()"
+            (ngModelChange)="subject.set($event)"
+            name="subject"
+            [placeholder]="'suggestions.subjectPlaceholder' | translate"
+          />
+        </label>
+        <label>
+          <span>{{ 'suggestions.message' | translate }}</span>
+          <textarea
+            rows="6"
+            maxlength="2000"
+            [ngModel]="message()"
+            (ngModelChange)="message.set($event)"
+            name="message"
+            [placeholder]="'suggestions.messagePlaceholder' | translate"
+          ></textarea>
+        </label>
+        <button class="primary-btn" type="submit" [disabled]="saving() || !subject().trim() || !message().trim()">
+          <i class="bi bi-send"></i>
+          <span>{{ 'suggestions.send' | translate }}</span>
+        </button>
+      </form>
+    }
+
+    <aside class="suggestions-list">
+      <div class="list-title">
+        <span>{{ isAdmin() ? ('suggestions.inbox' | translate) : ('suggestions.history' | translate) }}</span>
+        <strong>{{ suggestions().length }}</strong>
+      </div>
+
+      @if (loading()) {
+        <div class="empty-state">{{ 'suggestions.loading' | translate }}</div>
+      } @else if (suggestions().length === 0) {
+        <div class="empty-state">{{ 'suggestions.empty' | translate }}</div>
+      } @else {
+        @for (suggestion of suggestions(); track suggestion.id) {
+          <button
+            class="suggestion-list-item"
+            type="button"
+            [class.active]="selectedId() === suggestion.id"
+            (click)="selectSuggestion(suggestion)"
+          >
+            <span class="item-topline">
+              <span class="item-subject">{{ suggestion.subject }}</span>
+              <span class="status-pill" [class.answered]="suggestion.status === 'answered'">
+                {{ (suggestion.status === 'answered' ? 'suggestions.status.answered' : 'suggestions.status.open') | translate }}
+              </span>
+            </span>
+            @if (isAdmin()) {
+              <span class="doctor-line">{{ doctorName(suggestion) }}</span>
+            }
+            <span class="item-date">{{ suggestion.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </button>
+        }
+      }
+    </aside>
+
+    <article class="suggestion-detail">
+      @if (selectedSuggestion(); as suggestion) {
+        <div class="detail-head">
+          <div>
+            <p class="eyebrow">{{ isAdmin() ? doctorName(suggestion) : ('suggestions.yourSuggestion' | translate) }}</p>
+            <h2>{{ suggestion.subject }}</h2>
+          </div>
+          <span class="status-pill large" [class.answered]="suggestion.status === 'answered'">
+            {{ (suggestion.status === 'answered' ? 'suggestions.status.answered' : 'suggestions.status.open') | translate }}
+          </span>
+        </div>
+
+        <div class="message-block original">
+          <div class="message-meta">
+            <strong>{{ doctorName(suggestion) }}</strong>
+            <span>{{ suggestion.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <p>{{ suggestion.message }}</p>
+        </div>
+
+        <div class="reply-thread">
+          @if (suggestion.replies.length === 0) {
+            <div class="empty-thread">{{ 'suggestions.noReplies' | translate }}</div>
+          } @else {
+            @for (reply of suggestion.replies; track reply.id) {
+              <div class="message-block reply">
+                <div class="message-meta">
+                  <strong>{{ responderName(reply) }}</strong>
+                  <span>{{ reply.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <p>{{ reply.message }}</p>
+              </div>
+            }
+          }
+        </div>
+
+        @if (isAdmin()) {
+          <div class="reply-box">
+            <textarea
+              rows="4"
+              maxlength="2000"
+              [ngModel]="getReplyDraft(suggestion.id)"
+              (ngModelChange)="setReplyDraft(suggestion.id, $event)"
+              [ngModelOptions]="{ standalone: true }"
+              [placeholder]="'suggestions.replyPlaceholder' | translate"
+            ></textarea>
+            <button
+              class="primary-btn"
+              type="button"
+              [disabled]="saving() || !getReplyDraft(suggestion.id).trim()"
+              (click)="replyToSuggestion(suggestion)"
+            >
+              <i class="bi bi-reply"></i>
+              <span>{{ 'suggestions.reply' | translate }}</span>
+            </button>
+          </div>
+        }
+      } @else {
+        <div class="empty-detail">{{ 'suggestions.selectEmpty' | translate }}</div>
+      }
+    </article>
+  </div>
+</section>

@@ -1,0 +1,48 @@
+:host {
+  display: block;
+}
+
+.exam-wrapper {
+  border: 1px solid #ddd6ca;
+  border-radius: 0.35rem;
+  background: rgba(200, 149, 104, 0.16);
+  padding: 0.9rem;
+}
+
+.exam-wrapper .card-header {
+  background: transparent;
+  padding: 0.05rem 0.2rem 0.7rem;
+}
+
+.exam-wrapper h3 {
+  color: #c89568;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.exam-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.65rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.05rem 0.15rem 0.2rem;
+  scrollbar-width: thin;
+}
+
+.exam-grid > * {
+  flex: 0 1 auto;
+  max-width: none;
+}
+
+@media (max-width: 980px) {
+  .exam-wrapper {
+    padding: 0.7rem;
+  }
+
+  .exam-wrapper .card-header {
+    padding-bottom: 0.55rem;
+  }
+}

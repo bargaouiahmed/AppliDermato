@@ -1,0 +1,391 @@
+:host {
+  display: block;
+}
+
+.conduite-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.conduite-shell {
+  border: 1px solid #ddd6ca;
+  border-radius: 0.35rem;
+  background: #fff;
+  overflow: visible;
+}
+
+.conduite-main-shell {
+  background: rgba(200, 149, 104, 0.2);
+  border-color: rgba(200, 149, 104, 0.28);
+}
+
+.diagnostic-shell {
+  padding-bottom: 0.9rem !important;
+  background: rgba(200, 149, 104, 0.2);
+  border-color: rgba(200, 149, 104, 0.28);
+}
+
+.next-consultation-shell {
+  padding-bottom: 1rem !important;
+  background: rgba(200, 149, 104, 0.2);
+  border-color: rgba(200, 149, 104, 0.28);
+}
+
+.next-consultation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.next-consultation-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.34rem 0.65rem;
+  border: 1px solid rgba(200, 149, 104, 0.38);
+  border-radius: 0.25rem;
+  background: #fffff0;
+  color: #175042;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.next-consultation-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.2fr) minmax(240px, 1.5fr) minmax(180px, 0.8fr) minmax(150px, 0.7fr);
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.next-consultation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  min-width: 0;
+}
+
+.next-consultation-field > span {
+  color: #175042;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.next-consultation-delay-row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.next-consultation-delay-row input {
+  min-height: 38px;
+  background-color: #fffff8;
+  border-color: rgba(200, 149, 104, 0.45);
+}
+
+.next-consultation-delay-row input:focus {
+  border-color: #175042;
+  box-shadow: 0 0 0 0.2rem rgba(147, 174, 136, 0.18);
+}
+
+.next-consultation-units {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid rgba(200, 149, 104, 0.45);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  min-height: 38px;
+}
+
+.next-consultation-units button {
+  border: 0;
+  border-right: 1px solid rgba(200, 149, 104, 0.35);
+  background: #fffff8;
+  color: #175042;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+}
+
+.next-consultation-units button:last-child {
+  border-right: 0;
+}
+
+.next-consultation-units button.active {
+  background: #93ae88;
+  color: #fff;
+}
+
+.next-consultation-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+}
+
+.next-consultation-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4em 1em;
+  background-color: #ffffac;
+  color: #333;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid rgba(200, 149, 104, 0.38);
+  border-radius: 0.22rem;
+}
+
+.next-consultation-badge a {
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.conduite-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: #175042;
+  font-size: 0.96rem;
+  font-weight: 700;
+}
+
+.conduite-option-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.35rem;
+}
+
+.conduite-option-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conduite-chip {
+  font-size: 0.95rem;
+  padding: 0.42rem 0.8rem;
+  background-color: #ffffac;
+  color: #121822;
+  border: 0;
+  border-radius: 0.22rem;
+  gap: 0.45rem;
+}
+
+.chip-label {
+  cursor: pointer;
+}
+
+.conduite-chip a {
+  color: #175042;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.conduite-chip a:hover,
+.conduite-chip a:focus-visible {
+  color: #93ae88;
+  text-decoration: none;
+}
+
+.conduite-error {
+  border: 1px solid #e7c6c6;
+  background: #fff7f7;
+  color: #8f3c3c;
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.paraclinique-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.9rem;
+}
+
+.conduite-bottom-actions {
+  width: 100%;
+}
+
+.btn-color-green {
+  background-color: #93ae88 !important;
+  color: white !important;
+  border: 1px solid transparent !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.btn-color-green:hover {
+  background-color: #175042 !important;
+  color: white !important;
+  border-color: #175042 !important;
+}
+
+.conduite-bottom-actions .btn-color-green:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.diagnostic-hint {
+  margin-top: 0.45rem;
+  color: #6f5f4d;
+  font-size: 0.86rem;
+}
+
+.diagnostic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4em 1em;
+  background-color: #ffffac;
+  color: #333;
+  font-weight: 600;
+  font-family: var(--app-font-family);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-size: 0.9rem;
+  border: 1px solid #e6e600;
+  border-radius: 0.22rem;
+}
+
+.additional-information-label {
+  margin-top: 1rem;
+}
+
+.conduite-additional-information {
+  min-height: 110px;
+  resize: vertical;
+  background-color: #fffff8;
+  border-color: rgba(200, 149, 104, 0.45);
+  color: #121822;
+}
+
+.conduite-additional-information:focus {
+  border-color: #175042;
+  box-shadow: 0 0 0 0.2rem rgba(147, 174, 136, 0.18);
+}
+
+.diagnostic-badge a {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.diagnostic-badge a:hover,
+.diagnostic-badge a:focus-visible {
+  opacity: 0.78;
+}
+
+:host ::ng-deep .conduite-select.ng-select,
+:host ::ng-deep .diagnostic-select.ng-select,
+:host ::ng-deep .next-consultation-select.ng-select {
+  width: 100%;
+  font-size: 1rem;
+}
+
+:host ::ng-deep .conduite-select .ng-select-container,
+:host ::ng-deep .diagnostic-select .ng-select-container,
+:host ::ng-deep .next-consultation-select .ng-select-container {
+  min-height: 38px !important;
+  height: auto !important;
+  background-color: #fffff8 !important;
+  border: 1px solid rgba(200, 149, 104, 0.45) !important;
+  border-radius: 0.25rem !important;
+  font-size: 1rem !important;
+}
+
+:host ::ng-deep .diagnostic-select .ng-select-container {
+  background-color: #fffff8 !important;
+  border-color: rgba(200, 149, 104, 0.45) !important;
+}
+
+:host ::ng-deep .conduite-select .ng-select-container {
+  padding-right: 0 !important;
+}
+
+:host ::ng-deep .conduite-select.ng-select-focused .ng-select-container,
+:host ::ng-deep .conduite-select.ng-select-opened .ng-select-container,
+:host ::ng-deep .diagnostic-select.ng-select-focused .ng-select-container,
+:host ::ng-deep .diagnostic-select.ng-select-opened .ng-select-container,
+:host ::ng-deep .next-consultation-select.ng-select-focused .ng-select-container,
+:host ::ng-deep .next-consultation-select.ng-select-opened .ng-select-container {
+  border-color: #ced4da !important;
+  box-shadow: none !important;
+}
+
+:host ::ng-deep .conduite-select .ng-value-container,
+:host ::ng-deep .diagnostic-select .ng-value-container,
+:host ::ng-deep .next-consultation-select .ng-value-container {
+  padding: 0 8px !important;
+}
+
+:host ::ng-deep .conduite-select .ng-input input,
+:host ::ng-deep .diagnostic-select .ng-input input,
+:host ::ng-deep .next-consultation-select .ng-input input {
+  font-size: 1rem !important;
+}
+
+:host ::ng-deep .conduite-select .ng-dropdown-panel,
+:host ::ng-deep .diagnostic-select .ng-dropdown-panel,
+:host ::ng-deep .next-consultation-select .ng-dropdown-panel {
+  z-index: 5200 !important;
+  box-shadow: 0 8px 16px rgba(34, 34, 34, 0.14);
+  background-color: #fffff8 !important;
+  border: 1px solid #d9d3c5 !important;
+}
+
+:host ::ng-deep .conduite-select .ng-option,
+:host ::ng-deep .diagnostic-select .ng-option,
+:host ::ng-deep .next-consultation-select .ng-option {
+  font-size: 1rem;
+  line-height: 1.35;
+  padding: 0.42rem 0.62rem;
+  background-color: #fffff8 !important;
+  color: #173f36 !important;
+}
+
+:host ::ng-deep .conduite-select .ng-option.ng-option-marked,
+:host ::ng-deep .diagnostic-select .ng-option.ng-option-marked,
+:host ::ng-deep .next-consultation-select .ng-option.ng-option-marked {
+  background-color: #eef4ea !important;
+}
+
+:host ::ng-deep .conduite-select.ng-select-multiple .ng-value {
+  display: none !important;
+}
+
+:host ::ng-deep .no-selected-tags.ng-select-multiple .ng-value {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  .next-consultation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .next-consultation-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .next-consultation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .next-consultation-actions {
+    justify-content: stretch;
+  }
+
+  .next-consultation-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

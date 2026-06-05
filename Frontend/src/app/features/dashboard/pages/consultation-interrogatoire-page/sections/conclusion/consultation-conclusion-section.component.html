@@ -1,0 +1,19 @@
+@if (isLoading) {
+  <div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
+} @else if (viewModel) {
+  <div class="conclusion-layout">
+    @if (loadError) {
+      <div class="inline-warning">{{ loadError | translate }}</div>
+    }
+
+    <app-consultation-conclusion-report #reportHost [viewModel]="viewModel" />
+
+    <div class="conclusion-actions no-print">
+      <button type="button" class="print-btn" [disabled]="isDownloadingPdf" (click)="printCurrentView()">
+        {{ 'consultation.page.conclusion.actions.print' | translate }}
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="state-card">{{ 'consultation.page.conclusion.loadError' | translate }}</div>
+}

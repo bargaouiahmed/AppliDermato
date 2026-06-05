@@ -1,0 +1,175 @@
+<article class="conduite-card">
+  <header class="conduite-card-header">
+    <h3 class="lettre-title">{{ 'consultation.conduite.lettreConfrere.title' | translate }}</h3>
+    @if (lettreAiBadgeVisible) {
+      <span class="lettre-ai-badge" [ngClass]="lettreAiBadgeClass">{{ lettreAiBadgeText }}</span>
+    }
+  </header>
+
+  <div class="form-grid">
+    <div class="formality-field">
+      <span>{{ 'consultation.conduite.lettreConfrere.fields.formality.label' | translate }}</span>
+
+      <div class="formality-options">
+        @if (showEnglishSingleFormality) {
+          <label class="form-check">
+            <input
+              type="checkbox"
+              name="lettre-formality-colleague"
+              [(ngModel)]="formules.colleague"
+              (change)="onSelect('colleague')"
+            />
+            <span>{{ 'consultation.conduite.lettreConfrere.fields.formality.colleague' | translate }}</span>
+          </label>
+        } @else {
+          <label class="form-check">
+            <input
+              type="checkbox"
+              name="lettre-formality-consoeur"
+              [(ngModel)]="formules.consoeur"
+              (change)="onSelect('consoeur')"
+            />
+            <span>{{ 'consultation.conduite.lettreConfrere.fields.formality.consoeur' | translate }}</span>
+          </label>
+
+          <label class="form-check">
+            <input
+              type="checkbox"
+              name="lettre-formality-confrere"
+              [(ngModel)]="formules.confrere"
+              (change)="onSelect('confrere')"
+            />
+            <span>{{ 'consultation.conduite.lettreConfrere.fields.formality.confrere' | translate }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <label class="form-field">
+      <span>{{ 'consultation.conduite.lettreConfrere.fields.recipient' | translate }}</span>
+      <input
+        class="lettre-input"
+        name="lettre-destinataire"
+        [(ngModel)]="medecin"
+        (ngModelChange)="onMedecinChange($event)"
+        [placeholder]="'consultation.conduite.lettreConfrere.fields.recipientPlaceholder' | translate"
+      />
+    </label>
+
+    <div class="form-field">
+      <div class="lettre-content-label-row">
+        <span>{{ 'consultation.conduite.lettreConfrere.fields.content' | translate }}</span>
+        <button
+          type="button"
+          class="btn lettre-ai-btn lettre-ai-btn--secondary"
+          [disabled]="isQueueingAiCorrect"
+          (click)="correctLettreConfrereParIa()"
+        >
+          {{ isQueueingAiCorrect ? ('consultation.conduite.lettreConfrere.ai.correcting' | translate) : ('consultation.conduite.lettreConfrere.ai.correct' | translate) }}
+        </button>
+      </div>
+      <angular-editor
+        name="lettre-contenu"
+        [(ngModel)]="contenue"
+        (ngModelChange)="onContenueChange($event)"
+        [config]="editorConfig"
+      ></angular-editor>
+      <input
+        class="lettre-input lettre-ai-correction-input"
+        name="lettre-ai-correction-prompt"
+        [(ngModel)]="lettreAiCorrectionPrompt"
+        [placeholder]="'consultation.conduite.lettreConfrere.ai.correctionPromptPlaceholder' | translate"
+      />
+    </div>
+  </div>
+
+  <div class="lettre-actions">
+    <button
+      type="button"
+      class="btn lettre-ai-btn"
+      [disabled]="isQueueingAiGenerate"
+      (click)="openGenerateAiModal()"
+    >
+      {{ isQueueingAiGenerate ? ('consultation.conduite.lettreConfrere.ai.queueing' | translate) : ('consultation.conduite.lettreConfrere.ai.write' | translate) }}
+    </button>
+    <button
+      type="button"
+      class="btn lettre-print-btn"
+      [disabled]="isPrinting"
+      (click)="onPrintClick()"
+    >
+      {{ isPrinting ? ('consultation.documents.actions.printing' | translate) : ('consultation.documents.actions.print' | translate) }}
+    </button>
+  </div>
+
+  @if (showGenerateAiModal) {
+    <div class="lettre-ai-modal-backdrop">
+      <div class="lettre-ai-modal" role="dialog" aria-modal="true">
+        <header class="lettre-ai-modal-header">
+          <h4>{{ 'consultation.conduite.lettreConfrere.ai.modalTitle' | translate }}</h4>
+          <button type="button" class="lettre-ai-modal-close" (click)="closeGenerateAiModal()">×</button>
+        </header>
+
+        @if (hasAiMissingRecipientOrFormality) {
+          <div class="lettre-ai-modal-missing-fields">
+            @if (showAiRecipientField) {
+              <label class="form-field">
+                <span>{{ 'consultation.conduite.lettreConfrere.fields.recipient' | translate }}</span>
+                <input
+                  class="lettre-input"
+                  name="lettre-ai-recipient"
+                  [(ngModel)]="medecin"
+                  (ngModelChange)="onAiRecipientChange($event)"
+                  [placeholder]="'consultation.conduite.lettreConfrere.fields.recipientPlaceholder' | translate"
+                />
+              </label>
+            }
+
+            @if (showAiFormalityField) {
+              <div class="formality-field">
+                <span>{{ 'consultation.conduite.lettreConfrere.fields.formality.label' | translate }}</span>
+                <div class="formality-options">
+                  @for (option of aiFormalityOptions; track option.type) {
+                    <label class="form-check">
+                      <input
+                        type="radio"
+                        name="lettre-ai-formality"
+                        [checked]="isFormalityOptionSelected(option.type)"
+                        (change)="onAiFormalitySelect(option.type)"
+                      />
+                      <span>{{ option.labelKey | translate }}</span>
+                    </label>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <label class="form-field">
+          <span>{{ 'consultation.conduite.lettreConfrere.ai.description' | translate }}</span>
+          <textarea
+            class="lettre-input lettre-ai-description"
+            name="lettre-ai-general-description"
+            [(ngModel)]="lettreAiGeneralDescription"
+            [placeholder]="'consultation.conduite.lettreConfrere.ai.descriptionPlaceholder' | translate"
+          ></textarea>
+        </label>
+
+        <footer class="lettre-ai-modal-actions">
+          <button type="button" class="btn lettre-ai-btn lettre-ai-btn--secondary" (click)="closeGenerateAiModal()">
+            {{ isQueueingAiGenerate ? ('consultation.conduite.lettreConfrere.ai.closeWhileRunning' | translate) : ('common.cancel' | translate) }}
+          </button>
+          <button
+            type="button"
+            class="btn lettre-ai-btn"
+            [disabled]="isQueueingAiGenerate"
+            (click)="generateLettreConfrereParIa()"
+          >
+            {{ isQueueingAiGenerate ? ('consultation.conduite.lettreConfrere.ai.queueing' | translate) : ('consultation.conduite.lettreConfrere.ai.generate' | translate) }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+</article>

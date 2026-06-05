@@ -1,0 +1,455 @@
+/* -------------------- BASE -------------------- */
+.calendar-wrapper {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+button:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.bg-primary {
+  background-color: #175042 !important;
+}
+
+.text-primary {
+  color: #175042 !important;
+}
+
+.bg-accent {
+  background-color: rgba(201, 149, 104, 0.1);
+}
+
+/* -------------------- HEADER -------------------- */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* -------------------- BOUTONS -------------------- */
+.btn-outline-primary {
+  border-color: #175042;
+  color: #175042;
+}
+
+.btn-outline-primary:hover {
+  background: #175042;
+  color: white;
+}
+
+.btn-selected {
+  background: #0d6efd;
+  color: #fff;
+}
+
+.btn-filter {
+  background: #f8f9fa;
+  color: #175042;
+  border: 1px solid #dee2e6;
+}
+
+.btn-filter.active {
+  background: #93ae88;
+  color: white;
+  border-color: #93ae88;
+}
+
+/* -------------------- VUE MOIS -------------------- */
+.calendar-month-view {
+  font-size: 0.85rem;
+}
+
+.calendar-month-view .row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.calendar-day-cell {
+  padding: 2px 3px;
+  height: 120px;
+  overflow: hidden;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+}
+
+.calendar-day-cell .day-number {
+  margin-bottom: 1px;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  font-size: 0.75rem;
+}
+
+.calendar-day-cell .rdv-container {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 0;
+  padding: 0;
+}
+
+.rdv-badge-month {
+  padding: 2px 4px;
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.rdv-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.calendar-day-cell:hover,
+.time-cell:hover,
+.calendar-slot:hover {
+  background-color: #f6f9fc;
+  cursor: pointer;
+}
+
+.day-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.85rem;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 50%;
+  transition: all 0.2s ease-in-out;
+}
+
+.today-circle {
+  background-color: #175042;
+  color: white;
+}
+
+/* -------------------- VUE SEMAINE -------------------- */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 100px repeat(6, 1fr);
+  border: 1px solid #e0e0e0;
+}
+
+.day-header {
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.day-header .rounded-circle {
+  min-width: 36px;
+  height: 36px;
+  line-height: 36px;
+  text-align: center;
+}
+
+/* -------------------- VUE JOUR -------------------- */
+.calendar-row {
+  display: flex;
+}
+
+.calendar-hour {
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.85rem;
+  background: #f8f9fa;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* -------------------- CELLULES -------------------- */
+.time-cell,
+.calendar-slot {
+  min-height: 60px;
+  padding: 0.25rem;
+  border-bottom: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.calendar-slot {
+  width: 100%;
+}
+
+/* -------------------- RENDEZ-VOUS -------------------- */
+.rdv-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.rdv-badge {
+  background-color: #e6f1e8;
+  border-left: 3px solid #93ae88;
+  color: #175042;
+  font-size: 0.85rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.rdv-badge:not(.operation):not(.personnel) i.bi-clock-fill {
+  color: #175042 !important;
+}
+
+.rdv-badge.operation {
+  background-color: #e3f2fd !important;
+  border-left: 3px solid #1976d2 !important;
+  color: #1565c0 !important;
+}
+
+.rdv-badge.operation i.bi-scissors {
+  color: #1976d2 !important;
+}
+
+.rdv-badge.personnel {
+  background-color: #ffebee !important;
+  border-left: 3px solid #c62828 !important;
+  color: #b71c1c !important;
+}
+
+.rdv-badge.personnel i.bi-person-badge {
+  color: #c62828 !important;
+}
+
+.rdv-time {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.more-rdv {
+  font-size: 0.75rem;
+  color: #1565c0;
+  text-align: center;
+}
+
+.slot-rdv-container {
+  width: 100%;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.slot-rdv-container-expanded {
+  max-height: 180px;
+}
+
+.slot-rdv-container-day {
+  max-height: 140px;
+}
+
+.slot-rdv-container-day.slot-rdv-container-expanded {
+  max-height: 220px;
+}
+
+.week-slot-rdv,
+.day-slot-rdv {
+  margin-bottom: 0.35rem;
+}
+
+.week-slot-rdv:last-child,
+.day-slot-rdv:last-child {
+  margin-bottom: 0;
+}
+
+.slot-toggle {
+  color: #1565c0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* -------------------- ÉTATS SPÉCIAUX -------------------- */
+/* .past removed to allow editing past events */
+
+.clickable {
+  cursor: pointer;
+}
+
+.not-allowed {
+  cursor: not-allowed !important;
+}
+
+.dropdown-menu {
+  display: none;
+}
+
+.dropdown.show .dropdown-menu {
+  display: block;
+}
+
+::ng-deep .btn-outline-primary {
+  color: #175042 !important;
+  background-color: #fff !important;
+  border-color: #175042 !important;
+}
+
+.dropdown-menu {
+  min-width: 10.6rem !important;
+}
+
+/* joures feriés */
+
+/* Styles pour les jours fériés */
+.holiday-cell {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 0, 0, 0.1),
+      rgba(255, 0, 0, 0.1) 5px,
+      rgba(255, 0, 0, 0.05) 5px,
+      rgba(255, 0, 0, 0.05) 10px) !important;
+}
+
+.holiday-header {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 0, 0, 0.1),
+      rgba(255, 0, 0, 0.1) 5px,
+      rgba(255, 0, 0, 0.05) 5px,
+      rgba(255, 0, 0, 0.05) 10px) !important;
+}
+
+/* Styles pour les jours fériés avec apparence "past" */
+.past.holiday-cell {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 0, 0, 0.1),
+      rgba(255, 0, 0, 0.1) 5px,
+      rgba(255, 0, 0, 0.05) 5px,
+      rgba(255, 0, 0, 0.05) 10px) !important;
+  color: #a0a0a0 !important;
+  opacity: 0.7 !important;
+  pointer-events: none !important;
+}
+
+/* Style spécifique pour le texte des jours fériés */
+.holiday-name {
+  font-weight: bold;
+  text-align: center;
+  padding: 2px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* -------------------- CONGÉS -------------------- */
+
+/* Styles pour les congés */
+.leave-cell {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 165, 0, 0.1),
+      rgba(255, 165, 0, 0.1) 5px,
+      rgba(255, 165, 0, 0.05) 5px,
+      rgba(255, 165, 0, 0.05) 10px) !important;
+}
+
+.leave-header {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 165, 0, 0.1),
+      rgba(255, 165, 0, 0.1) 5px,
+      rgba(255, 165, 0, 0.05) 5px,
+      rgba(255, 165, 0, 0.05) 10px) !important;
+}
+
+/* Styles pour les congés avec apparence "past" */
+.past.leave-cell {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 165, 0, 0.1),
+      rgba(255, 165, 0, 0.1) 5px,
+      rgba(255, 165, 0, 0.05) 5px,
+      rgba(255, 165, 0, 0.05) 10px) !important;
+  color: #a0a0a0 !important;
+  opacity: 0.7 !important;
+  pointer-events: none !important;
+}
+
+/* Style spécifique pour le texte des congés */
+.leave-name {
+  font-weight: bold;
+  text-align: center;
+  padding: 2px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.7);
+  color: #C89568 !important;
+}
+
+/* Bouton congés */
+.btn-outline-warning {
+  border-color: #C89568;
+  color: #C89568;
+}
+
+.btn-outline-warning:hover {
+  background: #C89568;
+  color: white;
+}
+
+/* -------------------- ÉTATS COMBINÉS -------------------- */
+
+/* Si un jour est à la fois férié ET congé (priorité au férié) */
+.holiday-cell.leave-cell {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 0, 0, 0.1),
+      rgba(255, 0, 0, 0.1) 5px,
+      rgba(255, 165, 0, 0.05) 5px,
+      rgba(255, 165, 0, 0.05) 10px) !important;
+}
+
+.holiday-header.leave-header {
+  background: repeating-linear-gradient(45deg,
+      rgba(255, 0, 0, 0.1),
+      rgba(255, 0, 0, 0.1) 5px,
+      rgba(255, 165, 0, 0.05) 5px,
+      rgba(255, 165, 0, 0.05) 10px) !important;
+}
+
+.text-warning {
+  color: #C89568 !important;
+}
+
+.bg-warning {
+  background-color: #C89568 !important;
+  color: white !important;
+}
+
+/* -------------------- JOURN�ES OP�RATOIRES -------------------- */
+.operational-day-header {
+  background-color: rgba(13, 110, 253, 0.08) !important;
+  border: 1px solid rgba(13, 110, 253, 0.15);
+}
+
+.operational-day-cell {
+  background-color: rgba(13, 110, 253, 0.05) !important;
+}
+
+.operational-day-badge {
+  font-size: 0.7rem;
+  color: #0d6efd;
+  font-weight: 500;
+  background-color: rgba(13, 110, 253, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.operational-day-indicator {
+  background-color: rgba(13, 110, 253, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #0d6efd;
+}

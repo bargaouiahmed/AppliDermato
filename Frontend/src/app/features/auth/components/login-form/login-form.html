@@ -1,0 +1,67 @@
+<form class="inaya-login-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  <!-- Too many attempts warning -->
+  @if (attemptCount() > 4) {
+    <div class="mb-3 rounded bg-amber-50 border border-amber-300 p-3 text-sm text-amber-800">
+      {{ 'login.tooManyAttempts' | translate }}
+    </div>
+  }
+
+  <h4 class="inaya-title">
+    {{ 'login.title' | translate }}
+  </h4>
+
+  <!-- Email -->
+  <div class="mb-3">
+    <input
+      type="email"
+      formControlName="email"
+      class="inaya-input"
+      [placeholder]="'login.email' | translate"
+    />
+    <app-form-error
+      [show]="form.controls.email.touched && form.controls.email.hasError('required')"
+      messageKey="validation.emailRequired"
+    />
+    <app-form-error
+      [show]="form.controls.email.touched && form.controls.email.hasError('email')"
+      messageKey="validation.emailInvalid"
+    />
+  </div>
+
+  <!-- Password -->
+  <div class="mb-3 inaya-password-wrapper">
+    <app-password-input formControlName="password" placeholder="login.password" />
+    <app-form-error
+      [show]="form.controls.password.touched && form.controls.password.hasError('required')"
+      messageKey="validation.passwordRequired"
+    />
+  </div>
+
+  <!-- Server error -->
+  @if (serverError()) {
+    <p class="text-center text-red-500 text-sm mb-3">{{ serverError() }}</p>
+  }
+
+  <!-- Submit -->
+  <button
+    type="submit"
+    class="inaya-btn"
+    [disabled]="form.invalid || loading()"
+  >
+    @if (loading()) {
+      {{ 'common.loading' | translate }}
+    } @else {
+      {{ 'login.submit' | translate }}
+    }
+  </button>
+
+  <!-- Forgot password link -->
+  <div class="text-center mt-3">
+    <a
+      class="inaya-link"
+      (click)="forgotPassword.emit()"
+    >
+      {{ 'login.forgotPassword' | translate }}
+    </a>
+  </div>
+</form>

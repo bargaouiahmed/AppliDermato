@@ -1,0 +1,258 @@
+<div class="container-fluid p-sm-5 p-3 bg-color min-vh-100 medecins-page">
+  <div class="row align-items-center mb-4">
+    <div class="col-lg-5 col-md-4 col-sm-12">
+      <h3>{{ 'medecins.title' | translate }}</h3>
+    </div>
+    <div class="col-lg-7 col-md-8 col-sm-12 d-flex justify-content-lg-end justify-content-start flex-wrap mt-3 mt-md-0 top-actions">
+      @if (isCurrentUserSuperAdmin) {
+        <button type="button" class="btn medecins-action-btn me-2 mb-2" (click)="goToCreateAdminForm()">
+          {{ 'medecins.actions.addAdmin' | translate }}
+        </button>
+      }
+
+      <button type="button" class="btn medecins-action-btn mb-2" (click)="goToCreateForm()">
+        {{ 'medecins.actions.add' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <div class="medecins-top-nav-wrapper mb-4">
+    <div class="medecins-top-nav">
+      @for (tab of mainTabs; track tab) {
+        <button
+          type="button"
+          class="medecins-top-tab"
+          [class.active]="selectedMainTab === tab"
+          (click)="onMainTabChange(tab)"
+        >
+          <span>{{ getMainTabLabelKey(tab) | translate }}</span>
+          <span class="medecins-top-count">{{ getTabCount(tab) }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="card shadow p-4 medecins-content-card">
+    <div class="medecins-content-header mb-4">
+      <div>
+        <h4 class="medecins-content-title mb-1">{{ getCurrentViewTitleKey() | translate }}</h4>
+        <p class="medecins-content-subtitle mb-0">{{ 'medecins.list.filteredSubtitle' | translate }}</p>
+      </div>
+    </div>
+
+    <div class="row mb-3 align-items-center">
+      <div class="col-12 col-md-7">
+        <input
+          type="search"
+          class="form-control"
+          [placeholder]="'medecins.list.searchPlaceholder' | translate"
+          [ngModel]="searchQuery"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </div>
+
+      <div class="col-12 col-md-5 d-flex justify-content-md-end mt-3 mt-md-0">
+        <select class="form-control w-auto" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }} / page</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (isLoadingList()) {
+      <div class="state">{{ 'medecins.list.loading' | translate }}</div>
+    } @else if (!hasDoctors) {
+      <div class="state">{{ getEmptyStateMessageKey() | translate }}</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr class="ligne-paire text-center">
+              <th>{{ 'medecins.list.columns.name' | translate }}</th>
+              <th>{{ 'medecins.fields.firstName' | translate }}</th>
+              <th>{{ 'medecins.list.columns.email' | translate }}</th>
+              <th>{{ 'medecins.list.columns.type' | translate }}</th>
+              <th>{{ 'medecins.list.columns.validation' | translate }}</th>
+              <th>{{ 'medecins.list.columns.announcements' | translate }}</th>
+              <th>{{ 'medecins.list.columns.createdAt' | translate }}</th>
+              <th>{{ 'medecins.list.columns.subscriptionEnd' | translate }}</th>
+              <th>{{ 'medecins.list.columns.actions' | translate }}</th>
+            </tr>
+          </thead>
+
+          <tbody class="text-center">
+            @for (doctor of doctors; track doctor.id; let i = $index) {
+              <tr
+                [class.ligne-paire]="i % 2 !== 0"
+                [class.ligne-impaire]="i % 2 === 0"
+                class="doctor-row text-center"
+                (click)="openDoctorDetails(doctor)"
+              >
+                <td>
+                  <div class="doctor-identity">
+                    @if (getDoctorAvatarUrl(doctor); as avatarUrl) {
+                      <img
+                        [src]="avatarUrl"
+                        class="doctor-avatar-image"
+                        [alt]="(doctor.firstName || '') + ' ' + (doctor.lastName || '')"
+                        (error)="onDoctorAvatarError(doctor.id, $event)"
+                      />
+                    } @else {
+                      <span class="doctor-avatar-fallback">{{ getDoctorInitials(doctor) }}</span>
+                    }
+
+                    <span>{{ doctor.lastName || '-' }}</span>
+                  </div>
+                </td>
+                <td>{{ doctor.firstName || '-' }}</td>
+                <td>{{ doctor.email || '-' }}</td>
+                <td>{{ getRoleLabelKey(doctor.role) | translate }}</td>
+                <td>
+                  <span class="status-badge" [class]="'status-badge ' + getStatusClass(doctor.subscriptionStatus)">
+                    {{ getStatusLabelKey(doctor.subscriptionStatus) | translate }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge announcement-status-badge">{{ 'medecins.list.announcementToShow' | translate }}</span>
+                </td>
+                <td>
+                  {{ doctor.createdAt ? (doctor.createdAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
+                </td>
+                <td>
+                  @if (doctor.subscriptionStatus === 'admin') {
+                    {{ 'medecins.list.remaining.permanent' | translate }}
+                  } @else {
+                    {{ formatRemainingDays(doctor) }}
+                  }
+                </td>
+                <td>
+                  <div class="row-actions">
+                    @if (canSuspend(doctor)) {
+                      <button
+                        type="button"
+                        class="icon-action"
+                        [disabled]="isActionInProgress(doctor.id)"
+                        (click)="suspendDoctor(doctor, $event)"
+                        [attr.aria-label]="'medecins.list.actions.suspend' | translate"
+                        [attr.title]="'medecins.list.actions.suspend' | translate"
+                      >
+                        <i class="fa-solid fa-user-slash"></i>
+                      </button>
+                    }
+
+                    @if (canReactivate(doctor)) {
+                      <button
+                        type="button"
+                        class="icon-action"
+                        [disabled]="isActionInProgress(doctor.id)"
+                        (click)="reactivateDoctor(doctor, $event)"
+                        [attr.aria-label]="'medecins.list.actions.reactivate' | translate"
+                        [attr.title]="'medecins.list.actions.reactivate' | translate"
+                      >
+                        <i class="fa-solid fa-user-check"></i>
+                      </button>
+                    }
+
+                    @if (canToggleRole(doctor)) {
+                      <button
+                        type="button"
+                        class="icon-action"
+                        [disabled]="isActionInProgress(doctor.id)"
+                        (click)="toggleRole(doctor, $event)"
+                        [attr.aria-label]="doctor.role === 'doctor' ? ('medecins.list.actions.makeAdmin' | translate) : ('medecins.list.actions.makeDoctor' | translate)"
+                        [attr.title]="doctor.role === 'doctor' ? ('medecins.list.actions.makeAdmin' | translate) : ('medecins.list.actions.makeDoctor' | translate)"
+                      >
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                      </button>
+                    }
+
+                    @if (canDeleteDoctor(doctor)) {
+                      <button
+                        type="button"
+                        class="icon-action"
+                        [disabled]="isActionInProgress(doctor.id)"
+                        (click)="deleteDoctor(doctor, $event)"
+                        [attr.aria-label]="'medecins.list.actions.deleteDoctor' | translate"
+                        [attr.title]="'medecins.list.actions.deleteDoctor' | translate"
+                      >
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer-row">
+        <p>
+          {{ fromItem }} - {{ toItem }} / {{ totalCount }}
+          {{ 'medecins.list.resultsSuffix' | translate }}
+        </p>
+
+        @if (visiblePages.length > 1) {
+          <div class="pagination">
+            <button type="button" [disabled]="pageNumber <= 1" (click)="goToPage(pageNumber - 1)">
+              {{ 'medecins.list.pagination.previous' | translate }}
+            </button>
+
+            @for (page of visiblePages; track page) {
+              <button type="button" [class.active]="page === pageNumber" (click)="goToPage(page)">
+                {{ page }}
+              </button>
+            }
+
+            <button type="button" [disabled]="pageNumber >= totalPages" (click)="goToPage(pageNumber + 1)">
+              {{ 'medecins.list.pagination.next' | translate }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+@if (isDurationModalOpen()) {
+  <div class="duration-modal-backdrop" (click)="cancelDurationSelection()">
+    <div class="duration-modal-card" (click)="$event.stopPropagation()">
+      <h5>{{ 'medecins.list.actions.durationModalTitle' | translate }}</h5>
+      <p>{{ 'medecins.list.actions.durationModalSubtitle' | translate }}</p>
+
+      <div class="duration-presets">
+        @for (year of durationPresetYears; track year) {
+          <button
+            type="button"
+            class="duration-preset-btn"
+            [class.active]="durationYearsInput() === year"
+            (click)="pickDurationPreset(year)"
+          >
+            {{ year }} {{ 'medecins.list.actions.durationYearUnit' | translate }}
+          </button>
+        }
+      </div>
+
+      <label class="duration-input-label">
+        {{ 'medecins.list.actions.durationCustomLabel' | translate }}
+        <input
+          type="number"
+          min="1"
+          max="5"
+          [ngModel]="durationYearsInput()"
+          (ngModelChange)="durationYearsInput.set($event ? +$event : 0)"
+        />
+      </label>
+
+      <div class="duration-modal-actions">
+        <button type="button" class="btn btn-light" (click)="cancelDurationSelection()">
+          {{ 'medecins.actions.cancel' | translate }}
+        </button>
+        <button type="button" class="btn medecins-action-btn" (click)="confirmDurationSelection()">
+          {{ 'agenda.common.save' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

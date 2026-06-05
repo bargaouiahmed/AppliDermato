@@ -1,0 +1,73 @@
+<aside
+  class="sidebar-shell left"
+  [class.collapsed]="isCollapsed"
+  [class.drawer-mode]="drawerMode"
+>
+  <div class="sidebar-head">
+    @if (isCollapsed) {
+      <span class="sidebar-rail-label">
+        {{ 'consultation.page.conclusion.sidebar.currentTitle' | translate }}
+      </span>
+    } @else {
+      <div class="sidebar-heading">
+        <h3>{{ 'consultation.page.conclusion.sidebar.currentTitle' | translate }}</h3>
+        @if (consultationDate) {
+          <span class="sidebar-date">{{ consultationDate | date: 'dd/MM/yyyy' }}</span>
+        }
+      </div>
+    }
+
+    @if (showToggle) {
+      <button
+        type="button"
+        class="sidebar-toggle"
+        [attr.aria-expanded]="!isCollapsed"
+        [attr.aria-label]="(
+          isCollapsed
+            ? 'consultation.page.conclusion.sidebar.toggleExpand'
+            : 'consultation.page.conclusion.sidebar.toggleCollapse'
+        ) | translate"
+        (click)="toggleCollapsed()"
+      >
+        <i [class]="toggleIconClass"></i>
+      </button>
+    }
+  </div>
+
+  @if (!isCollapsed) {
+    <div class="sidebar-body">
+      @if (loadError) {
+        <div class="sidebar-state error">
+          {{ loadError | translate }}
+        </div>
+      }
+
+      @if (viewModel?.stats?.length) {
+        <div class="stats-grid">
+          @for (stat of viewModel?.stats ?? []; track stat.label) {
+            <article
+              class="stat-card"
+              [class.tone-normal]="stat.tone === 'normal'"
+              [class.tone-abnormal]="stat.tone === 'abnormal'"
+              [class.tone-unassigned]="stat.tone === 'unassigned'"
+            >
+              <strong>{{ stat.value }}</strong>
+              <span>{{ stat.label }}</span>
+            </article>
+          }
+        </div>
+      }
+
+      @if (viewModel) {
+        <app-consultation-conclusion-report
+          [viewModel]="viewModel"
+          [displayMode]="'compact'"
+        />
+      } @else {
+        <div class="sidebar-state">
+          {{ (isLoading ? 'consultation.page.loading' : 'consultation.page.conclusion.loadError') | translate }}
+        </div>
+      }
+    </div>
+  }
+</aside>

@@ -1,0 +1,391 @@
+:host {
+  display: block;
+}
+
+.kiosk-root {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(255, 223, 178, 0.45), transparent 35%),
+    radial-gradient(circle at 12% 85%, rgba(178, 225, 235, 0.5), transparent 45%),
+    linear-gradient(165deg, #f4fbf6 0%, #eef7ff 55%, #f6f7ff 100%);
+  color: #1e2b37;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.kiosk-root.rtl {
+  font-family: var(--app-font-family);
+}
+
+.kiosk-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kiosk-header h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3.5vw, 2.3rem);
+  font-weight: 600;
+  color: #12355b;
+}
+
+.doctor-name {
+  margin: 0.2rem 0 0;
+  color: #325271;
+  font-size: 0.96rem;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn-soft,
+.btn-primary,
+.choice-btn,
+.lang-btn,
+.motif-chip,
+.result-item,
+.search-types button,
+.choice-inline button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-soft {
+  background: rgba(255, 255, 255, 0.78);
+  color: #214c72;
+  border: 1px solid rgba(33, 76, 114, 0.24);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #006f84, #0d4e89);
+  color: #fff;
+  border: 1px solid rgba(5, 38, 74, 0.25);
+}
+
+.btn-soft:hover,
+.btn-primary:hover,
+.choice-btn:hover,
+.lang-btn:hover,
+.motif-chip:hover,
+.result-item:hover,
+.search-types button:hover,
+.choice-inline button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 20px rgba(18, 53, 91, 0.14);
+}
+
+.progress-wrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.9rem;
+  color: #36546f;
+}
+
+.progress-line {
+  height: 0.52rem;
+  border-radius: 999px;
+  background: rgba(27, 78, 115, 0.14);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #12a2a8, #1f6cb0);
+  border-radius: inherit;
+}
+
+.banner-info,
+.banner-error {
+  border-radius: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  font-weight: 600;
+}
+
+.banner-info {
+  background: rgba(4, 155, 182, 0.12);
+  color: #025372;
+}
+
+.banner-error {
+  background: rgba(198, 61, 61, 0.12);
+  color: #842323;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 1rem;
+  border: 1px solid rgba(26, 83, 124, 0.16);
+  box-shadow: 0 12px 34px rgba(27, 59, 88, 0.12);
+  padding: clamp(1rem, 2.8vw, 1.8rem);
+  width: 100%;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+  color: #12355b;
+}
+
+.panel h3 {
+  margin: 1rem 0 0.4rem;
+  font-size: 1.02rem;
+  color: #35567a;
+}
+
+.muted {
+  color: #4b6681;
+}
+
+.language-grid,
+.choice-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.lang-btn,
+.choice-btn {
+  background: linear-gradient(180deg, #ffffff, #eaf4ff);
+  color: #0f466f;
+  border: 1px solid rgba(18, 70, 111, 0.2);
+  min-height: 3.1rem;
+}
+
+.form-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-grid span,
+.search-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d4d6e;
+}
+
+.form-grid input,
+.form-grid select,
+.custom-motif input,
+textarea {
+  border: 1px solid rgba(44, 85, 121, 0.28);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.93);
+  min-height: 2.6rem;
+  padding: 0.6rem 0.72rem;
+  font-size: 0.96rem;
+  color: #142b42;
+}
+
+.form-grid input:disabled {
+  background: rgba(236, 242, 248, 0.96);
+  color: rgba(20, 43, 66, 0.7);
+  cursor: not-allowed;
+}
+
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-select-container {
+  min-height: 2.85rem;
+  height: 2.85rem;
+  border: 1px solid rgba(44, 85, 121, 0.28);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.93);
+  color: #142b42;
+  box-shadow: none;
+  align-items: stretch;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-value-container {
+  min-height: 2.85rem;
+  height: 2.85rem;
+  padding: 0.6rem 0.72rem;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-input {
+  top: auto;
+  padding: 0.6rem 0.72rem;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-placeholder,
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-value-label,
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-input > input {
+  color: #142b42;
+  font-size: 0.96rem;
+  line-height: 1.2;
+}
+
+:host ::ng-deep .form-grid app-profession-select .ng-select .ng-arrow-wrapper {
+  padding-right: 0.72rem;
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.search-types {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.search-types button,
+.choice-inline button {
+  background: #eef6ff;
+  color: #1e4f78;
+  border: 1px solid rgba(30, 79, 120, 0.25);
+}
+
+.search-types button.active,
+.choice-inline button.active {
+  background: linear-gradient(135deg, #0f78a7, #1b5ea7);
+  color: #fff;
+}
+
+.results-list {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.result-item {
+  text-align: left;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(38, 83, 123, 0.25);
+  background: rgba(248, 252, 255, 0.88);
+  color: #12355b;
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-item.selected {
+  border-color: rgba(6, 123, 150, 0.95);
+  background: rgba(21, 145, 174, 0.12);
+}
+
+.motif-grid {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.motif-chip {
+  background: rgba(237, 246, 255, 0.88);
+  color: #10476f;
+  border: 1px solid rgba(16, 71, 111, 0.22);
+}
+
+.motif-chip.selected {
+  background: linear-gradient(135deg, #11a1a5, #1b5ca5);
+  color: #fff;
+}
+
+.custom-motif {
+  margin-top: 0.95rem;
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.custom-motif input {
+  flex: 1;
+  min-width: 240px;
+}
+
+.question-card {
+  margin-top: 0.8rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(36, 85, 129, 0.22);
+  border-radius: 0.8rem;
+  background: rgba(247, 251, 255, 0.9);
+  display: grid;
+  gap: 0.7rem;
+}
+
+.question-card p {
+  margin: 0;
+  font-weight: 600;
+  color: #1f4b73;
+}
+
+:host ::ng-deep .kiosk-select .ng-select-container {
+  min-height: 2.6rem;
+  border: 1px solid rgba(44, 85, 121, 0.28);
+  border-radius: 0.65rem;
+}
+
+.motif-select {
+  margin-top: 1rem;
+}
+
+:host ::ng-deep .ng-dropdown-panel {
+  z-index: 2200;
+}
+
+.actions-row {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.loading-panel,
+.confirmation-panel,
+.error-panel {
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .kiosk-root {
+    padding: 0.85rem;
+  }
+
+  .kiosk-header {
+    flex-direction: column;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-soft,
+  .btn-primary {
+    flex: 1;
+  }
+
+  .actions-row .btn-soft,
+  .actions-row .btn-primary {
+    flex: 1;
+    text-align: center;
+  }
+}

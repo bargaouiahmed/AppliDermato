@@ -1,0 +1,74 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+    <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="EntityFrameworkCore.NamingConventions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.12">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="OpenAI" Version="2.10.0" />
+    <PackageReference Include="QuestPDF" Version="2025.1.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="Quartz" Version="3.16.1" />
+    <PackageReference Include="Quartz.AspNetCore" Version="3.16.1" />
+    <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.16.1" />
+    <PackageReference Include="Quartz.Jobs" Version="3.16.1" />
+    <PackageReference Include="Resend" Version="0.2.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Src\Smtp\Templates\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Converters\" />
+      <Folder Include="DatabaseRules\" />
+      <Folder Include="Properties\DatabaseRules\" />
+      <Folder Include="Src\Admin\" />
+      <Folder Include="Src\Admin\Controllers\" />
+      <Folder Include="Src\Admin\Dtos\" />
+      <Folder Include="Src\Admin\Dtos\Requests\" />
+      <Folder Include="Src\Admin\Dtos\Responses\" />
+      <Folder Include="Src\Admin\Services\" />
+      <Folder Include="Src\Auth\Controllers\" />
+      <Folder Include="Src\Auth\Dtos\Requests\" />
+      <Folder Include="Src\Auth\Entities\" />
+      <Folder Include="Src\Auth\Services\" />
+      <Folder Include="Src\ConsultationSpace\CatSection\" />
+      <Folder Include="Src\ConsultationSpace\CatSection\Entities\" />
+      <Folder Include="Src\ConsultationSpace\ExamSection\" />
+      <Folder Include="Src\ConsultationSpace\ExamSection\Entities\" />
+      <Folder Include="Src\ConsultationSpace\InterrogationSection\Dtos\" />
+      <Folder Include="Src\ConsultationSpace\InterrogationSection\Entities\" />
+      <Folder Include="Src\ConsultationSpace\InterrogationSection\Services\" />
+      <Folder Include="Src\PatientSpace\" />
+      <Folder Include="Src\PatientSpace\Controllers\" />
+      <Folder Include="Src\Profile\" />
+      <Folder Include="Src\Profile\Controllers\" />
+      <Folder Include="Src\Profile\Dtos\" />
+      <Folder Include="Src\Profile\Dtos\Requests\" />
+      <Folder Include="Src\Profile\Dtos\Responses\" />
+      <Folder Include="Src\Profile\Services\" />
+      <Folder Include="Src\Smtp\Templates\" />
+      <Folder Include="Src\Subscription\CronJobs\" />
+      <Folder Include="Src\Subscription\Services\" />
+    </ItemGroup>
+
+</Project>

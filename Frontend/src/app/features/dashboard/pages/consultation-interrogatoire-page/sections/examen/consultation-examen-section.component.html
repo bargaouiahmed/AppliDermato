@@ -1,0 +1,146 @@
+<div class="tab-panel exam-root">
+	@if (isLoading) {
+		<div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
+	} @else if (loadError) {
+		<div class="state-card error">{{ loadError | translate }}</div>
+	} @else {
+		<app-consultation-examen-general-section
+			[value]="payload.general"
+			(valueChange)="onGeneralChange($event)"
+		/>
+
+		<section class="history-card">
+			<div class="history-header">
+				<h3>{{ 'consultation.page.exam.timeline.title' | translate }}</h3>
+				@if (isPreviewingHistory && previewSourceDate) {
+					<p class="history-preview">
+						{{ 'consultation.page.exam.timeline.previewing' | translate }}
+						<strong>{{ previewSourceDate | date: 'dd/MM/yyyy HH:mm' }}</strong>
+					</p>
+				}
+			</div>
+
+			@if (isHistoryLoading) {
+				<div class="history-state">{{ 'consultation.page.exam.timeline.loading' | translate }}</div>
+			} @else if (historyLoadError) {
+				<div class="history-state error">{{ historyLoadError | translate }}</div>
+			} @else if (!hasHistoryConsultations) {
+				<div class="history-state">{{ 'consultation.page.exam.timeline.empty' | translate }}</div>
+			} @else {
+				<div class="timeline-progress" aria-hidden="true">
+					<span class="timeline-progress-bar" [style.width.%]="timelineScrollProgress"></span>
+				</div>
+
+				<div
+					class="history-timeline-scroll"
+					#timelineScroller
+					(wheel)="onTimelineWheel($event)"
+					(scroll)="onTimelineScroll()"
+					(pointerdown)="onTimelinePointerDown($event)"
+					(pointermove)="onTimelinePointerMove($event)"
+					(pointerup)="onTimelinePointerUp($event)"
+					(pointercancel)="onTimelinePointerUp($event)"
+				>
+					<div class="timeline-track">
+						@for (consultation of historyConsultations; track consultation.id; let itemIndex = $index) {
+							<button
+								type="button"
+								class="timeline-node"
+								[class.above]="(itemIndex % 2) === 0"
+								[class.below]="(itemIndex % 2) !== 0"
+								[class.current]="isCurrentConsultation(consultation)"
+								[class.selected]="selectedHistoryConsultationId === consultation.id && isPreviewingHistory"
+								[attr.data-timeline-id]="consultation.id"
+								[disabled]="isHistoryExamLoading || isApplyingHistoricalPayload"
+								(click)="onTimelineConsultationClick(consultation)"
+							>
+								<span class="timeline-node-connector" aria-hidden="true"></span>
+								<span class="timeline-node-dot" aria-hidden="true"></span>
+								<span class="timeline-node-card">
+									<span class="timeline-item-date">{{ consultation.consultationDate | date: 'dd/MM/yyyy' }}</span>
+									<span class="timeline-item-time">{{ consultation.consultationDate | date: 'HH:mm' }}</span>
+									@if (isCurrentConsultation(consultation)) {
+										<span class="timeline-item-tag">{{ 'consultation.page.exam.timeline.current' | translate }}</span>
+									}
+								</span>
+							</button>
+						}
+					</div>
+				</div>
+
+				@if (historyVisiblePages.length > 1) {
+					<div class="history-pagination">
+						<button
+							type="button"
+							[disabled]="historyPageNumber <= 1 || isHistoryLoading"
+							(click)="goToHistoryPage(historyPageNumber - 1)"
+						>
+							{{ 'patients.list.pagination.previous' | translate }}
+						</button>
+
+						@for (page of historyVisiblePages; track page) {
+							<button
+								type="button"
+								[class.active]="page === historyPageNumber"
+								(click)="goToHistoryPage(page)"
+							>
+								{{ page }}
+							</button>
+						}
+
+						<button
+							type="button"
+							[disabled]="historyPageNumber >= historyTotalPages || isHistoryLoading"
+							(click)="goToHistoryPage(historyPageNumber + 1)"
+						>
+							{{ 'patients.list.pagination.next' | translate }}
+						</button>
+					</div>
+				}
+			}
+
+			@if (isPreviewingHistory) {
+				<div class="history-actions">
+					<button
+						type="button"
+						class="ghost-btn"
+						[disabled]="isApplyingHistoricalPayload"
+						(click)="restoreTodayExam()"
+					>
+						{{ 'consultation.page.exam.timeline.actions.restoreToday' | translate }}
+					</button>
+					<button
+						type="button"
+						class="filled-btn"
+						[disabled]="isApplyingHistoricalPayload"
+						(click)="applyHistoricalPayloadToToday()"
+					>
+						@if (isApplyingHistoricalPayload) {
+							{{ 'consultation.page.loading' | translate }}
+						} @else {
+							{{ 'consultation.page.exam.timeline.actions.applyToToday' | translate }}
+						}
+					</button>
+				</div>
+			}
+		</section>
+
+		<app-consultation-examen-specific-section
+			[sections]="payload.specific"
+			[catalogBySection]="catalogBySection"
+			(sectionChange)="onSpecificSectionChange($event)"
+			(customFindingCreate)="onCustomFindingCreate($event)"
+		/>
+
+		<div class="d-flex justify-content-center mt-4 mb-3 exam-bottom-actions">
+			<button
+				type="button"
+				class="btn btn-color-green btn-primary btn-gg d-flex align-items-center gap-2"
+				(click)="goToConduite()"
+			>
+				<span>{{ 'consultation.page.actions.goToConduite' | translate }}</span>
+				<i class="bi bi-arrow-right"></i>
+			</button>
+		</div>
+	}
+</div>

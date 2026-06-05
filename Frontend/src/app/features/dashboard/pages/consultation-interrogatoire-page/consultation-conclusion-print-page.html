@@ -1,0 +1,17 @@
+<div class="print-shell">
+  @if (isLoading) {
+    <div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
+  } @else if (errorMessage) {
+    <div class="state-card error">{{ errorMessage }}</div>
+  } @else if (viewModel) {
+    <app-consultation-conclusion-report [viewModel]="viewModel" [isPrintView]="true" />
+
+    <div class="print-toolbar no-print">
+      <button type="button" class="print-btn" (click)="retry()">
+        {{ 'consultation.page.conclusion.actions.retryPrint' | translate }}
+      </button>
+    </div>
+  } @else {
+    <div class="state-card error">{{ 'consultation.page.conclusion.loadError' | translate }}</div>
+  }
+</div>

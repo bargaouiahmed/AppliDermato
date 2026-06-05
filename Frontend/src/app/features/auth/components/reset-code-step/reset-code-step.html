@@ -1,0 +1,54 @@
+<div>
+  <h4 class="text-center text-lg font-bold uppercase mb-2 text-gray-800">
+    {{ 'reset.codeStep.title' | translate }}
+  </h4>
+
+  <p class="text-center text-sm text-gray-500 mb-1">
+    {{ 'reset.codeStep.description' | translate }}
+  </p>
+
+  <p class="text-center text-xs text-[#175042] mb-4">
+    {{ 'reset.codeStep.digits' | translate }}
+  </p>
+
+  <div class="mb-4">
+    <app-otp-input
+      #otpRef
+      [length]="6"
+      (codeComplete)="onCodeComplete($event)"
+      (codeChange)="onCodeChange($event)"
+    />
+  </div>
+
+  @if (serverError()) {
+    <p class="text-center text-red-500 text-sm mb-3">{{ serverError() }}</p>
+  }
+
+  <button
+    type="button"
+    class="w-full rounded bg-[#175042] py-2 text-sm font-bold uppercase text-white transition hover:bg-[#123d33] disabled:opacity-60 disabled:cursor-not-allowed"
+    [disabled]="code().length !== 6 || loading()"
+    (click)="onSubmit()"
+  >
+    @if (loading()) {
+      {{ 'common.loading' | translate }}
+    } @else {
+      {{ 'reset.codeStep.submit' | translate }}
+    }
+  </button>
+
+  <div class="flex justify-between mt-3">
+    <a
+      class="text-sm text-[#175042] underline cursor-pointer hover:text-[#123d33]"
+      (click)="back.emit()"
+    >
+      {{ 'common.back' | translate }}
+    </a>
+    <a
+      class="text-sm text-[#175042] underline cursor-pointer hover:text-[#123d33]"
+      (click)="resendCode.emit()"
+    >
+      {{ 'reset.codeStep.resend' | translate }}
+    </a>
+  </div>
+</div>

@@ -1,0 +1,553 @@
+@if (!loading() && profile(); as doctor) {
+  <div class="container-fluid p-4 bg-color">
+    <div class="row justify-content-center">
+      <div class="col-xl-10 col-lg-12">
+        <div class="p-4">
+          <div class="row mb-4 align-items-stretch">
+            <div class="col-md-3 text-center mb-4 mb-md-0 d-flex">
+              <div class="card shell-card p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                <div class="clickable">
+                  <div class="avatar-container" (click)="fileInput.click()">
+                    @if (!pathImage()) {
+                      <div class="avatar-placeholder"><i class="bi bi-person-circle"></i></div>
+                    } @else {
+                      <img [src]="pathImage()" class="avatar-image" alt="Photo de profil" />
+                    }
+                  </div>
+                  <div class="edit-overlay" (click)="fileInput.click()">
+                    <i class="bi bi-camera-fill"></i>
+                  </div>
+                </div>
+                <input #fileInput type="file" hidden accept="image/*" (change)="onFileSelected($event)" />
+                <small class="text-muted mt-2 d-block">{{ 'profile.photoHint' | translate }}</small>
+              </div>
+            </div>
+
+            <div class="col-md-9 d-flex">
+              <div class="card shell-card p-3 flex-grow-1 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h4 class="mb-0">{{ 'profile.personalInfo' | translate }}</h4>
+                  <div class="d-flex align-items-center gap-2">
+                    @if (isSaving()) {
+                      <span class="saving-chip">{{ 'profile.saving' | translate }}</span>
+                    }
+                    <div class="language-switcher">
+                      <button class="mini-btn" [class.active]="versionFr()" type="button" (click)="showVersionFr()">FR</button>
+                      <button class="mini-btn" [class.active]="versionAr()" type="button" (click)="showVersionAr()">AR</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row g-3">
+                  @if (versionFr()) {
+                    <div class="col-md-6">
+                      <label>{{ 'profile.firstName' | translate }}</label>
+                      <input type="text" class="form-control form-control-lg" [ngModel]="form().firstName" (ngModelChange)="updateField('firstName', $event)" />
+                    </div>
+                    <div class="col-md-6">
+                      <label>{{ 'profile.lastName' | translate }}</label>
+                      <input type="text" class="form-control form-control-lg" [ngModel]="form().lastName" (ngModelChange)="updateField('lastName', $event)" />
+                    </div>
+                    <div class="col-md-6">
+                      <label>{{ 'profile.email' | translate }}</label>
+                      <input type="email" class="form-control form-control-lg" [value]="doctor.email" disabled />
+                    </div>
+                    
+                  }
+
+                  @if (versionAr()) {
+                    <div class="col-md-6">
+                      <label>{{ 'profile.lastNameArabic' | translate }}</label>
+                      <input type="text" class="form-control form-control-lg text-end" [ngModel]="form().lastNameInArabic" (ngModelChange)="updateField('lastNameInArabic', $event)" />
+                    </div>
+                    <div class="col-md-6">
+                      <label>{{ 'profile.firstNameArabic' | translate }}</label>
+                      <input type="text" class="form-control form-control-lg text-end" [ngModel]="form().firstNameInArabic" (ngModelChange)="updateField('firstNameInArabic', $event)" />
+                    </div>
+                  }
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card shell-card p-3 mb-4">
+            <div class="d-flex justify-content-center flex-wrap gap-3">
+              <button class="btn-tab" [class.active]="activeSection() === 'info'" type="button" (click)="setSection('info')">
+                <span class="tab-icon">i</span>
+                {{ 'profile.generalInfo' | translate }}
+              </button>
+              <button class="btn-tab" [class.active]="activeSection() === 'security'" type="button" (click)="setSection('security')">
+                <span class="tab-icon">P</span>
+                {{ 'profile.password.title' | translate }}
+              </button>
+              <button class="btn-tab" [class.active]="activeSection() === 'secretaires'" type="button" (click)="setSection('secretaires')">
+                <span class="tab-icon">S</span>
+                {{ 'profile.secretaries' | translate }}
+              </button>
+            </div>
+          </div>
+
+          @if (activeSection() === 'info') {
+            <div class="fade-in">
+              <div class="card shell-card p-4">
+                <div class="row mb-4 align-items-stretch">
+                  <div class="col-md-6 mb-4 d-flex">
+                    <div class="card inner-card p-3 flex-grow-1 d-flex flex-column">
+                      <h4 class="mb-2">{{ 'profile.contact' | translate }}</h4>
+                      <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                          <label>{{ 'profile.mobile' | translate }}</label>
+                          <input class="form-control form-control-lg" [ngModel]="form().phoneNumber" (ngModelChange)="updateField('phoneNumber', $event)" />
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label>{{ 'profile.landline' | translate }}</label>
+                          <input class="form-control form-control-lg" [ngModel]="form().landline" (ngModelChange)="updateField('landline', $event)" />
+                        </div>
+                        <div class="col-md-12">
+                          <label>{{ 'profile.codeCnam' | translate }}</label>
+                          <input class="form-control form-control-lg" [ngModel]="form().codeCnam" (ngModelChange)="updateField('codeCnam', $event)" />
+                        </div>
+
+                        <div class="col-md-12">
+                          <div class="clinics-container">
+                            <div class="clinics-header">
+                              <h1>
+                                <i class="fa-solid fa-hospital"></i>
+                                {{ 'profile.clinics' | translate }}
+                              </h1>
+                              <button type="button" class="add-clinic-btn" (click)="openAddClinic()">
+                                <i class="fa-solid fa-plus"></i>
+                                {{ 'profile.clinics.add' | translate }}
+                              </button>
+                            </div>
+
+                            @if (clinics().length) {
+                              <div class="clinics-grid">
+                                @for (clinic of clinics(); track $index) {
+                                  <div class="clinic-card">
+                                    <h3>
+                                      <i class="fa-solid fa-hospital"></i>
+                                      {{ clinic.name }}
+                                    </h3>
+                                    @if (clinic.address) {
+                                      <div class="clinic-info">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        <span>{{ clinic.address }}</span>
+                                      </div>
+                                    }
+                                    @if (clinic.googleMapsLink) {
+                                      <div class="clinic-info">
+                                        <i class="fa-solid fa-map-location-dot"></i>
+                                        <a class="clinic-link" [href]="normalizeMapsUrl(clinic.googleMapsLink)" target="_blank" rel="noopener noreferrer">
+                                          {{ 'profile.clinics.maps' | translate }}
+                                        </a>
+                                      </div>
+                                    }
+                                    @if (clinic.phoneNumber) {
+                                      <div class="clinic-info">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <span>{{ clinic.phoneNumber }}</span>
+                                      </div>
+                                    }
+
+                                    <div class="clinic-actions">
+                                      <button type="button" class="btn btn-edit" (click)="openEditClinic($index)">
+                                        <i class="fa-solid fa-pen"></i>
+                                        {{ 'profile.clinics.edit' | translate }}
+                                      </button>
+                                      <button type="button" class="btn btn-delete" (click)="removeClinic($index)">
+                                        <i class="fa-solid fa-trash"></i>
+                                        {{ 'profile.clinics.remove' | translate }}
+                                      </button>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            } @else {
+                              <div class="empty-state">
+                                <i class="fa-solid fa-hospital"></i>
+                                <p>{{ 'profile.noClinics' | translate }}</p>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 mb-4 d-flex">
+                    <div class="card inner-card p-3 flex-grow-1 d-flex flex-column">
+                      <h4 class="mb-2">{{ 'profile.office' | translate }}</h4>
+                      <div class="row g-3">
+                        <div class="col-md-6 col-12">
+                          <label>{{ 'profile.city' | translate }}</label>
+                          <input class="form-control form-control-lg" [ngModel]="form().city" (ngModelChange)="updateField('city', $event)" />
+                        </div>
+                        <div class="col-md-6 col-12">
+                          <label>{{ 'profile.postalCode' | translate }}</label>
+                          <input class="form-control form-control-lg" [ngModel]="form().postalCode" (ngModelChange)="updateField('postalCode', $event)" />
+                        </div>
+                        <div class="col-md-12">
+                          <label>{{ 'profile.officeAddress' | translate }}</label>
+                          <input class="form-control form-control-lg" [ngModel]="form().cabinetAddress" (ngModelChange)="updateField('cabinetAddress', $event)" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card inner-card p-3 mb-3 personalization-wrap">
+                  <h4 class="mb-3">{{ 'profile.personalization' | translate }}</h4>
+                  <div class="row g-3 mb-2">
+                    <div class="col-12">
+                      <label>{{ 'profile.personalization.waitingRoomMessage' | translate }}</label>
+                      <textarea
+                        class="form-control form-control-lg"
+                        rows="2"
+                        [ngModel]="personalization().waitingRoomMessage"
+                        (ngModelChange)="updatePersonalizationField('waitingRoomMessage', $event)"
+                      ></textarea>
+                    </div>
+                    <div class="col-12">
+                      <label>{{ 'profile.personalization.dailyNews' | translate }}</label>
+                      <div class="row g-2">
+                        <div class="col-12">
+                          <label class="small text-muted d-block mb-1">FR</label>
+                          <textarea
+                            class="form-control form-control-lg"
+                            rows="2"
+                            [ngModel]="personalization().dailyNewsFr"
+                            [disabled]="isSuperAdminAutoDailyNewsLocked()"
+                            (ngModelChange)="updateDailyNewsLocalizedField('dailyNewsFr', $event)"
+                            (blur)="onDailyNewsBlur()"
+                          ></textarea>
+                        </div>
+                        <div class="col-12">
+                          <label class="small text-muted d-block mb-1">EN</label>
+                          <textarea
+                            class="form-control form-control-lg"
+                            rows="2"
+                            [ngModel]="personalization().dailyNewsEn"
+                            [disabled]="isSuperAdminAutoDailyNewsLocked()"
+                            (ngModelChange)="updateDailyNewsLocalizedField('dailyNewsEn', $event)"
+                            (blur)="onDailyNewsBlur()"
+                          ></textarea>
+                        </div>
+                        <div class="col-12">
+                          <label class="small text-muted d-block mb-1">AR</label>
+                          <textarea
+                            class="form-control form-control-lg"
+                            rows="2"
+                            [ngModel]="personalization().dailyNewsAr"
+                            [disabled]="isSuperAdminAutoDailyNewsLocked()"
+                            (ngModelChange)="updateDailyNewsLocalizedField('dailyNewsAr', $event)"
+                            (blur)="onDailyNewsBlur()"
+                          ></textarea>
+                        </div>
+                      </div>
+                      @if (doctor.role !== 'super_admin' && personalization().useSuperAdminDailyNews) {
+                        <small class="text-muted d-block mt-1">{{ 'profile.personalization.followingSuperAdminNotice' | translate }}</small>
+                      }
+                      @if (isSuperAdminAutoDailyNewsLocked()) {
+                        <small class="text-muted d-block mt-1">{{ 'profile.personalization.autoDailyNewsLockedNotice' | translate }}</small>
+                      }
+                    </div>
+                    @if (doctor.role === 'super_admin') {
+                      <div class="col-12">
+                        <div class="form-check form-switch mt-1">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="autoDailyNewsEnabled"
+                            [ngModel]="personalization().autoDailyNewsEnabled"
+                            (ngModelChange)="onAutoDailyNewsEnabledChanged($event)"
+                          />
+                          <label class="form-check-label" for="autoDailyNewsEnabled">
+                            {{ 'profile.personalization.autoDailyNewsEnabled' | translate }}
+                          </label>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="card inner-card p-3 mb-3 personalization-wrap">
+                  <h4 class="mb-3">{{ 'profile.personalization.headerTable' | translate }}</h4>
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-6">
+                      <div class="personalization-pane p-3 h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                          <h5 class="mb-0">
+                            {{ 'profile.personalization.header' | translate }}
+                            <span class="personalization-badge">{{ headerCheckedCount() }} / {{ personalizationHeaderFields.length }}</span>
+                          </h5>
+
+                          <div class="d-flex align-items-center gap-2">
+                            <div class="form-check form-switch m-0 small">
+                              <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="headerMaster"
+                                [ngModel]="personalization().showHeader"
+                                (ngModelChange)="toggleAllHeader($event)"
+                              />
+                              <label class="form-check-label" for="headerMaster">{{ 'profile.personalization.allNone' | translate }}</label>
+                            </div>
+                            <button type="button" class="mini-action" (click)="clearHeader()">
+                              <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        <hr class="my-2" />
+
+                        <div class="check-grid check-grid--inaya">
+                          @for (item of personalizationHeaderFields; track item.key) {
+                            <label>
+                              <input
+                                type="checkbox"
+                                [ngModel]="personalization()[item.key]"
+                                (ngModelChange)="onHeaderFieldToggle(item.key, $event)"
+                              />
+                              <span>{{ item.labelKey | translate }}</span>
+                            </label>
+                          }
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                      <div class="personalization-pane p-3 h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                          <h5 class="mb-0">
+                            {{ 'profile.personalization.footer' | translate }}
+                            <span class="personalization-badge">{{ footerCheckedCount() }} / {{ personalizationFooterFields.length }}</span>
+                          </h5>
+
+                          <div class="d-flex align-items-center gap-2">
+                            <div class="form-check form-switch m-0 small">
+                              <input
+                                class="form-check-input"
+                                type="checkbox"
+                                id="footerMaster"
+                                [ngModel]="personalization().showFooter"
+                                (ngModelChange)="toggleAllFooter($event)"
+                              />
+                              <label class="form-check-label" for="footerMaster">{{ 'profile.personalization.allNone' | translate }}</label>
+                            </div>
+                            <button type="button" class="mini-action" (click)="clearFooter()">
+                              <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        <hr class="my-2" />
+
+                        <div class="check-grid check-grid--inaya">
+                          @for (item of personalizationFooterFields; track item.key) {
+                            <label>
+                              <input
+                                type="checkbox"
+                                [ngModel]="personalization()[item.key]"
+                                (ngModelChange)="onFooterFieldToggle(item.key, $event)"
+                              />
+                              <span>{{ item.labelKey | translate }}</span>
+                            </label>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card inner-card p-3 mb-3">
+                  <h4 class="mb-2">{{ 'profile.selfCheckin.title' | translate }}</h4>
+                  <p class="text-muted mb-3">{{ 'profile.selfCheckin.description' | translate }}</p>
+
+                  <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                      <label>{{ 'profile.selfCheckin.enabled' | translate }}</label>
+                      <div class="form-check form-switch mt-2">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="selfCheckinEnabled"
+                          [ngModel]="selfCheckin().enabled"
+                          (ngModelChange)="updateSelfCheckinEnabled($event)"
+                        />
+                        <label class="form-check-label" for="selfCheckinEnabled">
+                          {{ selfCheckin().enabled ? ('profile.selfCheckin.enabledOn' | translate) : ('profile.selfCheckin.enabledOff' | translate) }}
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4">
+                      <label>{{ 'profile.selfCheckin.timeout' | translate }}</label>
+                      <input
+                        type="number"
+                        min="30"
+                        max="3600"
+                        class="form-control form-control-lg"
+                        [ngModel]="selfCheckin().timeoutSeconds"
+                        (ngModelChange)="updateSelfCheckinTimeout($event)"
+                      />
+                    </div>
+
+                    <div class="col-md-4">
+                      <button
+                        type="button"
+                        class="save-btn w-100"
+                        [disabled]="!kioskLink()"
+                        (click)="copyKioskLink()"
+                      >
+                        {{ 'profile.selfCheckin.copyLink' | translate }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    <label>{{ 'profile.selfCheckin.linkPreview' | translate }}</label>
+                    <input class="form-control form-control-lg" [value]="kioskLink()" readonly />
+                  </div>
+                </div>
+
+                <div class="actions-bar mt-3">
+                  <button class="save-btn" type="button" (click)="onSubmitProfile()">{{ 'profile.save' | translate }}</button>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (activeSection() === 'security') {
+            <div class="fade-in">
+              <div class="card shell-card p-4">
+                <h4 class="mb-3">{{ 'profile.password.title' | translate }}</h4>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label>{{ 'profile.password.old' | translate }}</label>
+                    <input type="password" class="form-control form-control-lg" [ngModel]="passwordForm().oldPassword" (ngModelChange)="updatePasswordField('oldPassword', $event)" />
+                  </div>
+                  <div class="col-md-6">
+                    <label>{{ 'profile.password.new' | translate }}</label>
+                    <input type="password" class="form-control form-control-lg" [ngModel]="passwordForm().newPassword" (ngModelChange)="updatePasswordField('newPassword', $event)" />
+                  </div>
+                  <div class="col-md-6">
+                    <label>{{ 'profile.password.confirm' | translate }}</label>
+                    <input type="password" class="form-control form-control-lg" [ngModel]="passwordForm().confirmPassword" (ngModelChange)="updatePasswordField('confirmPassword', $event)" />
+                  </div>
+                </div>
+
+                <div class="actions-bar mt-3">
+                  <button class="save-btn" type="button" [disabled]="isPasswordSaving()" (click)="submitPasswordChange()">
+                    @if (isPasswordSaving()) {
+                      {{ 'profile.password.saving' | translate }}
+                    } @else {
+                      {{ 'profile.password.submit' | translate }}
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (activeSection() === 'secretaires') {
+            <div class="fade-in">
+              <div class="card shell-card p-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                  <h4 class="mb-0">{{ 'profile.secretaries' | translate }}</h4>
+                  <div class="form-check form-switch m-0 secretary-switch">
+                    <input class="form-check-input" type="checkbox" id="switchSec2" [ngModel]="secretaries().isSecondSecretaryEnabled" (ngModelChange)="onSecondSecretaryToggle($event)" />
+                    <label class="form-check-label" for="switchSec2">{{ 'profile.enableSecondSecretary' | translate }}</label>
+                  </div>
+                </div>
+
+                <h5 class="mb-3 text-green"><i class="bi bi-person-badge"></i> {{ 'profile.firstSecretary' | translate }}</h5>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label>{{ 'profile.lastName' | translate }}</label>
+                    <input class="form-control form-control-lg" [ngModel]="secretaries().firstSecretaryLastName" (ngModelChange)="updateSecretaryField('firstSecretaryLastName', $event)" />
+                  </div>
+                  <div class="col-md-6">
+                    <label>{{ 'profile.firstName' | translate }}</label>
+                    <input class="form-control form-control-lg" [ngModel]="secretaries().firstSecretaryFirstName" (ngModelChange)="updateSecretaryField('firstSecretaryFirstName', $event)" />
+                  </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="sec2-wrap" [class.sec2-wrap--hidden]="!secretaries().isSecondSecretaryEnabled">
+                  @if (secretaries().isSecondSecretaryEnabled) {
+                    <div class="fade-in">
+                      <h5 class="mb-3 text-green"><i class="bi bi-person-badge"></i> {{ 'profile.secondSecretary' | translate }}</h5>
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                          <label>{{ 'profile.lastName' | translate }}</label>
+                          <input
+                            class="form-control form-control-lg"
+                            [ngModel]="secretaries().secondSecretaryLastName"
+                            (ngModelChange)="updateSecretaryField('secondSecretaryLastName', $event)"
+                          />
+                        </div>
+                        <div class="col-md-6">
+                          <label>{{ 'profile.firstName' | translate }}</label>
+                          <input
+                            class="form-control form-control-lg"
+                            [ngModel]="secretaries().secondSecretaryFirstName"
+                            (ngModelChange)="updateSecretaryField('secondSecretaryFirstName', $event)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="text-muted small d-flex align-items-center gap-2">
+                      <i class="bi bi-info-circle"></i>
+                      <span>{{ 'profile.secretary.second.hint' | translate }}</span>
+                    </div>
+                  }
+                </div>
+
+                <div class="text-center mt-3">
+                  <button class="save-btn" type="button" (click)="onSubmitProfile()">{{ 'profile.save' | translate }}</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (showClinicForm()) {
+    <div class="clinic-modal-overlay" (click)="cancelClinic()">
+      <div class="clinic-modal-card" (click)="$event.stopPropagation()">
+        <h4>{{ editingClinicIndex() === null ? ('profile.clinics.form.addTitle' | translate) : ('profile.clinics.form.editTitle' | translate) }}</h4>
+        <div class="row g-3">
+          <div class="col-12">
+            <label>{{ 'profile.clinics.name' | translate }}</label>
+            <input class="form-control form-control-lg" [ngModel]="clinicDraft().name" (ngModelChange)="onClinicDraftChange('name', $event)" />
+          </div>
+          <div class="col-12">
+            <label>{{ 'profile.clinics.address' | translate }}</label>
+            <input class="form-control form-control-lg" [ngModel]="clinicDraft().address" (ngModelChange)="onClinicDraftChange('address', $event)" />
+          </div>
+          <div class="col-12">
+            <label>{{ 'profile.clinics.phone' | translate }}</label>
+            <input class="form-control form-control-lg" [ngModel]="clinicDraft().phoneNumber" (ngModelChange)="onClinicDraftChange('phoneNumber', $event)" />
+          </div>
+          <div class="col-12">
+            <label>{{ 'profile.clinics.maps' | translate }}</label>
+            <input class="form-control form-control-lg" [ngModel]="clinicDraft().googleMapsLink" (ngModelChange)="onClinicDraftChange('googleMapsLink', $event)" />
+          </div>
+        </div>
+
+        <div class="actions-bar mt-3 gap-2">
+          <button class="save-btn" type="button" (click)="saveClinic()">{{ 'profile.clinics.form.save' | translate }}</button>
+          <button class="btn btn-secondary" type="button" (click)="cancelClinic()">{{ 'profile.clinics.form.cancel' | translate }}</button>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <div class="loading-card">{{ 'common.loading' | translate }}</div>
+}

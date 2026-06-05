@@ -1,0 +1,135 @@
+<div class="patient-create-page bg-color">
+  <div class="header-row">
+    <a class="back-link" [routerLink]="['/patients']">
+      {{ 'patients.create.back' | translate }}
+    </a>
+    <h3>{{ 'patients.create.title' | translate }}</h3>
+  </div>
+
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="grid">
+        <label class="field">
+          <span>{{ 'patients.create.fields.dossierNumber' | translate }}</span>
+          <input
+            type="text"
+            [value]="isLoadingDossier() ? ('patients.create.loadingDossier' | translate) : (dossierNumber() ?? '-')"
+            readonly
+          />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.lastname' | translate }} *</span>
+          <input type="text" formControlName="lastname" />
+          @if (form.controls.lastname.invalid && form.controls.lastname.touched) {
+            <small>{{ 'patients.create.validation.lastname' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.firstname' | translate }} *</span>
+          <input type="text" formControlName="firstname" />
+          @if (form.controls.firstname.invalid && form.controls.firstname.touched) {
+            <small>{{ 'patients.create.validation.firstname' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.dateOfBirth' | translate }} *</span>
+          <input type="date" formControlName="dateOfBirth" />
+          @if (form.controls.dateOfBirth.invalid && form.controls.dateOfBirth.touched) {
+            <small>{{ 'patients.create.validation.dateOfBirth' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.sex' | translate }} *</span>
+          <select formControlName="sex">
+            <option value="">{{ 'patients.create.fields.sexSelect' | translate }}</option>
+            <option value="Homme">{{ 'patients.create.fields.sexMale' | translate }}</option>
+            <option value="Femme">{{ 'patients.create.fields.sexFemale' | translate }}</option>
+          </select>
+          @if (form.controls.sex.invalid && form.controls.sex.touched) {
+            <small>{{ 'patients.create.validation.sex' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.phoneNumber' | translate }}</span>
+          <input type="text" formControlName="phoneNumber" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.email' | translate }}</span>
+          <input type="email" formControlName="email" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <small>{{ 'patients.create.validation.email' | translate }}</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.country' | translate }}</span>
+          <input type="text" formControlName="country" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.city' | translate }}</span>
+          <input type="text" formControlName="city" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.postalCode' | translate }}</span>
+          <input type="text" formControlName="postalCode" />
+        </label>
+
+        <label class="field field-wide">
+          <span>{{ 'patients.create.fields.address' | translate }}</span>
+          <input type="text" formControlName="address" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.profession' | translate }}</span>
+          <app-profession-select formControlName="profession"></app-profession-select>
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.workPlace' | translate }}</span>
+          <input type="text" formControlName="workPlace" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.familialStatus' | translate }}</span>
+          <input type="text" formControlName="familialStatus" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.apci' | translate }}</span>
+          <input type="text" formControlName="apci" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.insuranceType' | translate }}</span>
+          <input type="text" formControlName="insuranceType" />
+        </label>
+
+        <label class="field">
+          <span>{{ 'patients.create.fields.insuranceEstablishment' | translate }}</span>
+          <input type="text" formControlName="insuranceEstablishment" />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="secondary" [routerLink]="['/patients']">
+          {{ 'patients.create.cancel' | translate }}
+        </button>
+        <button type="submit" [disabled]="isSubmitting() || isLoadingDossier()">
+          @if (isSubmitting()) {
+            {{ 'patients.create.submitting' | translate }}
+          } @else {
+            {{ 'patients.create.submit' | translate }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

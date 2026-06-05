@@ -1,0 +1,19 @@
+<div class="selection-page-shell">
+  <div class="selection-lang-switcher">
+    <app-language-switcher />
+  </div>
+
+  <div class="selection-content-wrap">
+    @if (loginData(); as data) {
+      <div class="selection-card">
+        <app-role-selection
+          [loginData]="data"
+          [loading]="loading()"
+          (roleSelected)="onRoleSelected($event)"
+        />
+      </div>
+    }
+  </div>
+
+  <app-footer />
+</div>

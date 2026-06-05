@@ -1,0 +1,195 @@
+@if (viewModel; as vm) {
+  <article
+    class="conclusion-sheet"
+    [class.print-view]="isPrintView"
+    [class.compact-view]="displayMode === 'compact'"
+  >
+    <section class="patient-panel print-avoid-break">
+      <table class="patient-table" role="presentation">
+        <tbody>
+          @for (row of patientRows(vm.patientFields); track $index) {
+            <tr>
+              @for (field of row; track field.label) {
+                <td>
+                  <span class="patient-cell-label">{{ field.label }}:</span>
+                  <div class="patient-cell-value">{{ field.value }}</div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="sheet-section print-avoid-break">
+      <div class="section-heading">
+        <span class="section-index">01</span>
+        <h2>{{ vm.historyTitle }}</h2>
+      </div>
+
+      <div class="content-stack">
+        <div class="rows-block">
+          @for (group of vm.historyGroups; track trackGroup($index, group)) {
+            <article class="summary-row">
+              <h3>{{ group.title }}</h3>
+
+              <div class="badge-row">
+                @for (badge of group.badges; track trackBadge($index, badge)) {
+                  <span
+                    class="status-badge"
+                    [class.tone-normal]="badge.tone === 'normal'"
+                    [class.tone-abnormal]="badge.tone === 'abnormal'"
+                    [class.tone-unassigned]="badge.tone === 'unassigned'"
+                  >
+                    <span>{{ badge.label }}</span>
+                    @if (badge.meta) {
+                      <small>{{ badge.meta }}</small>
+                    }
+                  </span>
+                }
+              </div>
+            </article>
+          }
+        </div>
+
+        <article class="entry-block">
+          <h3>{{ vm.story.title }}</h3>
+
+          @if (vm.story.isEmpty) {
+            <div class="empty-story">{{ vm.story.emptyText }}</div>
+          } @else {
+            <p class="story-text">{{ vm.story.text }}</p>
+          }
+        </article>
+
+        <article class="entry-block">
+          <h3>{{ vm.ongoingTreatmentsTitle }}</h3>
+
+          @if (vm.ongoingTreatments.length > 0) {
+            <div class="table-wrap">
+              <table class="treatment-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'consultation.conduite.ordonnance.table.medicine' | translate }}</th>
+                    <th>{{ 'consultation.conduite.ordonnance.table.therapeuticClass' | translate }}</th>
+                    <th>{{ 'consultation.conduite.ordonnance.table.category' | translate }}</th>
+                    <th>{{ 'consultation.conduite.ordonnance.table.posology' | translate }}</th>
+                    <th>{{ 'consultation.conduite.ordonnance.table.duration' | translate }}</th>
+                    <th>{{ 'consultation.conduite.certificat.fields.date' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of vm.ongoingTreatments; track row.medicine + row.posology + row.duration + row.date) {
+                    <tr>
+                      <td>{{ row.medicine }}</td>
+                      <td>{{ row.therapeuticClass }}</td>
+                      <td>{{ row.category }}</td>
+                      <td>{{ row.posology }}</td>
+                      <td>{{ row.duration }}</td>
+                      <td>{{ row.date }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="badge-row">
+              <span class="status-badge tone-unassigned">{{ vm.ongoingTreatmentsEmptyLabel }}</span>
+            </div>
+          }
+        </article>
+      </div>
+    </section>
+
+    <section class="sheet-section print-avoid-break">
+      <div class="section-heading">
+        <span class="section-index">02</span>
+        <h2>{{ 'consultation.page.tabs.examen' | translate }}</h2>
+      </div>
+
+      <div class="content-stack">
+        <article class="entry-block">
+          <div class="row-heading">
+            <h3>{{ vm.generalSummary.title }}</h3>
+            <span
+              class="status-badge"
+              [class.tone-normal]="vm.generalSummary.statusTone === 'normal'"
+              [class.tone-abnormal]="vm.generalSummary.statusTone === 'abnormal'"
+              [class.tone-unassigned]="vm.generalSummary.statusTone === 'unassigned'"
+            >
+              {{ vm.generalSummary.statusLabel }}
+            </span>
+          </div>
+
+          <div class="metric-grid">
+            @for (metric of vm.generalSummary.metrics; track metric.label) {
+              <div class="metric-item">
+                <span class="metric-label">{{ metric.label }}</span>
+                <strong class="metric-value metric-value-card">{{ metric.value }}</strong>
+              </div>
+            }
+          </div>
+        </article>
+
+        <article class="entry-block">
+          <h3>{{ vm.clinicalTitle }}</h3>
+
+          <div class="rows-block">
+            @for (group of vm.clinicalGroups; track trackGroup($index, group)) {
+              <article class="summary-row">
+                <h3>{{ group.title }}</h3>
+
+                <div class="badge-row">
+                  @for (badge of group.badges; track trackBadge($index, badge)) {
+                    <span
+                      class="status-badge"
+                      [class.tone-normal]="badge.tone === 'normal'"
+                      [class.tone-abnormal]="badge.tone === 'abnormal'"
+                      [class.tone-unassigned]="badge.tone === 'unassigned'"
+                    >
+                      <span>{{ badge.label }}</span>
+                      @if (badge.meta) {
+                        <small>{{ badge.meta }}</small>
+                      }
+                    </span>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="sheet-section print-avoid-break">
+      <div class="section-heading">
+        <span class="section-index">03</span>
+        <h2>{{ vm.carePlanTitle }}</h2>
+      </div>
+
+      <div class="rows-block">
+        @for (group of vm.carePlanGroups; track trackGroup($index, group)) {
+          <article class="summary-row">
+            <h3>{{ group.title }}</h3>
+
+            <div class="badge-row">
+              @for (badge of group.badges; track trackBadge($index, badge)) {
+                <span
+                  class="status-badge"
+                  [class.tone-normal]="badge.tone === 'normal'"
+                  [class.tone-abnormal]="badge.tone === 'abnormal'"
+                  [class.tone-unassigned]="badge.tone === 'unassigned'"
+                >
+                  <span>{{ badge.label }}</span>
+                  @if (badge.meta) {
+                    <small>{{ badge.meta }}</small>
+                  }
+                </span>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  </article>
+}

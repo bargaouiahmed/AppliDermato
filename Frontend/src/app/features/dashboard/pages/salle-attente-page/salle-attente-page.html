@@ -1,0 +1,100 @@
+<div class="running-text-container">
+  <p class="running-text">{{ runningText || ('waitingRoom.defaultBanner' | translate) }}</p>
+</div>
+
+<div class="container-fluid waiting-room-shell">
+  <div class="top-cards">
+    <section class="animated-card">
+      <div class="card-content">
+        <div class="logo">
+          <img src="images/logo-general.png" alt="General" class="logo-img" />
+        </div>
+        <div class="text text-1">
+          <h3 class="text-stl">{{ welcomeTextFr }}</h3>
+        </div>
+        <div class="text text-2">
+          <h3 class="text-stl">{{ welcomeTextEn }}</h3>
+        </div>
+      </div>
+    </section>
+
+    <section class="date-card">
+      <div class="month">{{ currentDate | date:'MMMM' }}</div>
+      <div class="date-card-body">
+        <div class="card-cont-left">
+          <h5 class="day-of-week">{{ currentDate | date:'EEEE' }}</h5>
+          <h1 class="day">{{ currentDate | date:'dd' }}</h1>
+          <h5 class="year">{{ currentDate | date:'yyyy' }}</h5>
+        </div>
+        <div class="vertical-splitter"></div>
+        <div class="card-cont-right">
+          <h1 class="time">{{ currentDate | date:'HH:mm' }}</h1>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="table-header-row" [class.fullscreen]="isFullscreen">
+    <div>
+      <h3>{{ 'waitingRoom.title' | translate }}</h3>
+      <p>{{ currentDate | date:'EEEE dd MMMM yyyy' }}</p>
+    </div>
+
+    <button
+      type="button"
+      class="fullscreen-btn"
+      (click)="toggleFullscreen()"
+      [attr.aria-label]="'waitingRoom.fullscreen' | translate"
+      [title]="'waitingRoom.fullscreen' | translate"
+    >
+      <i class="fa-solid" [class.fa-expand]="!isFullscreen" [class.fa-compress]="isFullscreen"></i>
+    </button>
+  </div>
+
+  <div class="table-card">
+    @if (isLoading) {
+      <div class="state-card">{{ 'accueil.daily.loading' | translate }}</div>
+    } @else if (consultations.length === 0) {
+      <div class="state-card">{{ 'waitingRoom.empty' | translate }}</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>{{ 'accueil.daily.columns.patient' | translate }}</th>
+              <th>{{ 'accueil.daily.columns.status' | translate }}</th>
+              <th>{{ 'agenda.common.time' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (consultation of consultations; track trackConsultation($index, consultation); let idx = $index) {
+              <tr
+                [class.ligne-impaire]="idx % 2 === 0"
+                [class.ligne-paire]="idx % 2 !== 0"
+                [class.critical-time]="isCriticalTime(consultation)"
+                [class.done-time]="isDoneTime(consultation)"
+              >
+                <td class="avatar-cell">
+                  <div class="avatar-circle">
+                    <i class="bi bi-person-circle"></i>
+                  </div>
+                </td>
+                <td>{{ consultation.patientFirstname }} {{ consultation.patientLastname }}</td>
+                <td>
+                  <span class="status-badge" [class]="statusClass(consultation.status)">
+                    {{ statusLabel(consultation.status) }}
+                  </span>
+                </td>
+                <td class="time-cell">
+                  <i class="fa-solid fa-clock"></i>
+                  {{ consultation.consultationDate | date:'HH:mm' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

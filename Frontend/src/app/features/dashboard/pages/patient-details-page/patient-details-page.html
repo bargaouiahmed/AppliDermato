@@ -1,0 +1,424 @@
+<div class="patient-details-page bg-color">
+  <div class="header-row">
+    <h3>{{ 'patients.details.title' | translate }}</h3>
+    <div class="header-actions">
+      <a class="back-link" [routerLink]="['/patients']">
+        {{ 'patients.details.back' | translate }}
+      </a>
+      <button
+        class="inaya-icon-btn"
+        type="button"
+        (click)="openEditMode()"
+        [disabled]="isPatientLoading || !patient || isEditMode"
+        title="Modifier patient"
+      >
+        <i class="bi bi-pencil-fill btn-icone"></i>
+      </button>
+      <button class="inaya-icon-btn" type="button" (click)="openConsultationModal()" [disabled]="isEditMode" title="Ajouter une consultation">
+        <i class="bi bi-file-plus-fill btn-icone"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="card details-card">
+    @if (isPatientLoading) {
+      <div class="state">{{ 'patients.details.loading' | translate }}</div>
+    } @else if (!patient) {
+      <div class="state">{{ 'patients.details.notFound' | translate }}</div>
+    } @else {
+      @if (isEditMode) {
+        <form class="details-edit-form" [formGroup]="form" (ngSubmit)="savePatient()">
+          <h4>{{ 'patients.details.edit.title' | translate }}</h4>
+
+          @if (editErrorMessage) {
+            <p class="form-error">{{ editErrorMessage }}</p>
+          }
+
+          <div class="details-edit-grid">
+            <label class="field">
+              <span>{{ 'patients.create.fields.dossierNumber' | translate }}</span>
+              <input type="text" [value]="patient.dossierNumber || '-'" readonly />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.lastname' | translate }} *</span>
+              <input type="text" formControlName="lastname" />
+              @if (form.controls.lastname.invalid && form.controls.lastname.touched) {
+                <small>{{ 'patients.create.validation.lastname' | translate }}</small>
+              }
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.firstname' | translate }} *</span>
+              <input type="text" formControlName="firstname" />
+              @if (form.controls.firstname.invalid && form.controls.firstname.touched) {
+                <small>{{ 'patients.create.validation.firstname' | translate }}</small>
+              }
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.dateOfBirth' | translate }} *</span>
+              <input type="date" [max]="today" formControlName="dateOfBirth" />
+              @if (form.controls.dateOfBirth.invalid && form.controls.dateOfBirth.touched) {
+                <small>{{ 'patients.create.validation.dateOfBirth' | translate }}</small>
+              }
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.sex' | translate }} *</span>
+              <select formControlName="sex">
+                <option value="">{{ 'patients.create.fields.sexSelect' | translate }}</option>
+                <option value="Homme">{{ 'patients.create.fields.sexMale' | translate }}</option>
+                <option value="Femme">{{ 'patients.create.fields.sexFemale' | translate }}</option>
+              </select>
+              @if (form.controls.sex.invalid && form.controls.sex.touched) {
+                <small>{{ 'patients.create.validation.sex' | translate }}</small>
+              }
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.phoneNumber' | translate }}</span>
+              <input type="text" formControlName="phoneNumber" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.email' | translate }}</span>
+              <input type="email" formControlName="email" />
+              @if (form.controls.email.invalid && form.controls.email.touched) {
+                <small>{{ 'patients.create.validation.email' | translate }}</small>
+              }
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.country' | translate }}</span>
+              <input type="text" formControlName="country" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.city' | translate }}</span>
+              <input type="text" formControlName="city" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.postalCode' | translate }}</span>
+              <input type="text" formControlName="postalCode" />
+            </label>
+
+            <label class="field field-wide">
+              <span>{{ 'patients.create.fields.address' | translate }}</span>
+              <input type="text" formControlName="address" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.profession' | translate }}</span>
+              <app-profession-select formControlName="profession"></app-profession-select>
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.workPlace' | translate }}</span>
+              <input type="text" formControlName="workPlace" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.familialStatus' | translate }}</span>
+              <input type="text" formControlName="familialStatus" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.apci' | translate }}</span>
+              <input type="text" formControlName="apci" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.insuranceType' | translate }}</span>
+              <input type="text" formControlName="insuranceType" />
+            </label>
+
+            <label class="field">
+              <span>{{ 'patients.create.fields.insuranceEstablishment' | translate }}</span>
+              <input type="text" formControlName="insuranceEstablishment" />
+            </label>
+          </div>
+
+          <div class="edit-actions">
+            <button type="button" class="secondary" (click)="cancelEditMode()" [disabled]="isSavingPatient">
+              {{ 'patients.details.edit.cancel' | translate }}
+            </button>
+            <button type="submit" [disabled]="isSavingPatient">
+              @if (isSavingPatient) {
+                {{ 'patients.details.edit.saving' | translate }}
+              } @else {
+                {{ 'patients.details.edit.save' | translate }}
+              }
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="details-layout">
+          <div class="avatar-wrap">
+            <i class="bi bi-person-circle"></i>
+          </div>
+
+          <div class="details-columns">
+            <div class="details-column">
+              <div><span class="text-green">N° Fiche:</span> {{ patient.dossierNumber || '-' }}</div>
+              <div><span class="text-green">Nom et prénom :</span> {{ patient.lastname }} {{ patient.firstname }}</div>
+              <div>
+                <span class="text-green">Date de naissance :</span>
+                @if (patient.dateOfBirth) {
+                  {{ patient.dateOfBirth | date: 'dd/MM/yyyy' }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">Age :</span>
+                @if (patient.dateOfBirth && (getPatientAge(patient.dateOfBirth) ?? -1) >= 0) {
+                  {{ getPatientAge(patient.dateOfBirth) }} ans
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+            </div>
+
+            <div class="details-column">
+              <div>
+                <span class="text-green">Sexe :</span>
+                @if (patient.sex) {
+                  {{ patient.sex }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">Statut Familial :</span>
+                @if (patient.familialStatus) {
+                  {{ patient.familialStatus }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">Profession :</span>
+                @if (patient.profession) {
+                  {{ patient.profession }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">Lieu de travail :</span>
+                @if (patient.workPlace) {
+                  {{ patient.workPlace }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+            </div>
+
+            <div class="details-column">
+              <div>
+                <span class="text-green">N° Mobile :</span>
+                @if (patient.phoneNumber) {
+                  {{ patient.phoneNumber }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">Adresse :</span>
+                @if (patient.address || patient.postalCode || patient.city) {
+                  {{ patient.address }}{{ patient.address && (patient.postalCode || patient.city) ? ', ' : '' }}{{ patient.postalCode }} {{ patient.city }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">Email :</span>
+                @if (patient.email) {
+                  {{ patient.email }}
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+              <div>
+                <span class="text-green">APCI :</span>
+                @if (getApciItems(patient.apci).length > 0) {
+                  @for (apci of getApciItems(patient.apci); track apci) {
+                    <span class="badge-primary apci-badge">{{ apci }}</span>
+                  }
+                } @else {
+                  <span class="badge-aucun">Aucun</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="card consultations-card">
+    <h4>{{ 'patients.details.history.title' | translate }}</h4>
+
+    @if (isConsultationsLoading) {
+      <div class="state">{{ 'patients.details.history.loading' | translate }}</div>
+    } @else if (!hasConsultations) {
+      <div class="state">{{ 'patients.details.history.empty' | translate }}</div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ 'patients.details.history.columns.date' | translate }}</th>
+              <th>{{ 'patients.details.history.columns.motifs' | translate }}</th>
+              <th>{{ 'patients.details.history.columns.diagnostics' | translate }}</th>
+              <th>{{ 'patients.details.history.columns.cat' | translate }}</th>
+              <th>{{ 'patients.details.history.columns.duration' | translate }}</th>
+              <th>{{ 'patients.details.history.columns.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (consultation of consultations; track consultation.id) {
+              <tr>
+                <td class="date-cell">
+                  <i class="fa fa-calendar-alt"></i>
+                  {{ consultation.consultationDate | date: 'dd/MM/yyyy' }}
+                  <i class="fa fa-clock"></i>
+                  {{ consultation.consultationDate | date: 'HH:mm' }}
+                </td>
+                <td>
+                  @if (consultation.motifs.length > 0) {
+                    <div class="motif-wrap">
+                      @for (motif of consultation.motifs; track motif) {
+                        <span class="motif-badge">{{ motif }}</span>
+                      }
+                    </div>
+                  } @else {
+                    <span>-</span>
+                  }
+                </td>
+                <td>
+                  @if (consultation.diagnostics.length > 0) {
+                    <div class="diagnostic-wrap">
+                      @for (diagnostic of consultation.diagnostics; track diagnostic) {
+                        <button type="button" class="diagnostic-badge clickable" (click)="openDetailModal(consultation)">{{ diagnostic }}</button>
+                      }
+                    </div>
+                  } @else {
+                    <span>-</span>
+                  }
+                </td>
+                <td>
+                  @if (consultation.conduiteActions.length > 0) {
+                    <div class="cat-wrap">
+                      @for (action of consultation.conduiteActions; track action) {
+                        <div class="cat-badge-group">
+                          <button type="button" class="cat-badge clickable" (click)="openCarepDetailModal(consultation, action)">{{ action }}</button>
+                          <button type="button" class="cat-print-btn" (click)="printAction(consultation, action)" [title]="'consultation.documents.actions.print' | translate">
+                            <i class="bi bi-printer"></i>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <span>-</span>
+                  }
+                </td>
+                <td>{{ consultation.duration || '00:00:00' }}</td>
+                <td class="actions-col">
+                  <button
+                    type="button"
+                    class="table-action"
+                    [attr.title]="'patients.details.history.actions.open' | translate"
+                    (click)="openConsultation(consultation.id)"
+                  >
+                    <i class="fa-solid fa-pencil"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="table-action"
+                    [attr.title]="'patients.details.history.actions.previewConclusion' | translate"
+                    (click)="openDetailModal(consultation)"
+                  >
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="table-action"
+                    [attr.title]="'patients.details.history.actions.openDocuments' | translate"
+                    (click)="openConsultationDocuments(consultation.id)"
+                  >
+                    <i class="fa-solid fa-file-text"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="table-action danger"
+                    [attr.title]="'patients.details.history.actions.delete' | translate"
+                    [disabled]="deletingConsultationId === consultation.id"
+                    (click)="deleteConsultation(consultation.id)"
+                  >
+                    @if (deletingConsultationId === consultation.id) {
+                      <span class="delete-spinner" aria-hidden="true"></span>
+                    } @else {
+                      <i class="fa-solid fa-trash"></i>
+                    }
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (consultationVisiblePages.length > 1) {
+        <div class="pagination">
+          <button
+            type="button"
+            [disabled]="consultationsPageNumber <= 1"
+            (click)="goToConsultationPage(consultationsPageNumber - 1)"
+          >
+            {{ 'patients.list.pagination.previous' | translate }}
+          </button>
+
+          @for (page of consultationVisiblePages; track page) {
+            <button
+              type="button"
+              [class.active]="page === consultationsPageNumber"
+              (click)="goToConsultationPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+
+          <button
+            type="button"
+            [disabled]="consultationsPageNumber >= consultationsTotalPages"
+            (click)="goToConsultationPage(consultationsPageNumber + 1)"
+          >
+            {{ 'patients.list.pagination.next' | translate }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  <app-consultation-init-modal
+    [isOpen]="consultationModalOpen"
+    [patientId]="patientId"
+    (closed)="closeConsultationModal()"
+    (created)="onConsultationCreated($event)"
+  />
+
+  <app-consultation-detail-modal
+    [isOpen]="detailModalOpen"
+    [data]="detailModalData"
+    (closed)="closeDetailModal()"
+  />
+
+  <app-consultation-carep-detail-modal
+    [isOpen]="carepModalOpen"
+    [data]="carepModalData"
+    (closed)="closeCarepDetailModal()"
+  />
+</div>

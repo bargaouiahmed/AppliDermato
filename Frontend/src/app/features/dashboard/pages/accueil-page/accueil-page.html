@@ -1,0 +1,474 @@
+<div class="container-fluid p-sm-4 p-2 bg-color accueil-clone">
+  <div class="accueil-card card p-4">
+    <div class="daily-header">
+      <div class="title-wrap">
+        <h4>{{ 'accueil.daily.title' | translate }}</h4>
+        <p><i class="bi bi-clock me-1"></i>{{ formatLongDate(currentDate) }}</p>
+        <span class="count-badge">{{ consultations.length }} {{ 'accueil.daily.countSuffix' | translate }}</span>
+      </div>
+
+      <div class="daily-controls">
+        <button type="button" class="nav-btn" (click)="previousDate()" [title]="'accueil.daily.controls.previousDate' | translate">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <button type="button" class="nav-btn" [disabled]="isToday" (click)="nextDate()" [title]="'accueil.daily.controls.nextDate' | translate">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+
+        <button type="button" class="picker-btn" (click)="openDatePicker()">
+          <i class="bi bi-calendar"></i>
+          {{ 'accueil.daily.controls.pickDate' | translate }}
+        </button>
+
+        <button
+          type="button"
+          class="today-btn"
+          [class.active]="isToday"
+          [disabled]="isToday"
+          (click)="selectToday()"
+        >
+          {{ 'accueil.daily.controls.today' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div class="table-shell">
+      @if (isLoading) {
+        <div class="state-msg">{{ 'accueil.daily.loading' | translate }}</div>
+      } @else if (loadError) {
+        <div class="state-msg">{{ loadError }}</div>
+      } @else if (consultations.length === 0) {
+        <div class="state-msg">{{ 'accueil.daily.empty' | translate }}</div>
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr class="ligne-paire">
+                <th class="expand-col"></th>
+                <th>{{ 'accueil.daily.columns.patient' | translate }}</th>
+                <th>{{ 'accueil.daily.columns.consultationNumber' | translate }}</th>
+                <th>{{ 'accueil.daily.columns.motif' | translate }}</th>
+                <th>{{ 'accueil.daily.columns.time' | translate }}</th>
+                <th>{{ 'accueil.daily.columns.status' | translate }}</th>
+                <th>{{ 'accueil.daily.columns.action' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (consultation of consultations; track consultation.id; let idx = $index) {
+                <tr
+                  [class.ligne-impaire]="idx % 2 === 0"
+                  [class.ligne-paire]="idx % 2 !== 0"
+                  [class.expanded]="expandedPatientId === consultation.patientId"
+                  (click)="toggleExpand($event, consultation)"
+                >
+                  <td class="expand-cell">
+                    <i class="fa-solid" [class.fa-chevron-down]="expandedPatientId !== consultation.patientId" [class.fa-chevron-up]="expandedPatientId === consultation.patientId"></i>
+                  </td>
+                  <td>{{ consultation.patientLastname }} {{ consultation.patientFirstname }}</td>
+                  <td>{{ consultation.patientConsultationCount }}</td>
+                  <td>
+                    @if (consultation.motifs.length > 0) {
+                      <div class="motif-wrap">
+                        @for (motif of consultation.motifs; track motif) {
+                          <span class="motif-badge">{{ motif }}</span>
+                        }
+                      </div>
+                    } @else {
+                      <span>-</span>
+                    }
+                  </td>
+                  <td>{{ consultation.consultationDate | date:'HH:mm' }}</td>
+                  <td>
+                    <span class="status-badge" [class]="statusClass(consultation.status)">
+                      {{ statusLabel(consultation.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-group">
+                      <button
+                        type="button"
+                        class="action-btn"
+                        [disabled]="!canOpenConsultation(consultation)"
+                        (click)="$event.stopPropagation(); openConsultation(consultation)"
+                        [title]="getLocalizedOpenConsultationTitle(consultation)"
+                      >
+                        <i class="fa-solid" [class.fa-play]="consultation.status !== 'consultation_completed'" [class.fa-pencil]="consultation.status === 'consultation_completed'"></i>
+                      </button>
+
+                      @if (canDeleteConsultation(consultation)) {
+                        <button
+                          type="button"
+                          class="action-btn danger"
+                          [disabled]="deletingConsultationId === consultation.id"
+                          (click)="$event.stopPropagation(); requestDeleteConsultation(consultation)"
+                          [title]="'accueil.daily.actions.deleteConsultation' | translate"
+                        >
+                          @if (deletingConsultationId === consultation.id) {
+                            <span class="delete-spinner" aria-hidden="true"></span>
+                          } @else {
+                            <i class="fa-solid fa-trash"></i>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+                @if (expandedPatientId === consultation.patientId) {
+                  <tr class="expanded-row">
+                    <td colspan="7">
+                      <div class="expanded-content card">
+                        <h4>{{ 'accueil.history.title' | translate }}</h4>
+                        @if (isExpandedLoading) {
+                          <div class="state-msg state-inner">{{ 'accueil.history.loading' | translate }}</div>
+                        } @else if (expandedConsultations.length === 0) {
+                          <div class="state-msg state-inner">{{ 'accueil.history.empty' | translate }}</div>
+                        } @else {
+                          <div class="table-wrap expanded-table-wrap">
+                            <table class="table">
+                              <thead>
+                                <tr>
+                                  <th>{{ 'accueil.history.columns.date' | translate }}</th>
+                                  <th>{{ 'accueil.history.columns.motifs' | translate }}</th>
+                                  <th>{{ 'accueil.history.columns.diagnostics' | translate }}</th>
+                                  <th>{{ 'accueil.history.columns.carePlan' | translate }}</th>
+                                  <th>{{ 'accueil.history.columns.duration' | translate }}</th>
+                                  <th>{{ 'accueil.history.columns.actions' | translate }}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @for (item of expandedConsultations; track item.id) {
+                                  <tr>
+                                    <td class="date-cell">
+                                      <i class="fa fa-calendar-alt"></i>
+                                      {{ item.consultationDate | date:'dd/MM/yyyy' }}
+                                      <i class="fa fa-clock"></i>
+                                      {{ item.consultationDate | date:'HH:mm' }}
+                                    </td>
+                                    <td>
+                                      @if (item.motifs.length > 0) {
+                                        <div class="motif-wrap">
+                                          @for (motif of item.motifs; track motif) {
+                                            <span class="motif-badge">{{ motif }}</span>
+                                          }
+                                        </div>
+                                      } @else {
+                                        <span>-</span>
+                                      }
+                                    </td>
+                                    <td>
+                                      @if (item.diagnostics.length > 0) {
+                                        <div class="diagnostic-wrap">
+                                          @for (diagnostic of item.diagnostics; track diagnostic) {
+                                            <button
+                                              type="button"
+                                              class="diagnostic-badge clickable"
+                                              (click)="$event.stopPropagation(); openDetailModal(item)"
+                                            >
+                                              {{ diagnostic }}
+                                            </button>
+                                          }
+                                        </div>
+                                      } @else {
+                                        <span>-</span>
+                                      }
+                                    </td>
+                                    <td>
+                                      @if (item.conduiteActions.length > 0) {
+                                        <div class="cat-wrap">
+                                          @for (action of item.conduiteActions; track action) {
+                                            <div class="cat-badge-group">
+                                              <button
+                                                type="button"
+                                                class="cat-badge clickable"
+                                                (click)="$event.stopPropagation(); openCarepDetailModal(item, action)"
+                                              >
+                                                {{ action }}
+                                              </button>
+                                              <button
+                                                type="button"
+                                                class="cat-print-btn"
+                                                (click)="$event.stopPropagation(); printAction(item, action)"
+                                              >
+                                                <i class="bi bi-printer"></i>
+                                              </button>
+                                            </div>
+                                          }
+                                        </div>
+                                      } @else {
+                                        <span>-</span>
+                                      }
+                                    </td>
+                                    <td>{{ item.duration || '00:00:00' }}</td>
+                                    <td class="actions-col">
+                                      <div>
+                                        <button
+                                          type="button"
+                                          class="table-action"
+                                          (click)="$event.stopPropagation(); openConsultationFromHistory(item.id)"
+                                          [title]="'patients.details.history.actions.open' | translate"
+                                        >
+                                          <i class="fa-solid fa-pencil"></i>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          class="table-action"
+                                          (click)="$event.stopPropagation(); openDetailModal(item)"
+                                          [title]="'patients.details.history.actions.previewConclusion' | translate"
+                                        >
+                                          <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          class="table-action"
+                                          (click)="$event.stopPropagation(); openConsultationDocuments(item.id)"
+                                          [title]="'patients.details.history.actions.openDocuments' | translate"
+                                        >
+                                          <i class="fa-solid fa-file-text"></i>
+                                        </button>
+                                        @if (canDeleteHistoryConsultation(item)) {
+                                          <button
+                                            type="button"
+                                            class="table-action danger"
+                                            [disabled]="deletingConsultationId === item.id"
+                                            (click)="$event.stopPropagation(); deleteHistoryConsultation(item)"
+                                            [title]="'patients.details.history.actions.delete' | translate"
+                                          >
+                                            @if (deletingConsultationId === item.id) {
+                                              <span class="delete-spinner" aria-hidden="true"></span>
+                                            } @else {
+                                              <i class="fa-solid fa-trash"></i>
+                                            }
+                                          </button>
+                                        }
+                                      </div>
+                                    </td>
+                                  </tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                        }
+
+                        @if (!isExpandedLoading && expandedConsultations.length > 0 && expandedTotalPages > 1) {
+                          <div class="pagination expanded-pagination">
+                            <button type="button" [disabled]="expandedPageNumber === 1" (click)="goToExpandedPage(expandedPageNumber - 1)">
+                              {{ 'patients.list.pagination.previous' | translate }}
+                            </button>
+                            @for (page of expandedVisiblePages; track page) {
+                              <button type="button" [class.active]="page === expandedPageNumber" (click)="goToExpandedPage(page)">
+                                {{ page }}
+                              </button>
+                            }
+                            <button type="button" [disabled]="expandedPageNumber === expandedTotalPages" (click)="goToExpandedPage(expandedPageNumber + 1)">
+                              {{ 'patients.list.pagination.next' | translate }}
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="accueil-card card p-4 rdv-card">
+    <div class="daily-header rdv-header">
+      <div class="title-wrap">
+        <h4>Rendez-vous du jour</h4>
+        <p><i class="bi bi-clock me-1"></i>{{ formatLongDate(currentDate) }}</p>
+        <span class="count-badge">{{ dailyRdvs.length }} rendez-vous</span>
+      </div>
+    </div>
+
+    <div class="table-shell">
+      @if (isRdvLoading) {
+        <div class="state-msg">{{ 'accueil.daily.loading' | translate }}</div>
+      } @else if (rdvLoadError) {
+        <div class="state-msg">{{ rdvLoadError }}</div>
+      } @else if (dailyRdvs.length === 0) {
+        <div class="state-msg">{{ 'accueil.daily.empty' | translate }}</div>
+      } @else {
+        <div class="table-wrap">
+          <table class="table rdv-table">
+            <thead>
+              <tr class="ligne-paire">
+                <th>{{ 'patients.list.columns.lastname' | translate }}</th>
+                <th>{{ 'patients.list.columns.firstname' | translate }}</th>
+                <th>{{ 'agenda.rdv.modal.motifs' | translate }}</th>
+                <th>{{ 'agenda.common.time' | translate }}</th>
+                <th>{{ 'agenda.common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (rdv of dailyRdvs; track getRdvTrackKey(rdv, $index); let idx = $index) {
+                <tr [class.ligne-impaire]="idx % 2 === 0" [class.ligne-paire]="idx % 2 !== 0">
+                  <td>{{ getRdvLastname(rdv) }}</td>
+                  <td>{{ getRdvFirstname(rdv) }}</td>
+                  <td>
+                    @if (rdv.motifs && rdv.motifs.length > 0) {
+                      <div class="motif-wrap">
+                        @for (motif of rdv.motifs; track motif) {
+                          <span class="motif-badge">{{ motif }}</span>
+                        }
+                      </div>
+                    } @else {
+                      <span>-</span>
+                    }
+                  </td>
+                  <td>{{ rdv.time }}</td>
+                  <td class="rdv-action-cell">
+                    <button
+                      type="button"
+                      class="action-btn"
+                      [disabled]="!canStartConsultationFromRdv(rdv)"
+                      (click)="openGoToExamenFromRdv(rdv)"
+                      [title]="'agenda.rdv.modal.goToExamen' | translate"
+                    >
+                      <i class="bi bi-journal-medical"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+
+  <app-statistics-module />
+</div>
+
+<app-consultation-detail-modal
+  [isOpen]="detailModalOpen"
+  [data]="detailModalData"
+  (closed)="closeDetailModal()"
+/>
+
+<app-consultation-carep-detail-modal
+  [isOpen]="carepModalOpen"
+  [data]="carepModalData"
+  (closed)="closeCarepDetailModal()"
+/>
+
+<app-consultation-init-modal
+  [isOpen]="isConsultationInitOpen"
+  [patientId]="consultationInitPatientId"
+  [initialDate]="consultationInitDate"
+  [initialMotifs]="consultationInitMotifs"
+  (closed)="isConsultationInitOpen = false"
+  (created)="onRdvConsultationCreated($event)"
+/>
+
+@if (consultationDeleteCandidate) {
+  <div class="date-modal-backdrop" (click)="cancelDeleteConsultation()">
+    <div class="date-modal delete-confirm-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="date-modal-header">
+        <h5>
+          <i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i>
+          {{ 'accueil.daily.actions.deleteConsultation' | translate }}
+        </h5>
+        <button type="button" class="close-btn" (click)="cancelDeleteConsultation()">
+          <i class="fa-regular fa-circle-xmark"></i>
+        </button>
+      </div>
+      <div class="delete-confirm-body">
+        <p>{{ 'accueil.daily.actions.confirmDeleteConsultation' | translate }}</p>
+        <p class="delete-consultation-label">
+          {{ consultationDeleteCandidate.patientLastname }} {{ consultationDeleteCandidate.patientFirstname }}
+          - {{ consultationDeleteCandidate.consultationDate | date:'HH:mm' }}
+        </p>
+      </div>
+      <div class="date-modal-footer">
+        <button type="button" class="close-footer-btn" (click)="cancelDeleteConsultation()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button
+          type="button"
+          class="close-footer-btn danger"
+          [disabled]="deletingConsultationId === consultationDeleteCandidate.id"
+          (click)="confirmDeleteConsultation()"
+        >
+          @if (deletingConsultationId === consultationDeleteCandidate.id) {
+            <span class="delete-spinner" aria-hidden="true"></span>
+          } @else {
+            <i class="fa-solid fa-trash me-1"></i>{{ 'agenda.common.delete' | translate }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isDateModalOpen) {
+  <div class="date-modal-backdrop" (click)="closeDatePicker()">
+    <div class="date-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="date-modal-header">
+        <h5><i class="bi bi-calendar-check me-2"></i>{{ 'accueil.datePicker.title' | translate }}</h5>
+        <button type="button" class="close-btn" (click)="closeDatePicker()">
+          <i class="fa-regular fa-circle-xmark"></i>
+        </button>
+      </div>
+
+      <div class="date-modal-filters">
+        <label>
+          <span><i class="bi bi-calendar3 me-1"></i>{{ 'accueil.datePicker.year' | translate }}</span>
+          <select [value]="pickerYear" (change)="onPickerYearChange($any($event.target).value)">
+            @for (year of pickerYears; track year) {
+              <option [value]="year">{{ year }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span><i class="bi bi-calendar-month me-1"></i>{{ 'accueil.datePicker.month' | translate }}</span>
+          <select [value]="pickerMonth" (change)="onPickerMonthChange($any($event.target).value)">
+            @for (month of localizedMonthOptions; track month.value) {
+              <option [value]="month.value">{{ month.label }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="weekday-row">
+        @for (dayLabel of localizedWeekdayLabels; track dayLabel + $index) {
+          <div>{{ dayLabel }}</div>
+        }
+      </div>
+
+      <div class="calendar-grid">
+        @for (cell of calendarCells; track $index) {
+          <button
+            type="button"
+            class="day-cell"
+            [class.outside]="!cell.inCurrentMonth"
+            [class.has-consultation]="cell.hasConsultation"
+            [class.blocked-day]="cell.isBlockedDay"
+            [class.selected]="cell.isSelected"
+            [class.today]="cell.isToday"
+            [disabled]="!cell.isoDate || cell.isBlockedDay"
+            (click)="selectDateFromPicker(cell)"
+          >
+            @if (cell.dayNumber) {
+              <span class="day-number">{{ cell.dayNumber }}</span>
+              @if (cell.hasConsultation) {
+                <span class="day-dot"><i class="bi bi-person-lines-fill"></i></span>
+              }
+            }
+          </button>
+        }
+      </div>
+
+      <div class="date-modal-footer">
+        <button type="button" class="close-footer-btn" (click)="closeDatePicker()">{{ 'accueil.datePicker.close' | translate }}</button>
+      </div>
+    </div>
+  </div>
+}
+

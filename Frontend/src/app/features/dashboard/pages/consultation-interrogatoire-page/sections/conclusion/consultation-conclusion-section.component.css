@@ -1,0 +1,73 @@
+.conclusion-layout {
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.conclusion-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.print-btn {
+  border: 1px solid #93ae88;
+  background: #93ae88;
+  color: #fffdf8;
+  border-radius: 0.35rem;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.print-btn:hover {
+  background: #175042;
+  border-color: #175042;
+  box-shadow: 0 8px 18px rgba(23, 80, 66, 0.12);
+}
+
+.print-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  box-shadow: none;
+}
+
+.inline-warning,
+.state-card {
+  border-radius: 0.45rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.inline-warning {
+  border: 1px solid rgba(190, 167, 64, 0.45);
+  background: rgba(255, 248, 202, 0.72);
+  color: #5b5116;
+  font-weight: 600;
+}
+
+.state-card {
+  border: 1px dashed rgba(200, 149, 104, 0.55);
+  background: rgba(255, 255, 240, 0.92);
+  color: #27312f;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .print-btn {
+    width: 100%;
+  }
+
+  .conclusion-actions {
+    align-items: stretch;
+  }
+}

@@ -1,0 +1,63 @@
+<div class="card bg-camel shadow-sm p-3 my-3 exam-wrapper">
+  <div class="card-header border-bottom-0 d-flex justify-content-between align-items-center">
+    <h3 class="mb-0">{{ 'consultation.page.exam.specific.title' | translate }}</h3>
+  </div>
+
+  <div class="specific-list">
+    <app-consultation-examen-orl-cou-conjonctive
+      [value]="sections.orlCouConjonctive"
+      [catalog]="catalogBySection.orlCouConjonctive"
+      (valueChange)="onSectionValueChange('orlCouConjonctive', $event)"
+      (customFindingCreate)="onCustomFindingCreate('orlCouConjonctive', $event)"
+    />
+
+    <app-consultation-examen-auscultation-cardiaque
+      [value]="sections.auscultationCardiaque"
+      [catalog]="catalogBySection.auscultationCardiaque"
+      (valueChange)="onSectionValueChange('auscultationCardiaque', $event)"
+      (customFindingCreate)="onCustomFindingCreate('auscultationCardiaque', $event)"
+    />
+
+    <app-consultation-examen-auscultation-pulmonaire
+      [value]="sections.auscultationPulmonaire"
+      [catalog]="catalogBySection.auscultationPulmonaire"
+      (valueChange)="onSectionValueChange('auscultationPulmonaire', $event)"
+      (customFindingCreate)="onCustomFindingCreate('auscultationPulmonaire', $event)"
+    />
+
+    <app-consultation-examen-abdomen
+      [value]="sections.abdomen"
+      [catalog]="catalogBySection.abdomen"
+      (valueChange)="onSectionValueChange('abdomen', $event)"
+      (customFindingCreate)="onCustomFindingCreate('abdomen', $event)"
+    />
+
+    <app-consultation-examen-neurologique
+      [value]="sections.neurologique"
+      [catalog]="catalogBySection.neurologique"
+      (valueChange)="onSectionValueChange('neurologique', $event)"
+      (customFindingCreate)="onCustomFindingCreate('neurologique', $event)"
+    />
+
+    <app-consultation-examen-locomoteur-osteo-articulaire
+      [value]="sections.locomoteurOsteoArticulaire"
+      [catalog]="catalogBySection.locomoteurOsteoArticulaire"
+      (valueChange)="onSectionValueChange('locomoteurOsteoArticulaire', $event)"
+      (customFindingCreate)="onCustomFindingCreate('locomoteurOsteoArticulaire', $event)"
+    />
+
+    <app-consultation-examen-peau-dermatologique
+      [value]="sections.peauDermatologique"
+      [catalog]="catalogBySection.peauDermatologique"
+      (valueChange)="onSectionValueChange('peauDermatologique', $event)"
+      (customFindingCreate)="onCustomFindingCreate('peauDermatologique', $event)"
+    />
+
+    <app-consultation-examen-urogenital
+      [value]="sections.urogenital"
+      [catalog]="catalogBySection.urogenital"
+      (valueChange)="onSectionValueChange('urogenital', $event)"
+      (customFindingCreate)="onCustomFindingCreate('urogenital', $event)"
+    />
+  </div>
+</div>

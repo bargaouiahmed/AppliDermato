@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: appgen-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app_gen_db}
+      POSTGRES_USER: ${POSTGRES_USER:-appgen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./deploy/postgres-data:/var/lib/postgresql/data
+    networks:
+      - appgen-net
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: appgen-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./deploy/api.env
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+    ports:
+      - "${API_PORT:-5087}:8080"
+    volumes:
+      - ./deploy/uploads/profile_pictures:/app/wwwroot/profile_pictures
+      - ./deploy/uploads/exploration-documents:/app/wwwroot/exploration-documents
+      - ./deploy/uploads/tech-assistance:/app/wwwroot/tech-assistance
+      - ./deploy/api-logs:/app/logs
+    networks:
+      - appgen-net
+
+  frontend:
+    image: nginx:1.27-alpine
+    container_name: appgen-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    volumes:
+      - ./Frontend/dist/Frontend/browser:/usr/share/nginx/html
+      - ./deploy/frontend-env.js:/usr/share/nginx/html/env.js:ro
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - appgen-net
+
+networks:
+  appgen-net:
+    driver: bridge

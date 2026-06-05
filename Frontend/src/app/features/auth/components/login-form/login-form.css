@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.inaya-login-form {
+  width: 100%;
+}
+
+.inaya-title {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-align: center;
+  color: #212529;
+}
+
+.inaya-input {
+  width: 100%;
+  display: block;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  outline: none;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.inaya-input:focus {
+  border-color: #175042;
+  box-shadow: 0 0 0 .2rem rgba(23, 80, 66, .25);
+}
+
+.inaya-btn {
+  width: 100%;
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  background-color: #93ae88;
+  color: #fff;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-transform: uppercase;
+  text-align: center;
+  cursor: pointer;
+}
+
+.inaya-btn:hover:not(:disabled) {
+  background-color: #7f9c75;
+}
+
+.inaya-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.inaya-link {
+  color: #93ae88;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.inaya-link:hover {
+  color: #7f9c75;
+}
+
+.inaya-password-wrapper ::ng-deep input {
+  width: 100%;
+  display: block;
+  padding: 0.375rem 2.5rem 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  outline: none;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.inaya-password-wrapper ::ng-deep input:focus {
+  border-color: #175042;
+  box-shadow: 0 0 0 .2rem rgba(23, 80, 66, .25);
+}

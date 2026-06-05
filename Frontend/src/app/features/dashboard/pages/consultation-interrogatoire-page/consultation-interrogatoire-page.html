@@ -1,0 +1,297 @@
+<div class="consultation-page bg-color">
+	@if (isLoading) {
+		<div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
+	} @else if (loadError) {
+		<div class="state-card error">{{ loadError | translate }}</div>
+	} @else {
+		<div class="summary-grid">
+			<section class="summary-card patient-card">
+				<div class="avatar-wrap">
+					<i class="bi bi-person-circle"></i>
+				</div>
+
+				<div class="patient-fields">
+					<p>
+						<label>{{ 'consultation.page.patient.fullName' | translate }}: </label>
+						<button
+							type="button"
+							class="patient-name-link text-decoration-none"
+							(click)="openPatientDetailsInNewTab()"
+							[disabled]="!patient?.id"
+						>
+							{{ patient?.lastname || '-' }} {{ patient?.firstname || '' }}
+						</button>
+					</p>
+					<p>
+						<label>{{ 'consultation.page.patient.insuranceType' | translate }}: </label>
+						@if (patient?.insuranceType) {
+							<span class="badge badge-primary ml-1">{{ patient?.insuranceType }}</span>
+						} @else {
+							<span class="badge badge-aucun ml-1">{{ 'consultation.page.none' | translate }}</span>
+						}
+					</p>
+					<p>
+						<label>{{ 'consultation.page.patient.profession' | translate }}: </label>
+						@if (patient?.profession) {
+							<span> {{ patient?.profession }}</span>
+						} @else {
+							<span class="badge badge-aucun ml-1">{{ 'consultation.page.none' | translate }}</span>
+						}
+					</p>
+					<p>
+						<label>{{ 'consultation.page.patient.age' | translate }}: </label>
+						<span> {{ patient?.dateOfBirth ? (getPatientAge(patient?.dateOfBirth || '') ?? ('consultation.page.none' | translate)) : ('consultation.page.none' | translate) }}</span>
+					</p>
+					<p>
+						<label>{{ 'consultation.page.patient.birthDate' | translate }}: </label>
+						<span> {{ patient?.dateOfBirth ? (patient?.dateOfBirth | date: 'dd/MM/yyyy') : ('consultation.page.none' | translate) }}</span>
+					</p>
+				</div>
+			</section>
+
+			<section class="summary-card motif-card">
+				<h4>{{ 'consultation.page.motif.title' | translate }}</h4>
+				<ng-select
+					class="motif-select inaya-select"
+					[items]="motifList"
+					bindLabel="nom"
+					bindValue="value"
+					[(ngModel)]="selectedMotif"
+					[addTag]="addInputMotif.bind(this)"
+					[clearable]="false"
+					[searchable]="true"
+					[closeOnSelect]="true"
+					[hideSelected]="true"
+					[placeholder]="'consultation.page.motif.selectPlaceholder' | translate"
+					(change)="addInputMotif($event)"
+				>
+					<ng-template ng-option-tmp let-item="item">
+						<div class="motif-option-row">
+							<span>{{ item.nom }}</span>
+							@if (item.isDeletable) {
+								<button type="button" class="delete-option-btn" (click)="deleteMotif(item, $event)">
+									<i class="bi bi-trash3"></i>
+								</button>
+							}
+						</div>
+					</ng-template>
+					<ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+						<div class="motif-notfound-row">
+							<span>{{ 'consultation.page.none' | translate }}</span>
+							@if (searchTerm?.trim()) {
+								<button type="button" class="add-option-btn" (click)="addInputMotif(searchTerm)">
+									Ajouter "{{ searchTerm }}"
+								</button>
+							}
+						</div>
+					</ng-template>
+				</ng-select>
+
+				<div class="motif-badges-wrap">
+					@for (motif of patientMotifs; track motif) {
+						<button type="button" class="motif-badge" (click)="removeMotif(motif)">
+							{{ motif }}
+							<i class="bi bi-x"></i>
+						</button>
+					}
+				</div>
+			</section>
+
+			<section class="summary-card info-card">
+				<div class="datetime-card">
+					<div class="clock-line">
+						<i class="bi bi-clock-history"></i>
+						<span>{{ currentTime | date: 'HH:mm:ss' }}</span>
+					</div>
+					<div class="date-line">
+						<i class="bi bi-calendar3"></i>
+						<span>{{ localizedConsultationDate }}</span>
+					</div>
+				</div>
+				<div class="visits-line">
+					<i class="bi bi-journal-check"></i>
+					<span>{{ 'consultation.page.visitsCount' | translate }}</span>
+					<strong>{{ patient?.consultationCount || 1 }}</strong>
+				</div>
+				<button
+					type="button"
+					class="history-open-btn"
+					(click)="openHistorySidebar()"
+				>
+					<i class="bi bi-journal-text"></i>
+					<span>{{ 'consultation.page.actions.openHistory' | translate }}</span>
+				</button>
+			</section>
+
+			<section class="summary-card actions-card">
+				<p class="duration"><strong>{{ 'consultation.page.duration' | translate }} :</strong> {{ elapsedDurationDisplay }}</p>
+				<div class="actions-row">
+					@if (showStartConsultationAction) {
+						<button
+							type="button"
+							class="ghost-btn"
+							[disabled]="consultation?.isDone"
+							(click)="startConsultation()"
+						>
+							{{ 'consultation.page.actions.play' | translate }}
+						</button>
+					} @else if (isConsultationRunning) {
+						<button
+							type="button"
+							class="ghost-btn"
+							[disabled]="consultation?.isDone"
+							(click)="pauseConsultation()"
+						>
+							{{ 'consultation.page.actions.pause' | translate }}
+						</button>
+					} @else if (showResumeConsultationAction) {
+						<button
+							type="button"
+							class="ghost-btn"
+							[disabled]="consultation?.isDone"
+							(click)="resumeConsultation()"
+						>
+							{{ 'consultation.page.actions.resumeExam' | translate }}
+						</button>
+					}
+					<button type="button" class="filled-btn" [disabled]="consultation?.isDone || isFinishing" (click)="finishExam()">{{ 'consultation.page.actions.finish' | translate }}</button>
+				</div>
+			</section>
+		</div>
+
+		<section class="nav-shell">
+			<ul class="exam-nav">
+				@for (tab of visibleTabs; track tab.key) {
+					<li class="exam-nav-item">
+						<button
+							type="button"
+							class="exam-nav-btn"
+							[class.active]="activeTab === tab.key"
+							(click)="selectTab(tab.key)"
+						>
+							<i [class]="tab.iconClass"></i>
+							<span>{{ tab.labelKey | translate }}</span>
+						</button>
+					</li>
+				}
+			</ul>
+		</section>
+
+		<section class="tab-content">
+			@switch (activeTab) {
+				@case ('interrogatoire') {
+					<app-consultation-interrogatoire-section
+						[consultationId]="consultation?.consultationId ?? null"
+						[motifs]="patientMotifs"
+						[selectedMotif]="selectedMotif ?? ''"
+						[canAccessExam]="canAccessExam"
+						[histoireMaladie]="histoireMaladie"
+						(histoireMaladieChange)="onHistoireMaladieChange($event)"
+						[anomalies]="interrogatoireAnomalies"
+						(anomaliesChange)="onInterrogatoireAnomaliesChange($event)"
+						[ongoingTreatments]="ongoingTreatments"
+						(ongoingTreatmentsChange)="onInterrogatoireTreatmentsChange($event)"
+						(navigateToExam)="selectTab('examen')"
+					/>
+				}
+				@case ('examen') {
+					@if (canAccessExam) {
+						<div class="tab-panel">
+							<app-consultation-examen-section
+								[consultationId]="consultation?.consultationId ?? null"
+								[patientId]="consultation?.patientId ?? null"
+								(payloadChange)="onExamPayloadChange($event)"
+								(navigateToConduite)="selectTab('conduite')"
+							/>
+						</div>
+					} @else {
+						<div class="tab-panel">{{ 'consultation.page.exam.accessDenied' | translate }}</div>
+					}
+				}
+				@case ('conduite') {
+					<div class="tab-panel"><app-consultation-conduite-section [consultationId]="consultation?.consultationId ?? null" [consultationDate]="consultation?.consultationDate ?? ''" [diagnostics]="diagnostics" [motifs]="patientMotifs" [focusActionKey]="conduiteFocusActionKey" [focusRequestId]="conduiteFocusRequestId" (diagnosticsChange)="onDiagnosticsChange($event)" (navigateToConclusion)="selectTab('conclusion')" [ongoingTreatments]="ongoingTreatments" (ongoingTreatmentsChange)="onInterrogatoireTreatmentsChange($event)" (conduiteChange)="onConduiteChange($event)" /></div>
+				}
+				@case ('conclusion') {
+					<div class="tab-panel">
+						<app-consultation-conclusion-section
+							[consultationId]="consultation?.consultationId ?? null"
+							[patient]="patient"
+							[consultationDate]="consultation?.consultationDate ?? ''"
+							[motifs]="patientMotifs"
+							[histoireMaladie]="histoireMaladie"
+							[diagnostics]="diagnostics"
+							[anomalies]="interrogatoireAnomalies"
+							[ongoingTreatments]="ongoingTreatments"
+							[examPayload]="currentExamPayload"
+							[conduite]="currentConduite"
+							[canAccessExam]="canAccessExam"
+						/>
+					</div>
+				}
+				@case ('documents') {
+					<div class="tab-panel"><app-consultation-documents-section [consultationId]="consultation?.consultationId ?? null" /></div>
+				}
+			}
+		</section>
+
+		@if (isLeftSidebarOpen || isRightSidebarOpen) {
+			<button type="button" class="drawer-backdrop" aria-label="Close sidebars" (click)="closeSidebars()"></button>
+		}
+
+		@if (!isLeftSidebarOpen) {
+			<button
+				type="button"
+				class="edge-launcher edge-launcher-left"
+				[attr.aria-label]="'Open current conclusion sidebar'"
+				(click)="toggleSidebar('left')"
+			>
+				<span>+</span>
+			</button>
+		}
+
+		@if (!isRightSidebarOpen) {
+			<button
+				type="button"
+				class="edge-launcher edge-launcher-right"
+				[attr.aria-label]="'Open history sidebar'"
+				(click)="toggleSidebar('right')"
+			>
+				<span>+</span>
+			</button>
+		}
+
+		<aside class="consultation-drawer consultation-drawer-left" [class.open]="isLeftSidebarOpen">
+			<div class="consultation-drawer-panel">
+				<app-consultation-conclusion-current-sidebar
+					[consultationId]="consultation?.consultationId ?? null"
+					[patient]="patient"
+					[consultationDate]="consultation?.consultationDate ?? ''"
+					[motifs]="patientMotifs"
+					[histoireMaladie]="histoireMaladie"
+					[diagnostics]="diagnostics"
+					[anomalies]="interrogatoireAnomalies"
+					[ongoingTreatments]="ongoingTreatments"
+					[examPayload]="currentExamPayload"
+					[conduite]="currentConduite"
+					[canAccessExam]="canAccessExam"
+					[showToggle]="false"
+					[drawerMode]="true"
+				/>
+			</div>
+		</aside>
+
+		<aside class="consultation-drawer consultation-drawer-right" [class.open]="isRightSidebarOpen">
+			<div class="consultation-drawer-panel">
+				<app-consultation-conclusion-history-sidebar
+					[consultationId]="consultation?.consultationId ?? null"
+					[patientId]="consultation?.patientId ?? null"
+					[patient]="patient"
+					[canAccessExam]="canAccessExam"
+					[showToggle]="false"
+					[drawerMode]="true"
+				/>
+			</div>
+		</aside>
+	}
+</div>
+

@@ -1,0 +1,262 @@
+<section class="tech-page" [attr.dir]="isRtl() ? 'rtl' : 'ltr'">
+  <div class="tech-header">
+    <div>
+      <p class="eyebrow">{{ 'techAssist.eyebrow' | translate }}</p>
+      <h1>{{ 'techAssist.title' | translate }}</h1>
+    </div>
+    <button class="ghost-btn" type="button" (click)="loadTickets()" [disabled]="loading()">
+      <i class="bi bi-arrow-clockwise"></i>
+      <span>{{ 'techAssist.refresh' | translate }}</span>
+    </button>
+  </div>
+
+  <div class="tech-layout">
+    <form class="compose-panel" (ngSubmit)="createTicket(createFileInput)">
+      <div>
+        <p class="panel-kicker">{{ 'techAssist.compose.kicker' | translate }}</p>
+        <h2>{{ 'techAssist.new.title' | translate }}</h2>
+        <p class="panel-help">{{ 'techAssist.compose.help' | translate }}</p>
+      </div>
+      <label>
+        <span>{{ 'techAssist.subject' | translate }}</span>
+        <input
+          type="text"
+          maxlength="180"
+          [ngModel]="subject()"
+          (ngModelChange)="subject.set($event)"
+          name="subject"
+          [placeholder]="'techAssist.subjectPlaceholder' | translate"
+        />
+      </label>
+      <label>
+        <span>{{ 'techAssist.message' | translate }}</span>
+        <textarea
+          rows="6"
+          maxlength="3000"
+          [ngModel]="message()"
+          (ngModelChange)="message.set($event)"
+          name="message"
+          [placeholder]="'techAssist.messagePlaceholder' | translate"
+        ></textarea>
+      </label>
+
+      <div class="file-row">
+        <label class="file-picker">
+          <i class="bi bi-paperclip"></i>
+          <span>{{ 'techAssist.attach' | translate }}</span>
+          <input
+            #createFileInput
+            type="file"
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx,.zip"
+            (change)="onCreateFilesSelected($event)"
+          />
+        </label>
+      </div>
+
+      @if (attachments().length > 0) {
+        <div class="selected-files">
+          @for (file of attachments(); track file.name + file.size) {
+            <button
+              class="selected-file"
+              type="button"
+              (click)="removeCreateAttachment(file, createFileInput)"
+            >
+              <i class="bi bi-x"></i>
+              <span>{{ file.name }}</span>
+            </button>
+          }
+        </div>
+      }
+
+      <button class="primary-btn" type="submit" [disabled]="creating() || !canCreate()">
+        <i class="bi bi-send"></i>
+        <span>{{ 'techAssist.send' | translate }}</span>
+      </button>
+    </form>
+
+    <aside class="ticket-list">
+      <div class="list-title">
+        <span>{{ isAdmin() ? ('techAssist.inbox' | translate) : ('techAssist.history' | translate) }}</span>
+        <strong>{{ tickets().length }}</strong>
+      </div>
+
+      @if (loading()) {
+        <div class="empty-state">{{ 'techAssist.loading' | translate }}</div>
+      } @else if (tickets().length === 0) {
+        <div class="empty-state">{{ 'techAssist.empty' | translate }}</div>
+      } @else {
+        @for (ticket of tickets(); track ticket.id) {
+          <button
+            class="ticket-list-item"
+            type="button"
+            [class.active]="selectedId() === ticket.id"
+            (click)="selectTicket(ticket)"
+          >
+            <span class="item-topline">
+              <span class="item-subject">{{ ticket.subject }}</span>
+              <span
+                class="status-pill"
+                [class.answered]="ticket.status === 'answered'"
+                [class.escalated]="ticket.status === 'escalated'"
+                [class.closed]="ticket.status === 'closed'"
+              >
+                {{ statusKey(ticket) | translate }}
+              </span>
+            </span>
+            @if (isAdmin()) {
+              <span class="doctor-line">{{ ticket.doctorDisplayName }}</span>
+            }
+            <span class="item-date">{{ (ticket.lastMessageAt ?? ticket.updatedAt) | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </button>
+        }
+      }
+    </aside>
+
+    <article class="ticket-detail">
+      @if (selectedTicket(); as ticket) {
+        <div class="detail-head">
+          <div>
+            <p class="eyebrow">{{ isAdmin() ? ticket.doctorDisplayName : ('techAssist.yourTicket' | translate) }}</p>
+            <h2>{{ ticket.subject }}</h2>
+            <div class="participants-line">
+              @for (participant of ticket.participants; track participant.doctorId) {
+                <span>{{ participant.displayName }} · {{ roleKey(participant.role) | translate }}</span>
+              }
+            </div>
+          </div>
+          <div class="detail-actions">
+            <span
+              class="status-pill large"
+              [class.answered]="ticket.status === 'answered'"
+              [class.escalated]="ticket.status === 'escalated'"
+              [class.closed]="ticket.status === 'closed'"
+            >
+              {{ statusKey(ticket) | translate }}
+            </span>
+            @if (isSuperAdmin()) {
+              <button
+                class="danger-btn"
+                type="button"
+                [disabled]="isEscalating(ticket)"
+                (click)="notifyTechLead(ticket)"
+              >
+                <i class="bi bi-envelope-arrow-up"></i>
+                <span>{{ 'techAssist.escalateTechLead' | translate }}</span>
+              </button>
+            }
+            @if (isAdmin() && ticket.status !== 'closed') {
+              <button
+                class="close-ticket-btn"
+                type="button"
+                [disabled]="isClosing(ticket)"
+                (click)="closeTicket(ticket)"
+              >
+                <i class="bi bi-check2-circle"></i>
+                <span>{{ 'techAssist.closeTicket' | translate }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="message-thread">
+          @for (msg of ticket.messages; track msg.id) {
+            <div class="message-row" [class.mine]="isMine(msg)">
+              <div class="message-bubble">
+                <div class="message-meta">
+                  <strong>{{ msg.senderDisplayName }}</strong>
+                  <span>{{ roleKey(msg.senderRole) | translate }} · {{ msg.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                @if (msg.message) {
+                  <p>{{ msg.message }}</p>
+                }
+                @if (msg.attachments.length > 0) {
+                  <div class="attachments-grid">
+                    @for (attachment of msg.attachments; track attachment.id) {
+                      <a
+                        class="attachment-card"
+                        [href]="attachmentUrl(attachment)"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        @if (isImageAttachment(attachment)) {
+                          <img [src]="attachmentUrl(attachment)" [alt]="attachment.originalFileName" />
+                        } @else {
+                          <span class="file-icon"><i class="bi bi-file-earmark"></i></span>
+                        }
+                        <span class="file-name">{{ attachment.originalFileName }}</span>
+                        <span class="file-size">{{ fileSize(attachment.fileSizeBytes) }}</span>
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <form class="reply-box" (ngSubmit)="sendMessage(ticket, replyFileInput)">
+          <div class="reply-head">
+            <p class="panel-kicker">{{ replyKickerKey() | translate }}</p>
+            <h3>{{ 'techAssist.reply.title' | translate }}</h3>
+            <p class="panel-help">{{ 'techAssist.reply.help' | translate }}</p>
+          </div>
+          <textarea
+            rows="4"
+            maxlength="3000"
+            [ngModel]="getReplyDraft(ticket.id)"
+            (ngModelChange)="setReplyDraft(ticket.id, $event)"
+            name="replyMessage"
+            [disabled]="!canReply(ticket)"
+            [placeholder]="'techAssist.replyPlaceholder' | translate"
+          ></textarea>
+
+          <div class="reply-bottom">
+            <label class="file-picker compact">
+              <i class="bi bi-paperclip"></i>
+              <span>{{ 'techAssist.attach' | translate }}</span>
+              <input
+                #replyFileInput
+                type="file"
+                multiple
+                [disabled]="!canReply(ticket)"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx,.zip"
+                (change)="onReplyFilesSelected(ticket.id, $event)"
+              />
+            </label>
+
+            <button
+              class="primary-btn"
+              type="submit"
+              [disabled]="
+                !canReply(ticket) ||
+                isSending(ticket) ||
+                !canSend(getReplyDraft(ticket.id), getReplyAttachments(ticket.id))
+              "
+            >
+              <i class="bi bi-reply"></i>
+              <span>{{ replyActionKey(ticket) | translate }}</span>
+            </button>
+          </div>
+
+          @if (getReplyAttachments(ticket.id).length > 0) {
+            <div class="selected-files">
+              @for (file of getReplyAttachments(ticket.id); track file.name + file.size) {
+                <button
+                  class="selected-file"
+                  type="button"
+                  (click)="removeReplyAttachment(ticket.id, file, replyFileInput)"
+                >
+                  <i class="bi bi-x"></i>
+                  <span>{{ file.name }}</span>
+                </button>
+              }
+            </div>
+          }
+        </form>
+      } @else {
+        <div class="empty-detail">{{ 'techAssist.selectEmpty' | translate }}</div>
+      }
+    </article>
+  </div>
+</section>

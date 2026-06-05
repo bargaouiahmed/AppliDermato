@@ -1,0 +1,276 @@
+<section class="documents-layout">
+  <aside class="documents-nav-shell">
+    <div class="documents-nav-card">
+      @for (section of sections; track section.key) {
+        <button
+          type="button"
+          class="documents-nav-btn"
+          [class.active]="activeSection === section.key"
+          (click)="selectSection(section.key)"
+        >
+          <span class="documents-nav-label">
+            <i [class]="section.iconClass"></i>
+            <span>{{ section.labelKey | translate }}</span>
+          </span>
+        </button>
+      }
+    </div>
+  </aside>
+
+  <div class="documents-content-shell">
+    @if (activeSection === 'exploration') {
+      <section class="documents-panel">
+        <div class="documents-panel-header">
+          <h3>{{ 'consultation.documents.exploration.title' | translate }}</h3>
+        </div>
+
+
+        <div class="documents-actions-row">
+          <button type="button" class="documents-primary-btn" (click)="openCreateModal()">
+            {{ 'consultation.documents.exploration.actions.add' | translate }}
+          </button>
+        </div>
+
+        @if (isLoading) {
+          <div class="documents-state-card">
+            {{ 'consultation.page.loading' | translate }}
+          </div>
+        } @else if (loadError) {
+          <div class="documents-state-card error">
+            {{ loadError }}
+          </div>
+        } @else if (!hasExplorationDocuments()) {
+          <div class="documents-empty-card">
+            <p>{{ 'consultation.documents.exploration.empty.title' | translate }}</p>
+            <span>{{ 'consultation.documents.exploration.empty.subtitle' | translate }}</span>
+          </div>
+        } @else {
+          <div class="exploration-grid">
+            @for (document of explorationDocuments; track document.id) {
+              <article class="exploration-card">
+                @if (isImageDocument(document)) {
+                  <button
+                    type="button"
+                    class="exploration-card-preview"
+                    (click)="previewImage(document)"
+                  >
+                    <img
+                      [src]="resolveImageUrl(document)"
+                      [alt]="document.originalFileName"
+                    />
+                    <span>{{ 'consultation.documents.exploration.actions.preview' | translate }}</span>
+                  </button>
+                }
+
+                <div class="exploration-card-body">
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.operator' | translate }}:</strong>
+                    <span>{{ document.operator || ('consultation.page.none' | translate) }}</span>
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.types' | translate }}:</strong>
+                    @if (document.typeLabels.length > 0) {
+                      <span class="exploration-tags">
+                        @for (label of document.typeLabels; track label) {
+                          <span class="exploration-tag">{{ label }}</span>
+                        }
+                      </span>
+                    } @else {
+                      <span>{{ 'consultation.page.none' | translate }}</span>
+                    }
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.clinic' | translate }}:</strong>
+                    <span>{{ document.clinic || ('consultation.page.none' | translate) }}</span>
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.forfait' | translate }}:</strong>
+                    <span>{{ document.forfait || ('consultation.page.none' | translate) }}</span>
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.precaution' | translate }}:</strong>
+                    <span>{{ document.precaution || ('consultation.page.none' | translate) }}</span>
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.additionalInformation' | translate }}:</strong>
+                    <span class="exploration-multiline">
+                      {{ document.additionalInformation || ('consultation.page.none' | translate) }}
+                    </span>
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.file' | translate }}:</strong>
+                    <span class="exploration-file-name">{{ document.originalFileName }}</span>
+                  </p>
+                  <p>
+                    <strong>{{ 'consultation.documents.exploration.fields.createdAt' | translate }}:</strong>
+                    <span>{{ formatDocumentDate(document.createdAt) }}</span>
+                  </p>
+                </div>
+
+                <footer class="exploration-card-footer">
+                  <button type="button" class="documents-secondary-btn" (click)="openDocument(document)">
+                    {{ 'consultation.documents.exploration.actions.open' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="documents-danger-btn"
+                    [disabled]="isDeleting(document.id)"
+                    (click)="deleteDocument(document)"
+                  >
+                    {{
+                      isDeleting(document.id)
+                        ? ('consultation.documents.actions.deleting' | translate)
+                        : ('consultation.documents.exploration.actions.delete' | translate)
+                    }}
+                  </button>
+                </footer>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    } @else {
+      <section class="documents-panel">
+        <div class="documents-panel-header">
+          <h3>{{ 'consultation.documents.cnam.title' | translate }}</h3>
+        </div>
+
+        <div class="cnam-grid">
+          @for (file of cnamFiles; track file.fileName) {
+            <button type="button" class="cnam-card" (click)="openCnamFile(file)">
+              <span class="cnam-card-title">{{ file.labelKey | translate }}</span>
+              <span class="cnam-card-icon">
+                <i class="fa-solid fa-download"></i>
+              </span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</section>
+
+@if (isCreateModalOpen) {
+  <div class="documents-modal-backdrop" (click)="closeCreateModal()">
+    <div class="documents-modal" (click)="$event.stopPropagation()">
+      <div class="documents-modal-header">
+        <h4>{{ 'consultation.documents.exploration.modal.title' | translate }}</h4>
+        <button type="button" class="documents-icon-btn" (click)="closeCreateModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="documents-modal-body">
+        <div class="documents-form-grid">
+          <label class="documents-field documents-field-full">
+            <span>{{ 'consultation.documents.exploration.fields.types' | translate }}</span>
+            <div class="documents-type-input-row">
+              <input
+                type="text"
+                [(ngModel)]="form.typeInput"
+                [placeholder]="'consultation.documents.exploration.fields.typePlaceholder' | translate"
+                (keydown)="handleTypeInputKeydown($event)"
+              />
+              <button type="button" class="documents-secondary-btn" (click)="addTypeFromInput()">
+                {{ 'consultation.documents.exploration.actions.addType' | translate }}
+              </button>
+            </div>
+
+            <div class="documents-suggestions">
+              @for (suggestion of explorationTypeSuggestions; track suggestion) {
+                <button
+                  type="button"
+                  class="documents-suggestion-chip"
+                  [class.selected]="isSuggestedTypeSelected(suggestion)"
+                  (click)="addSuggestedType(suggestion)"
+                >
+                  {{ suggestion | translate }}
+                </button>
+              }
+            </div>
+
+            @if (form.typeLabels.length > 0) {
+              <div class="documents-selected-types">
+                @for (label of form.typeLabels; track label; let index = $index) {
+                  <span class="documents-selected-type">
+                    {{ label }}
+                    <button type="button" (click)="removeType(index)">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </span>
+                }
+              </div>
+            }
+          </label>
+
+          <label class="documents-field">
+            <span>{{ 'consultation.documents.exploration.fields.precaution' | translate }}</span>
+            <input type="text" [(ngModel)]="form.precaution" />
+          </label>
+
+          <label class="documents-field">
+            <span>{{ 'consultation.documents.exploration.fields.clinic' | translate }}</span>
+            <input type="text" [(ngModel)]="form.clinic" />
+          </label>
+
+          <label class="documents-field">
+            <span>{{ 'consultation.documents.exploration.fields.forfait' | translate }}</span>
+            <input type="text" [(ngModel)]="form.forfait" />
+          </label>
+
+          <label class="documents-field">
+            <span>{{ 'consultation.documents.exploration.fields.operator' | translate }}</span>
+            <input type="text" [(ngModel)]="form.operator" />
+          </label>
+
+          <label class="documents-field documents-field-full">
+            <span>{{ 'consultation.documents.exploration.fields.file' | translate }}</span>
+            <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" (change)="onFileSelected($event)" />
+            @if (getSelectedFileName()) {
+              <small>{{ getSelectedFileName() }}</small>
+            }
+          </label>
+
+          <label class="documents-field documents-field-full">
+            <span>{{ 'consultation.documents.exploration.fields.additionalInformation' | translate }}</span>
+            <textarea rows="5" [(ngModel)]="form.additionalInformation"></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div class="documents-modal-footer">
+        <button type="button" class="documents-secondary-btn" (click)="closeCreateModal()">
+          {{ 'consultation.documents.exploration.actions.cancel' | translate }}
+        </button>
+        <button
+          type="button"
+          class="documents-primary-btn"
+          [disabled]="isSaving"
+          (click)="saveExplorationDocument()"
+        >
+          {{
+            isSaving
+              ? ('consultation.documents.actions.saving' | translate)
+              : ('consultation.documents.exploration.actions.save' | translate)
+          }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (previewImageUrl) {
+  <div class="documents-modal-backdrop documents-preview-backdrop" (click)="closePreview()">
+    <div class="documents-preview-modal" (click)="$event.stopPropagation()">
+      <div class="documents-modal-header">
+        <h4>{{ previewImageName }}</h4>
+        <button type="button" class="documents-icon-btn" (click)="closePreview()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="documents-preview-body">
+        <img [src]="previewImageUrl" [alt]="previewImageName" />
+      </div>
+    </div>
+  </div>
+}

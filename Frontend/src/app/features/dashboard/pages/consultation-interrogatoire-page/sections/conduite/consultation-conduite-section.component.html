@@ -1,0 +1,314 @@
+<section class="conduite-layout" [class.loading]="isLoading">
+	<div class="card shadow-sm p-3 conduite-shell conduite-main-shell">
+		<div class="col-md-12">
+			<label class="conduite-label">{{ 'consultation.conduite.label' | translate }}</label>
+
+			<ng-select
+				class="conduite-select"
+				[items]="actionCatalog"
+				bindLabel="label"
+				bindValue="actionKey"
+				[multiple]="true"
+				[closeOnSelect]="true"
+				[searchable]="true"
+				[clearable]="false"
+				[markFirst]="true"
+				[hideSelected]="false"
+				[loading]="isLoading"
+				[ngModel]="selectedActionKeys"
+				(ngModelChange)="onSelectedActionKeysChange($event)"
+				[placeholder]="'consultation.conduite.selectPlaceholder' | translate"
+			>
+				<ng-template ng-multi-label-tmp let-items="items"></ng-template>
+
+				<ng-template ng-option-tmp let-item="item">
+					<div class="conduite-option-row">
+						<span class="conduite-option-label">{{ getActionLabel(item.actionKey, item.label) }}</span>
+					</div>
+				</ng-template>
+
+				<ng-template ng-notfound-tmp>
+					<div class="ng-option">{{ 'consultation.conduite.noResults' | translate }}</div>
+				</ng-template>
+			</ng-select>
+
+			@if (selectedActionKeys.length > 0) {
+				<div class="mt-2">
+					@for (actionKey of selectedActionKeys; track actionKey) {
+						<div class="badge badge-secondary mb-1 d-inline-flex align-items-center me-2 conduite-chip">
+							<span class="me-2 chip-label" [title]="'consultation.conduite.action.toggle' | translate" (click)="toggleAction(actionKey)">
+								{{ getActionLabel(actionKey) }}
+							</span>
+							<a type="button" class="me-1" [title]="'consultation.documents.actions.print' | translate" (click)="printDocumentChip(actionKey)">
+								<i class="bi bi-printer"></i>
+							</a>
+							<a type="button" [title]="'consultation.conduite.action.remove' | translate" (click)="removeAction(actionKey)">
+								<i class="bi bi-trash-fill"></i>
+							</a>
+						</div>
+					}
+				</div>
+			}
+		</div>
+	</div>
+
+	<ng-template #diagnosticsAndNextRdv>
+		<div class="card shadow-sm p-3 conduite-shell diagnostic-shell">
+			<div class="col-md-12">
+				<label class="conduite-label">{{ 'consultation.conduite.diagnostics.label' | translate }}</label>
+
+				<ng-select
+					class="diagnostic-select no-selected-tags"
+					[items]="diagnosticCatalog"
+					[multiple]="true"
+					[addTag]="true"
+					[closeOnSelect]="true"
+					[searchable]="true"
+					[clearable]="false"
+					[hideSelected]="true"
+					[loading]="isLoadingDiagnosticCatalog"
+					[ngModel]="diagnosticSelection"
+					(open)="onDiagnosticsOpen()"
+					(ngModelChange)="onDiagnosticSelectionChange($event)"
+					[placeholder]="'consultation.conduite.diagnostics.placeholder' | translate"
+				>
+					<ng-template ng-multi-label-tmp let-items="items"></ng-template>
+				</ng-select>
+
+				<div class="diagnostic-hint">
+					{{ 'consultation.conduite.diagnostics.finishHint' | translate }}
+				</div>
+
+				@if (diagnosticSelection.length > 0) {
+					<div class="mt-2">
+						@for (diagnostic of diagnosticSelection; track diagnostic) {
+							<div class="me-1 mb-1 d-inline-flex align-items-center diagnostic-badge">
+								<span>{{ diagnostic }}</span>
+								<a type="button" [title]="'consultation.conduite.diagnostics.remove' | translate" (click)="removeDiagnostic(diagnostic)">
+									<i class="bi bi-trash-fill"></i>
+								</a>
+							</div>
+						}
+					</div>
+				}
+
+				<label class="conduite-label additional-information-label">
+					{{ 'consultation.conduite.additionalInformation.label' | translate }}
+				</label>
+				<textarea
+					class="form-control conduite-additional-information"
+					rows="4"
+					[ngModel]="additionalInformation"
+					(ngModelChange)="onAdditionalInformationChange($event)"
+					[placeholder]="'consultation.conduite.additionalInformation.placeholder' | translate"
+				></textarea>
+			</div>
+		</div>
+
+		<div class="card shadow-sm p-3 conduite-shell next-consultation-shell">
+			<div class="next-consultation-header">
+				<label class="conduite-label mb-0">{{ 'consultation.conduite.nextConsultation.title' | translate }}</label>
+				@if (nextConsultationForm.date) {
+					<span class="next-consultation-date">
+						<i class="bi bi-calendar-check"></i>
+						{{ nextConsultationForm.date | date: 'dd/MM/yyyy' }}
+					</span>
+				}
+			</div>
+
+			<div class="next-consultation-grid">
+				<div class="next-consultation-field next-consultation-delay">
+					<span>{{ 'consultation.conduite.nextConsultation.offsetLabel' | translate }}</span>
+					<div class="next-consultation-delay-row">
+						<input
+							class="form-control"
+							type="number"
+							min="0"
+							max="999"
+							[ngModel]="nextConsultationForm.offsetValue"
+							(ngModelChange)="onNextConsultationOffsetChange($event)"
+						/>
+						<div class="next-consultation-units" role="group">
+							<button
+								type="button"
+								[class.active]="nextConsultationForm.offsetUnit === 'days'"
+								(click)="chooseNextConsultationOffsetUnit('days')"
+							>
+								{{ 'consultation.conduite.nextConsultation.units.days' | translate }}
+							</button>
+							<button
+								type="button"
+								[class.active]="nextConsultationForm.offsetUnit === 'months'"
+								(click)="chooseNextConsultationOffsetUnit('months')"
+							>
+								{{ 'consultation.conduite.nextConsultation.units.months' | translate }}
+							</button>
+							<button
+								type="button"
+								[class.active]="nextConsultationForm.offsetUnit === 'years'"
+								(click)="chooseNextConsultationOffsetUnit('years')"
+							>
+								{{ 'consultation.conduite.nextConsultation.units.years' | translate }}
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="next-consultation-field next-consultation-motifs">
+					<span>{{ 'consultation.conduite.nextConsultation.motifsLabel' | translate }}</span>
+					<ng-select
+						class="next-consultation-select no-selected-tags"
+						[items]="nextConsultationMotifCatalog"
+						[multiple]="true"
+						[addTag]="true"
+						[closeOnSelect]="true"
+						[searchable]="true"
+						[clearable]="false"
+						[hideSelected]="true"
+						[ngModel]="nextConsultationForm.motifs"
+						(ngModelChange)="onNextConsultationMotifsChange($event)"
+						[placeholder]="'consultation.conduite.nextConsultation.motifsPlaceholder' | translate"
+					>
+						<ng-template ng-multi-label-tmp let-items="items"></ng-template>
+					</ng-select>
+				</div>
+
+				<div class="next-consultation-field">
+					<span>{{ 'consultation.conduite.nextConsultation.timeLabel' | translate }}</span>
+					<ng-select
+						class="next-consultation-select"
+						[items]="nextConsultationTimeSlots"
+						[searchable]="true"
+						[clearable]="true"
+						[loading]="isLoadingNextConsultationSlots"
+						[ngModel]="nextConsultationForm.time"
+						(ngModelChange)="onNextConsultationTimeChange($event)"
+						[placeholder]="'consultation.conduite.nextConsultation.timePlaceholder' | translate"
+						[notFoundText]="'consultation.conduite.nextConsultation.noAvailableTimes' | translate"
+					></ng-select>
+				</div>
+
+				<div class="next-consultation-field">
+					<span>{{ 'consultation.conduite.nextConsultation.durationLabel' | translate }}</span>
+					<select
+						class="form-select"
+						[ngModel]="nextConsultationForm.duration"
+						(ngModelChange)="onNextConsultationDurationChange($event)"
+					>
+						@for (duration of nextConsultationDurationOptions; track duration) {
+							<option [value]="duration">{{ duration }} {{ 'agenda.common.minutes' | translate }}</option>
+						}
+					</select>
+				</div>
+			</div>
+
+			@if (nextConsultationForm.motifs.length > 0) {
+				<div class="mt-2">
+					@for (motif of nextConsultationForm.motifs; track motif) {
+						<div class="me-1 mb-1 d-inline-flex align-items-center next-consultation-badge">
+							<span>{{ motif }}</span>
+							<a
+								type="button"
+								[title]="'consultation.conduite.nextConsultation.removeMotif' | translate"
+								(click)="removeNextConsultationMotif(motif)"
+							>
+								<i class="bi bi-trash-fill"></i>
+							</a>
+						</div>
+					}
+				</div>
+			}
+
+			<div class="next-consultation-actions">
+				<button
+					type="button"
+					class="btn btn-color-green btn-primary d-flex align-items-center gap-2"
+					[disabled]="isSchedulingNextConsultation || isLoadingNextConsultationSlots"
+					(click)="scheduleNextConsultation()"
+				>
+					<i class="bi" [ngClass]="isSchedulingNextConsultation ? 'bi-hourglass-split' : 'bi-calendar-plus'"></i>
+					<span>
+						{{ (isSchedulingNextConsultation ? 'consultation.conduite.nextConsultation.creating' : 'consultation.conduite.nextConsultation.create') | translate }}
+					</span>
+				</button>
+			</div>
+		</div>
+	</ng-template>
+
+	@if (loadError) {
+		<div class="conduite-error">{{ loadError | translate }}</div>
+	}
+
+	@if (hasAction('ordonnance') && isActionExpanded('ordonnance')) {
+		<app-consultation-conduite-ordonnance-form
+			[consultationId]="consultationId"
+			[payload]="payloadFor('ordonnance')"
+			[consigneCatalog]="consigneCatalog"
+			[ongoingTreatments]="ongoingTreatments"
+			[isPrinting]="isPrintingDocument('ordonnance')"
+			(payloadChange)="onActionPayloadChange('ordonnance', $event)"
+			(treatmentsSync)="onOrdonnanceTreatmentsSync($event)"
+			(printRequested)="onPrintDocument('ordonnance')"
+		/>
+	}
+
+	@if (hasAction('certificat') && isActionExpanded('certificat')) {
+		<app-consultation-conduite-certificat-form
+			[payload]="payloadFor('certificat')"
+			[isPrinting]="isPrintingDocument('certificat')"
+			(payloadChange)="onActionPayloadChange('certificat', $event)"
+			(printRequested)="onPrintDocument('certificat')"
+		/>
+	}
+
+	@if (hasAction('lettre_confrere') && isActionExpanded('lettre_confrere')) {
+		<app-consultation-conduite-lettre-confrere-form
+			[consultationId]="consultationId"
+			[payload]="payloadFor('lettre_confrere')"
+			[isPrinting]="isPrintingDocument('lettre_confrere')"
+			(payloadChange)="onActionPayloadChange('lettre_confrere', $event)"
+			(printRequested)="onPrintDocument('lettre_confrere')"
+		/>
+	}
+
+	@if (hasAction('cnam') && isActionExpanded('cnam')) {
+		<app-consultation-conduite-cnam-form
+			[payload]="payloadFor('cnam')"
+			[clinicOptions]="clinicOptions"
+			[isPrinting]="isPrintingDocument('cnam')"
+			(payloadChange)="onActionPayloadChange('cnam', $event)"
+			(printRequested)="onPrintDocument('cnam')"
+		/>
+	}
+
+	@if (hasAction('paraclinique') && isActionExpanded('paraclinique')) {
+		<app-consultation-conduite-paraclinique-form
+			[hasChirurgie]="hasAction('paraclinique')"
+			[hasImagerie]="hasAction('paraclinique')"
+			[hasBilanSanguin]="hasAction('paraclinique')"
+			[clinicOptions]="clinicOptions"
+			[isPrinting]="isPrintingDocument('paraclinique')"
+			[chirurgiePayload]="payloadFor('paraclinique_chirurgie')"
+			[imageriePayload]="payloadFor('paraclinique_imagerie')"
+			[bilanSanguinPayload]="payloadFor('paraclinique_bilan_sanguin')"
+			(chirurgiePayloadChange)="onActionPayloadChange('paraclinique_chirurgie', $event)"
+			(imageriePayloadChange)="onActionPayloadChange('paraclinique_imagerie', $event)"
+			(bilanSanguinPayloadChange)="onActionPayloadChange('paraclinique_bilan_sanguin', $event)"
+			(printRequested)="onParacliniquePrintRequested($event)"
+		/>
+	}
+
+	<ng-container *ngTemplateOutlet="diagnosticsAndNextRdv"></ng-container>
+
+	<div class="d-flex justify-content-center mt-4 mb-3 conduite-bottom-actions">
+		<button
+			type="button"
+			class="btn btn-color-green btn-primary btn-gg d-flex align-items-center gap-2"
+			(click)="goToConclusion()"
+		>
+			<span>{{ 'consultation.page.actions.goToConclusion' | translate }}</span>
+			<i class="bi bi-arrow-right"></i>
+		</button>
+	</div>
+</section>
+

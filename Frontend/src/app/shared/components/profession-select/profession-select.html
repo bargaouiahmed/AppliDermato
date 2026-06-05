@@ -1,0 +1,17 @@
+<ng-select
+  [items]="professions"
+  [ngModel]="selectedValue"
+  [searchable]="true"
+  [clearable]="true"
+  [addTag]="addTag"
+  [appendTo]="'body'"
+  [loading]="loading"
+  [placeholder]="placeholderKey | translate"
+  [notFoundText]="notFoundTextKey | translate"
+  [disabled]="disabled"
+  (ngModelChange)="onValueChange($event)"
+  (search)="onSearch($event)"
+  (open)="onOpen()"
+  (scrollToEnd)="onScrollToEnd()"
+  (blur)="handleBlur()"
+></ng-select>

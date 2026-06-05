@@ -1,0 +1,256 @@
+:host {
+  display: contents;
+}
+
+.consultation-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 28, 24, 0.38);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.consultation-modal {
+  width: min(640px, 100%);
+  background: #fff;
+  border-radius: 0.45rem;
+  box-shadow: 0 24px 40px rgba(0, 0, 0, 0.2);
+  overflow: visible;
+  z-index: 9999;
+  position: relative;
+}
+
+.modal-header {
+  border-bottom: 1px solid #e0e4df;
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h4 {
+  margin: 0;
+  color: #c89568;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  color: #5f6f69;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  overflow: visible;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-row label {
+  color: #175042;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.field-row input,
+.field-row select {
+  border: 1px solid #d2dbce;
+  border-radius: 0.35rem;
+  height: 2.3rem;
+  padding: 0 0.65rem;
+  font-size: 0.92rem;
+  color: #384744;
+}
+
+.field-row input:focus,
+.field-row select:focus {
+  outline: none;
+  border-color: #93ae88;
+  box-shadow: 0 0 0 0.18rem rgba(147, 174, 136, 0.2);
+}
+
+.field-row small {
+  color: #5f6d68;
+  font-size: 0.77rem;
+}
+
+.motif-picker-row {
+  position: relative;
+  z-index: 30;
+}
+
+.motif-input-wrap {
+  position: relative;
+}
+
+.motif-picker-row input {
+  width: 100%;
+  padding-right: 2.2rem;
+}
+
+.motif-toggle-btn {
+  position: absolute;
+  right: 0.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: #6f7f7a;
+  cursor: pointer;
+}
+
+.motif-toggle-btn:hover {
+  background: #eef4ea;
+}
+
+.motif-menu {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #d2dbce;
+  border-radius: 0.35rem;
+  background: #fff;
+  box-shadow: 0 12px 24px rgba(20, 36, 32, 0.16);
+  z-index: 60;
+}
+
+.motif-option {
+  width: 100%;
+  border: 0;
+  background: #fff;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.52rem 0.65rem;
+  font-size: 0.88rem;
+  color: #30413d;
+  cursor: pointer;
+}
+
+.motif-option:hover {
+  background: #eef4ea;
+}
+
+.motif-option.add-option {
+  color: #175042;
+  font-weight: 600;
+  border-top: 1px solid #e7ece4;
+}
+
+.motif-option-trash {
+  color: #a75f5f;
+  font-size: 0.8rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.motif-option-trash:hover {
+  color: #8e2f2f;
+}
+
+.motif-empty {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.84rem;
+  color: #61726d;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: 0;
+  border-radius: 0.35rem;
+  height: 2.2rem;
+  padding: 0 0.75rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #175042;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #e8ede4;
+  color: #355148;
+}
+
+.selected-motifs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.motif-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.52rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.motif-chip {
+  background-color: #ffffac;
+  color: #121822;
+  padding: 0.75em;
+  margin-top: 0.2em;
+  border: 0;
+}
+
+.motif-chip button {
+  border: 0;
+  background: transparent;
+  color: #121822;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.modal-actions {
+  border-top: 1px solid #e0e4df;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .motif-menu {
+    max-height: 180px;
+  }
+}

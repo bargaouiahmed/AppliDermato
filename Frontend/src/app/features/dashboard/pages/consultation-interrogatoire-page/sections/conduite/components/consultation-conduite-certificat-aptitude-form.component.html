@@ -1,0 +1,73 @@
+<article class="conduite-card">
+  <header class="conduite-card-header">
+    <h3>Certificat aptitude a la conduite</h3>
+  </header>
+
+  <div class="vision-grid">
+    <section>
+      <h4>Oeil droit</h4>
+      <label>
+        <span>Acuite visuelle sans correction</span>
+        <input
+          name="certificat-aptitude-od-sans"
+          [(ngModel)]="oeilDroit.acuiteVisuelSansCorrection"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+      <label>
+        <span>Acuite visuelle avec correction</span>
+        <input
+          name="certificat-aptitude-od-avec"
+          [(ngModel)]="oeilDroit.acuiteVisuelAvecCorrection"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+      <label>
+        <span>Acuite visuelle binoculaire</span>
+        <input
+          name="certificat-aptitude-od-bino"
+          [(ngModel)]="oeilDroit.acuiteVisuelBinoculaire"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+    </section>
+
+    <section>
+      <h4>Oeil gauche</h4>
+      <label>
+        <span>Acuite visuelle sans correction</span>
+        <input
+          name="certificat-aptitude-og-sans"
+          [(ngModel)]="oeilGauche.acuiteVisuelSansCorrection"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+      <label>
+        <span>Acuite visuelle avec correction</span>
+        <input
+          name="certificat-aptitude-og-avec"
+          [(ngModel)]="oeilGauche.acuiteVisuelAvecCorrection"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+      <label>
+        <span>Acuite visuelle binoculaire</span>
+        <input
+          name="certificat-aptitude-og-bino"
+          [(ngModel)]="oeilGauche.acuiteVisuelBinoculaire"
+          (ngModelChange)="onFieldChange()"
+        />
+      </label>
+    </section>
+  </div>
+
+  <label class="wide-note">
+    <span>Information additionnelle</span>
+    <textarea
+      name="certificat-aptitude-info"
+      [(ngModel)]="informationAdditionnel"
+      (ngModelChange)="onFieldChange()"
+      placeholder="Notes cliniques"
+    ></textarea>
+  </label>
+</article>

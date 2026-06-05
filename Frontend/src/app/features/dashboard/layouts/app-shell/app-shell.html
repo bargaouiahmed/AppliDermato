@@ -1,0 +1,141 @@
+<div class="container-fluid shell-root p-0">
+  <nav class="navbar navbar-expand-lg bg-color">
+    <a class="navbar-brand" routerLink="/accueil" aria-label="Accueil General">
+      <img src="images/logo-general.png" alt="General" class="logo-img" />
+    </a>
+
+    <div class="navbar-nav-wrapper">
+      @if (doctor()) {
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/accueil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">{{ 'nav.home' | translate }}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/patients" routerLinkActive="active">{{ 'nav.patients' | translate }}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/calendar" routerLinkActive="active">Agenda</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/sketchfab-test" routerLinkActive="active">Body Map</a>
+          </li>
+          <li class="nav-item">
+            @if (selfCheckinLink()) {
+              <a class="nav-link" [href]="selfCheckinLink()" target="_blank" rel="noopener">
+                {{ 'profile.selfCheckin.title' | translate }}
+              </a>
+            } @else {
+              <a class="nav-link" routerLink="/profile" routerLinkActive="active">
+                {{ 'profile.selfCheckin.title' | translate }}
+              </a>
+            }
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/salle-attente" target="_blank" rel="noopener">{{ 'nav.waitingRoom' | translate }}</a>
+          </li>
+          @if (canAccessMedecins()) {
+            <li class="nav-item">
+              <a class="nav-link" routerLink="/medecins" routerLinkActive="active">{{ 'nav.medecins' | translate }}</a>
+            </li>
+          }
+          <li class="nav-item">
+            <a class="nav-link nav-link-with-badge" routerLink="/suggestions" routerLinkActive="active">
+              {{ 'nav.suggestions' | translate }}
+              @if (suggestionUnreadCount() > 0) {
+                <span class="nav-badge">{{ suggestionUnreadCount() }}</span>
+              }
+            </a>
+          </li>
+
+          <li class="nav-item language-selector" aria-label="Langues">
+            @for (lang of languages; track lang.code) {
+              <button
+                class="lang-option"
+                type="button"
+                [class.active]="isLanguageActive(lang.code)"
+                (click)="selectLanguage(lang.code)"
+              >
+                {{ lang.code.toUpperCase() }}
+              </button>
+            }
+          </li>
+
+          <li class="nav-item profile-dropdown">
+            <button class="profile-trigger" type="button" (click)="toggleDropdown($event)">
+              @if (avatarImageUrl()) {
+                <span class="avatar-chip avatar-chip--image">
+                  <img [src]="avatarImageUrl()" alt="Profile" class="avatar-chip-image" />
+                </span>
+              } @else {
+                <span class="avatar-chip">{{ initials() }}</span>
+              }
+              <span>Dr {{ doctor()?.lastName }} {{ doctor()?.firstName }}</span>
+              <span class="caret">&#9662;</span>
+            </button>
+
+            @if (dropdownOpen()) {
+              <div class="shell-dropdown-menu" (click)="$event.stopPropagation()">
+                @if (canAccessProfile()) {
+                  <a class="shell-dropdown-item" routerLink="/profile" (click)="closeDropdown()">{{ 'nav.profile' | translate }}</a>
+                  <a class="shell-dropdown-item shell-dropdown-item-with-badge" routerLink="/tech-assistance" (click)="closeDropdown()">
+                    <span>{{ 'nav.techAssistance' | translate }}</span>
+                    @if (techAssistanceUnreadCount() > 0) {
+                      <span class="nav-badge">{{ techAssistanceUnreadCount() }}</span>
+                    }
+                  </a>
+                  <div class="shell-dropdown-divider"></div>
+                }
+                <button class="shell-dropdown-item danger" type="button" (click)="logout()">{{ 'nav.logout' | translate }}</button>
+              </div>
+            }
+          </li>
+        </ul>
+      }
+    </div>
+  </nav>
+  @if (isAccueil() && actualiteDuJour()) {
+    <div class="publicite-header">
+      <div class="publicite-container">
+        <div
+          class="publicite-content"
+          [class.publicite-content--rtl]="isArabicLanguage()"
+          [attr.dir]="isArabicLanguage() ? 'rtl' : 'ltr'"
+        >
+          <div class="message">{{ actualiteDuJour() }}</div>
+          <div class="message" aria-hidden="true">{{ actualiteDuJour() }}</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="d-flex justify-content-end align-items-center px-3 py-2 bg-color rounded shadow-sm me-3 breadcrumb-wrap">
+    <nav aria-label="breadcrumb" class="mb-0">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a class="text-primary fw-bold" style="cursor: default;">{{ 'role.doctor' | translate }}</a>
+        </li>
+        <li class="breadcrumb-item active text-dark fw-semibold">
+        {{ currentLabelKey() | translate }}
+        </li>
+      </ol>
+    </nav>
+  </div>
+
+  <main class="shell-content">
+    <router-outlet />
+  </main>
+
+  @if (doctor() && shouldShowInternalMessaging()) {
+    <app-internal-messaging />
+  }
+
+  @if (doctor()) {
+    <app-ai-chat
+      [doctorId]="doctor()?.doctorId || doctor()?.id || ''"
+      [consultationId]="activeConsultationId()"
+      [patientId]="activePatientId()"
+    />
+  }
+
+  <app-footer />
+</div>

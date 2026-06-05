@@ -1,0 +1,63 @@
+<div class="specific-form-card">
+  <label class="specific-form-title">{{ titleKey | translate }}</label>
+
+  <div class="specific-form-grid">
+    <label class="wide">
+      <ng-select
+        class="specific-inline-select"
+        [items]="catalogLabels"
+        [multiple]="true"
+        [clearable]="false"
+        [searchable]="true"
+        [closeOnSelect]="true"
+        [hideSelected]="false"
+        [addTag]="addFindingTag.bind(this)"
+        [ngModel]="selectedFindings"
+        (ngModelChange)="onFindingsModelChange($event)"
+        [placeholder]="'consultation.page.exam.specific.findings.placeholder' | translate"
+      >
+        <ng-template ng-multi-label-tmp let-items="items"></ng-template>
+        <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+          <div class="ng-option" (mousedown)="$event.preventDefault(); addFindingTag(searchTerm)">
+            {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+          </div>
+        </ng-template>
+      </ng-select>
+    </label>
+
+    @if (selectedFindings.length > 0) {
+      <div class="wide chips-wrap">
+        @for (finding of selectedFindings; track finding) {
+          <span
+            class="finding-chip"
+            [class.normal-finding-chip]="isNormalFinding(finding)"
+            (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+            (click)="toggleFindingForm(finding); $event.stopPropagation()"
+          >
+            {{ finding }}
+            <span
+              aria-hidden="true"
+              class="chip-remove"
+              (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+              (click)="removeFinding(finding); $event.stopPropagation(); $event.preventDefault()"
+            >&times;</span>
+          </span>
+        }
+      </div>
+    }
+
+    @if (activeFinding) {
+      <label class="wide">
+        <span>{{ 'consultation.page.exam.specific.findings.description' | translate }} - {{ activeFinding }}</span>
+        <input
+          type="text"
+          class="form-control"
+          [value]="getFindingDescription(activeFinding)"
+          [placeholder]="'consultation.page.interrogatoire.fields.descriptionPlaceholder' | translate"
+          (input)="updateFindingDescription(activeFinding, $any($event.target).value)"
+        />
+      </label>
+    }
+  </div>
+</div>
+

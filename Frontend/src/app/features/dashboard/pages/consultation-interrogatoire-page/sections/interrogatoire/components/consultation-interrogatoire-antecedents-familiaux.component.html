@@ -1,0 +1,114 @@
+<div
+  class="card bg-camel shadow-sm p-3 my-3 antecedent-section-wrapper"
+  [attr.dir]="dir"
+  [class.section-expanded]="!isSectionCollapsible || antecedentsFamiliauxExpanded || antecedentsDropdownOpen"
+  [class.rtl-layout]="isRtl"
+  (mouseenter)="onAntecedentsWrapperEnter()"
+  (mouseleave)="onAntecedentsWrapperLeave()"
+>
+  <div
+    class="card-header border-bottom-0 d-flex justify-content-between align-items-center"
+    [class.non-collapsible]="!isSectionCollapsible"
+    (click)="toggleAntecedentsFamiliaux($event)"
+  >
+    <h3 class="mb-0">{{ 'consultation.page.interrogatoire.familyAntecedents.title' | translate }}</h3>
+    <i *ngIf="isSectionCollapsible" class="bi bi-chevron-down collapse-indicator"></i>
+  </div>
+
+  <div class="antecedent-collapsible-body">
+    <div class="mb-2">
+      <ng-select
+        class="antecedent-select"
+        [(ngModel)]="selectedAntecedentsFamiliauxList"
+        (ngModelChange)="onAntecedentsModelChange($event)"
+        [items]="combinedAntecedentsFamiliauxList"
+        [virtualScroll]="false"
+        [clearable]="false"
+        [multiple]="true"
+        [searchable]="true"
+        [markFirst]="true"
+        [selectOnTab]="true"
+        [clearSearchOnAdd]="true"
+        [dropdownPosition]="'bottom'"
+        [closeOnSelect]="true"
+        [hideSelected]="false"
+        [dir]="dir"
+        [addTag]="addInputAntecedentFamiliaux.bind(this)"
+        bindLabel="label"
+        bindValue="value"
+        [placeholder]="'consultation.page.interrogatoire.familyAntecedents.empty' | translate"
+        (open)="onAntecedentsSelectOpen()"
+        (close)="onAntecedentsSelectClose()"
+      >
+        <ng-template ng-multi-label-tmp let-items="items"></ng-template>
+
+        <ng-template ng-option-tmp let-item="item">
+          <div class="d-flex align-items-center w-100 antecedent-option-row">
+            <span class="antecedent-option-label">{{ displayOptionLabel($any(item)) }}</span>
+            <button
+              *ngIf="isCustomOption($any(item)?.value ?? item)"
+              type="button"
+              class="btn btn-link btn-sm p-0 option-trash-btn text-danger"
+              title="Supprimer ce type personnalisé"
+              aria-label="Supprimer"
+              (mousedown)="$event.stopPropagation(); $event.preventDefault()"
+              (click)="deleteAntecedentFamilial($any(item)?.value ?? item, $event); $event.stopPropagation(); $event.preventDefault()"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </ng-template>
+
+        <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+          <div
+            class="ng-option"
+            style="cursor: pointer"
+            (mousedown)="$event.preventDefault(); $event.stopPropagation(); addInputAntecedentFamiliaux(searchTerm)"
+          >
+            {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+          </div>
+        </ng-template>
+      </ng-select>
+
+      @if (selectedAntecedentsFamiliauxList.length > 0) {
+        <div class="mt-2">
+          @for (item of selectedAntecedentsFamiliauxList; track item) {
+            <span
+              class="badge badge-secondary mr-1 mb-1 d-inline-flex align-items-center antecedent-chip"
+              (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+              (click)="toggleAntecedentForm(item); $event.stopPropagation()"
+            >
+              {{ displayAntecedentLabel(item) }}
+              <span class="antecedent-date">{{ getAntecedentDate(item) }}</span>
+              <span
+                aria-hidden="true"
+                (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+                (click)="removeAntecedentFamilial(item); $event.stopPropagation(); $event.preventDefault()"
+                class="chip-remove"
+              >&times;</span>
+            </span>
+          }
+        </div>
+      }
+
+      @if (activeAntecedentForm) {
+        <div class="antecedent-form-card">
+          <label class="antecedent-form-title">{{ displayAntecedentLabel(activeAntecedentForm) }}</label>
+
+          <label class="custom-description-field">
+            <span>{{ 'consultation.page.interrogatoire.fields.description' | translate }}</span>
+            <input
+              type="text"
+              class="form-control"
+              [placeholder]="'consultation.page.interrogatoire.fields.descriptionPlaceholder' | translate"
+              [value]="getAntecedentDescription(activeAntecedentForm)"
+              (input)="updateAntecedentDescription(activeAntecedentForm, $any($event.target).value)"
+              (mousedown)="$event.stopPropagation()"
+            />
+          </label>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+

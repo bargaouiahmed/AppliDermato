@@ -1,0 +1,158 @@
+<section class="sketchfab-test-page bodymap-test-page">
+  <div class="sketchfab-test-page__card bodymap-test-page__card">
+    <header class="sketchfab-test-page__header bodymap-test-page__header">
+      <p class="sketchfab-test-page__eyebrow">Test Page</p>
+      <h1>Interactive Muscle Body Map</h1>
+      <p class="sketchfab-test-page__description">
+        Powered by the cloned <code>react-muscle-highlighter</code> assets. You can switch
+        between male and female, front and back, and mark each clickable area in green or red.
+      </p>
+    </header>
+
+    <div class="bodymap-test-page__toolbar">
+      <span class="bodymap-test-page__toolbar-label">Selection color:</span>
+      <button
+        type="button"
+        class="bodymap-test-page__mode bodymap-test-page__mode--green"
+        [class.is-active]="activeColor() === 'green'"
+        (click)="setActiveColor('green')"
+      >
+        Green
+      </button>
+      <button
+        type="button"
+        class="bodymap-test-page__mode bodymap-test-page__mode--red"
+        [class.is-active]="activeColor() === 'red'"
+        (click)="setActiveColor('red')"
+      >
+        Red
+      </button>
+
+      <span class="bodymap-test-page__toolbar-label">Body:</span>
+      <button
+        type="button"
+        class="bodymap-test-page__toggle"
+        [class.is-active]="activeGender() === 'male'"
+        (click)="setActiveGender('male')"
+      >
+        Male
+      </button>
+      <button
+        type="button"
+        class="bodymap-test-page__toggle"
+        [class.is-active]="activeGender() === 'female'"
+        (click)="setActiveGender('female')"
+      >
+        Female
+      </button>
+
+      <span class="bodymap-test-page__toolbar-label">View:</span>
+      <button
+        type="button"
+        class="bodymap-test-page__toggle"
+        [class.is-active]="activeView() === 'front'"
+        (click)="setActiveView('front')"
+      >
+        Front
+      </button>
+      <button
+        type="button"
+        class="bodymap-test-page__toggle"
+        [class.is-active]="activeView() === 'back'"
+        (click)="setActiveView('back')"
+      >
+        Back
+      </button>
+    </div>
+
+    <div class="bodymap-test-page__layout">
+      <div class="bodymap-test-page__viewer">
+        <svg
+          class="muscle-map-svg"
+          [attr.viewBox]="currentViewBox()"
+          role="img"
+          aria-label="Interactive body map"
+        >
+          @if (currentOutlinePath()) {
+            <path class="body-skin-path" [attr.d]="currentOutlinePath()" />
+          }
+
+          @for (part of currentBodyParts(); track part.slug) {
+            @for (path of part.path?.common ?? []; track $index) {
+              <path
+                [attr.d]="path"
+                [attr.data-region-id]="regionId(part.slug, 'common', $index)"
+                [attr.aria-label]="regionLabel(regionId(part.slug, 'common', $index))"
+                [attr.fill]="pathFill(regionId(part.slug, 'common', $index), part.color)"
+                [attr.class]="pathClass(regionId(part.slug, 'common', $index))"
+                tabindex="0"
+                (click)="onRegionClick(regionId(part.slug, 'common', $index))"
+                (keydown)="onRegionKeydown($event, regionId(part.slug, 'common', $index))"
+              />
+            }
+
+            @for (path of part.path?.left ?? []; track $index) {
+              <path
+                [attr.d]="path"
+                [attr.data-region-id]="regionId(part.slug, 'left', $index)"
+                [attr.aria-label]="regionLabel(regionId(part.slug, 'left', $index))"
+                [attr.fill]="pathFill(regionId(part.slug, 'left', $index), part.color)"
+                [attr.class]="pathClass(regionId(part.slug, 'left', $index))"
+                tabindex="0"
+                (click)="onRegionClick(regionId(part.slug, 'left', $index))"
+                (keydown)="onRegionKeydown($event, regionId(part.slug, 'left', $index))"
+              />
+            }
+
+            @for (path of part.path?.right ?? []; track $index) {
+              <path
+                [attr.d]="path"
+                [attr.data-region-id]="regionId(part.slug, 'right', $index)"
+                [attr.aria-label]="regionLabel(regionId(part.slug, 'right', $index))"
+                [attr.fill]="pathFill(regionId(part.slug, 'right', $index), part.color)"
+                [attr.class]="pathClass(regionId(part.slug, 'right', $index))"
+                tabindex="0"
+                (click)="onRegionClick(regionId(part.slug, 'right', $index))"
+                (keydown)="onRegionKeydown($event, regionId(part.slug, 'right', $index))"
+              />
+            }
+          }
+        </svg>
+      </div>
+
+      <aside class="bodymap-test-page__sidebar">
+        <div class="bodymap-test-page__sidebar-header">
+          <h2>Selected Areas</h2>
+          <button
+            type="button"
+            class="bodymap-test-page__clear"
+            (click)="clearSelections()"
+            [disabled]="selectedRegions().length === 0"
+          >
+            Clear
+          </button>
+        </div>
+
+        @if (selectedRegions().length === 0) {
+          <p class="bodymap-test-page__empty">
+            Nothing selected yet. Click a body area to mark it in the active color.
+          </p>
+        } @else {
+          <div class="bodymap-test-page__chips">
+            @for (region of selectedRegions(); track region.id) {
+              <button
+                type="button"
+                class="bodymap-test-page__chip"
+                [class.bodymap-test-page__chip--green]="region.color === 'green'"
+                [class.bodymap-test-page__chip--red]="region.color === 'red'"
+                (click)="toggleRegionFromChip(region.id)"
+              >
+                {{ region.label }}
+              </button>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+</section>

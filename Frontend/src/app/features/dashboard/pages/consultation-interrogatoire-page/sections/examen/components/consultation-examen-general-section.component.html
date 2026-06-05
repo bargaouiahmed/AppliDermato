@@ -1,0 +1,46 @@
+<div class="card bg-camel shadow-sm p-3 my-3 exam-wrapper">
+  <div class="card-header border-bottom-0 d-flex justify-content-between align-items-center">
+    <h3 class="mb-0">{{ 'consultation.page.exam.general.title' | translate }}</h3>
+  </div>
+
+  <div class="exam-grid">
+    <app-consultation-examen-etat-general-field
+      [value]="state.etatGeneral"
+      (valueChange)="onEtatGeneralChange($event)"
+    />
+
+    <app-consultation-examen-tension-arterielle-field
+      [systolique]="state.tensionSystolique"
+      [diastolique]="state.tensionDiastolique"
+      (valueChange)="onTensionChange($event)"
+    />
+
+    <app-consultation-examen-frequence-cardiaque-field
+      [frequence]="state.frequenceCardiaque"
+      [rythme]="state.rythmeCardiaque"
+      (valueChange)="onFrequenceCardiaqueChange($event)"
+    />
+
+    <app-consultation-examen-temperature-field
+      [value]="state.temperature"
+      (valueChange)="onTemperatureChange($event)"
+    />
+
+    <app-consultation-examen-saturation-o2-field
+      [value]="state.saturationO2"
+      (valueChange)="onSaturationChange($event)"
+    />
+
+    <app-consultation-examen-poids-field
+      [value]="state.poidsKg"
+      (valueChange)="onPoidsChange($event)"
+    />
+
+    <app-consultation-examen-taille-field
+      [value]="state.tailleCm"
+      (valueChange)="onTailleChange($event)"
+    />
+
+    <app-consultation-examen-imc-field [value]="state.imc" />
+  </div>
+</div>

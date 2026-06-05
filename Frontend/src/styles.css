@@ -1,0 +1,495 @@
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import "bootstrap-icons/font/bootstrap-icons.css";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "@fortawesome/fontawesome-free/css/v4-shims.min.css";
+@import "@ng-select/ng-select/themes/default.theme.css";
+
+/* You can add global styles to this file, and also import other style files */
+
+:root {
+  --app-font-family: "Segoe UI", Roboto, sans-serif;
+  --bg-main: #fffff0;
+  --text-primary: #121822;
+  --color-sage: #93ae88;
+  --color-gold: #c89568;
+  --color-green: #175042;
+}
+
+/* Base reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  font-family: var(--app-font-family);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+button,
+input,
+textarea,
+select,
+table,
+.btn,
+.form-control,
+.form-select,
+.dropdown-menu,
+.modal-content,
+.ng-select,
+.ng-dropdown-panel {
+  font-family: var(--app-font-family) !important;
+}
+
+h3,
+h4 {
+  color: #c89568;
+  font-weight: 500 !important;
+}
+
+h6 {
+  color: #93ae88;
+  font-weight: 500 !important;
+}
+
+th,
+label {
+  font-weight: bold !important;
+}
+
+label {
+  color: #175042 !important;
+}
+
+.bg-color {
+  background-color: #fffff0 !important;
+}
+
+.bg-green {
+  background-color: #175042 !important;
+}
+
+.bg-camel {
+  background-color: rgba(200, 149, 104, 0.2) !important;
+}
+
+.paragraphe {
+  color: #121822 !important;
+}
+
+.text-green {
+  color: #175042 !important;
+}
+
+.text-camel {
+  color: #c89568 !important;
+}
+
+.nav-link {
+  color: #93ae88 !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.nav-link.active {
+  color: #175042 !important;
+  font-weight: 700 !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.nav-link:hover {
+  color: #c89568 !important;
+  font-weight: 600 !important;
+  background-color: transparent !important;
+}
+
+.navbar .nav-link {
+  color: #93ae88 !important;
+  font-weight: 600 !important;
+}
+
+.navbar .nav-link.active {
+  color: #175042 !important;
+  font-weight: 700 !important;
+}
+
+.navbar .nav-link:hover {
+  color: #c89568 !important;
+  font-weight: 600 !important;
+}
+
+.btn-primary {
+  background-color: #93ae88 !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.btn-primary:hover {
+  background-color: #175042 !important;
+  color: #fff !important;
+  border-color: #175042 !important;
+}
+
+.btn-primary:focus,
+.btn-primary:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 0.25rem rgba(147, 174, 136, 0.5) !important;
+}
+
+.btn-primary:not(:disabled):not(.disabled).active,
+.btn-primary:not(:disabled):not(.disabled):active,
+.show > .btn-primary.dropdown-toggle {
+  color: #fff !important;
+  background-color: #93ae88 !important;
+  border-color: #93ae88 !important;
+  box-shadow: 0 0 0 0.25rem rgba(147, 174, 136, 0.5) !important;
+}
+
+.btn-secondary {
+  background-color: transparent !important;
+  color: #93ae88 !important;
+  border: 1px solid #93ae88 !important;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.btn-secondary:hover {
+  background-color: #175042 !important;
+  color: #fff !important;
+  border-color: #175042 !important;
+}
+
+.btn-secondary:focus,
+.btn-secondary:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 0.25rem rgba(147, 174, 136, 0.5) !important;
+}
+
+.btn-secondary:not(:disabled):not(.disabled).active,
+.btn-secondary:not(:disabled):not(.disabled):active,
+.show > .btn-secondary.dropdown-toggle {
+  color: #fff !important;
+  background-color: #93ae88 !important;
+  border-color: #93ae88 !important;
+  box-shadow: 0 0 0 0.25rem rgba(147, 174, 136, 0.5) !important;
+}
+
+.btn-selected,
+.btn-selected:hover {
+  background-color: #175042 !important;
+  color: #fff !important;
+}
+
+a {
+  color: #93ae88 !important;
+  cursor: pointer;
+}
+
+a:hover {
+  color: #175042 !important;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+th {
+  border: transparent;
+  border-bottom: transparent !important;
+  color: #175042 !important;
+}
+
+td {
+  border: hidden !important;
+  color: #121822 !important;
+}
+
+.ligne-paire {
+  background-color: rgba(200, 149, 104, 0.2) !important;
+}
+
+.ligne-impaire {
+  background-color: rgba(147, 174, 136, 0.1) !important;
+}
+
+.aucun {
+  font-size: 1.4em !important;
+  color: #175042 !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+}
+
+.btn-icone {
+  font-size: 1.3em !important;
+}
+
+.user {
+  font-size: 1.2rem;
+  color: #175042;
+}
+
+.exit {
+  color: #c89568 !important;
+  cursor: pointer !important;
+  font-size: 1.2rem !important;
+}
+
+.exit:hover {
+  color: red !important;
+  cursor: pointer !important;
+  font-size: 1.2rem !important;
+}
+
+.modal-header {
+  border-bottom: none !important;
+}
+
+.modal-paragraphe {
+  font-size: 1.2rem;
+  color: #121822;
+}
+
+.badge-primary {
+  background-color: #93ae88 !important;
+  color: #fff !important;
+  padding: 0.4em !important;
+  margin-top: 0.2em !important;
+}
+
+.badge-danger {
+  padding: 0.5em !important;
+  margin-top: 0.2em !important;
+}
+
+.badge-selected {
+  background-color: #175042 !important;
+  color: #fff !important;
+  padding: 0.75em !important;
+  margin-top: 0.2em !important;
+}
+
+.badge-secondary {
+  background-color: #ffffac !important;
+  color: #121822 !important;
+  padding: 0.75em !important;
+  margin-top: 0.2em !important;
+}
+
+.badge-aucun {
+  background-color: #6c757d !important;
+  color: #fff !important;
+}
+
+.badge-prochaine-consultation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  min-height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2f9c31, #248624) !important;
+  color: #fff !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.badge-primary-custom {
+  background-color: #43bb99 !important;
+  color: #fff;
+  padding: 0.25em 0.6em;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+  display: inline-block;
+}
+
+.text-uppercase-spaced {
+  text-transform: capitalize;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: ">";
+  padding: 0 5px;
+  color: #c89568;
+}
+
+.breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  margin-bottom: 0;
+  font-size: 0.875rem;
+  list-style: none;
+  background: #fffff0;
+}
+
+.active-green {
+  background-color: #93ae88 !important;
+  color: white !important;
+}
+
+.active-seconde {
+  font-weight: 600;
+  color: #175042 !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  color: #495057 !important;
+  border-color: #175042 !important;
+  background-color: #fff !important;
+  outline: 0 !important;
+  box-shadow: 0 0 0 0.25rem rgba(147, 174, 136, 0.25) !important;
+}
+
+.ng-select:not(.open) {
+  height: auto !important;
+}
+
+.ng-select .ng-select-container,
+.ng-select .ng-value-container,
+.ng-select .ng-value-label,
+.ng-select .ng-placeholder,
+.ng-select .ng-input > input,
+.ng-dropdown-panel,
+.ng-dropdown-panel .ng-option,
+.ng-dropdown-panel .ng-option-label,
+.dropdown-menu,
+.dropdown-item,
+select,
+.form-select,
+.form-control {
+  font-family: var(--app-font-family) !important;
+}
+
+.ng-select .ng-value-label,
+.ng-select .ng-placeholder,
+.ng-select .ng-input > input,
+.ng-dropdown-panel .ng-option,
+.ng-dropdown-panel .ng-option-label,
+.dropdown-item,
+select,
+.form-select,
+.form-control {
+  font-weight: 400 !important;
+}
+
+.ng-select .ng-value-label,
+.ng-select .ng-input > input,
+.ng-dropdown-panel .ng-option,
+.ng-dropdown-panel .ng-option-label {
+  color: #121822 !important;
+}
+
+.ng-dropdown-panel .ng-option {
+  font-size: 1rem !important;
+  line-height: 1.35 !important;
+}
+
+/* RTL support — Tailwind logical properties (ms-*, me-*, ps-*, pe-*) handle most cases.
+   This ensures generic directional overrides when dir="rtl" is on <html>. */
+[dir="rtl"] input {
+  text-align: right;
+}
+
+/* Antecedents generaux dropdown is appended to body, so this must be global. */
+.ng-dropdown-panel .ng-option .ng-option-label,
+.ng-dropdown-panel .ng-option .antecedent-option-row {
+  display: block;
+  width: 100%;
+}
+
+.ng-dropdown-panel .antecedent-option-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ng-dropdown-panel .antecedent-option-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ng-dropdown-panel .option-trash-btn {
+  margin-left: auto !important;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+@media print {
+  body.print-conclusion-sheet {
+    background: #fffff0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body.print-conclusion-sheet .shell-root > :not(main) {
+    display: none !important;
+  }
+
+  body.print-conclusion-sheet .shell-root,
+  body.print-conclusion-sheet .shell-content,
+  body.print-conclusion-sheet main {
+    background: #fffff0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+  }
+
+  body.print-conclusion-sheet .consultation-page {
+    background: #fffff0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    min-height: 0 !important;
+    display: block !important;
+  }
+
+  body.print-conclusion-sheet .consultation-page > :not(.tab-content) {
+    display: none !important;
+  }
+
+  body.print-conclusion-sheet .tab-content,
+  body.print-conclusion-sheet .tab-panel {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+    background: transparent !important;
+  }
+
+  body.print-conclusion-sheet .no-print {
+    display: none !important;
+  }
+}
+
+/* Fix ng-select dropdown z-index to appear above modals */
+.ng-dropdown-panel {
+  z-index: 9999 !important;
+}
+
+/* Ensure ng-select dropdown appears correctly when appended to body */
+.ng-dropdown-panel.ng-select-bottom {
+  z-index: 9999 !important;
+}
+
+.ng-dropdown-panel.ng-select-top {
+  z-index: 9999 !important;
+}

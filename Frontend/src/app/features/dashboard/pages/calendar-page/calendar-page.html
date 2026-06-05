@@ -1,0 +1,1281 @@
+<div class="container-fluid p-sm-5 p-2 bg-color h-100">
+  <div class="calendar-wrapper shadow">
+    <div class="agenda-topbar mb-4">
+      <div class="agenda-summary-card shadow-sm">
+        <div class="agenda-summary-time">
+          <i class="bi bi-clock-history"></i>
+          {{ currentTime | date:'HH:mm' }}
+        </div>
+        <div class="agenda-summary-date text-capitalize">
+          <i class="bi bi-calendar3"></i>
+          {{ currentTime | date:'EEEE d MMMM y':'':currentDateLocale }}
+        </div>
+        <div class="agenda-summary-stats">
+          <div class="agenda-summary-stat agenda-summary-stat-rdv">
+            <i class="bi bi-people-fill"></i>
+            <span>{{ rdvs.length }} {{ 'agenda.stats.rdvs' | translate }}</span>
+          </div>
+          <div class="agenda-summary-stat agenda-summary-stat-leave">
+            <i class="bi bi-calendar-x"></i>
+            <span>{{ visibleLeaves.length }} {{ 'agenda.stats.leaves' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="agenda-header-main">
+        <div class="agenda-header-center">
+          <div class="agenda-header-buttons">
+            <button class="agenda-outline-btn agenda-outline-btn-leave" type="button" (click)="openAddLeaveModal()">
+              <i class="bi bi-calendar-plus"></i>
+              <span>{{ 'agenda.actions.addLeaveShort' | translate }}</span>
+            </button>
+
+            <button class="agenda-outline-btn agenda-outline-btn-holiday" type="button" (click)="openHolidayManageModal()">
+              <i class="bi bi-box-arrow-up-right"></i>
+              <span>{{ 'agenda.actions.manageHolidays' | translate }}</span>
+            </button>
+          </div>
+
+          <div class="agenda-legend-row">
+            <div class="agenda-legend-item">
+              <div class="legend-dot legend-dot-normal"></div>
+              <small>{{ 'agenda.legend.consultationRdv' | translate }}</small>
+            </div>
+        
+            <div class="agenda-legend-item">
+              <div class="legend-dot legend-dot-personal"></div>
+              <small>{{ 'agenda.legend.personalRdvShort' | translate }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="agenda-header-actions">
+          <button
+            class="agenda-view-btn"
+            [class.active]="viewMode === 'day'"
+            (click)="setView('day')"
+          >
+            {{ 'agenda.actions.day' | translate }}
+          </button>
+          <button
+            class="agenda-view-btn"
+            [class.active]="viewMode === 'week'"
+            (click)="setView('week')"
+          >
+            {{ 'agenda.actions.week' | translate }}
+          </button>
+          <button
+            class="agenda-view-btn"
+            [class.active]="viewMode === 'month'"
+            (click)="setView('month')"
+          >
+            {{ 'agenda.actions.month' | translate }}
+          </button>
+
+          <div *ngIf="viewMode === 'week' || viewMode === 'day'" class="dropdown" [class.show]="isIntervalDropdownOpen">
+            <button
+              class="agenda-view-btn agenda-interval-btn"
+              type="button"
+              (click)="toggleIntervalDropdown(); $event.stopPropagation()"
+            >
+              {{ timeSlotInterval }} {{ 'agenda.common.minutesShort' | translate }}
+              <i class="bi bi-caret-down-fill agenda-caret"></i>
+            </button>
+            <ul class="dropdown-menu" [class.show]="isIntervalDropdownOpen">
+              <li *ngFor="let opt of intervalOptions">
+                <a class="dropdown-item" [class.active]="timeSlotInterval === opt" (click)="setTimeSlotInterval(opt)">
+                  {{ opt }} {{ 'agenda.common.minutes' | translate }}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <button class="agenda-icon-btn" type="button" [attr.aria-label]="'agenda.settings.modal.title' | translate" (click)="openWorkingHoursModal()">
+            <i class="bi bi-gear"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-filters mb-4" *ngIf="viewMode === 'week' || viewMode === 'day'">
+      <div class="btn-group agenda-filter-group shadow-sm" role="group">
+        <button
+          class="btn btn-sm agenda-filter-btn"
+          [class.active]="filter === 'morning'"
+          (click)="setFilter('morning')"
+        >
+          {{ 'agenda.actions.morning' | translate }}
+        </button>
+        <button
+          class="btn btn-sm agenda-filter-btn"
+          [class.active]="filter === 'afternoon'"
+          (click)="setFilter('afternoon')"
+        >
+          {{ 'agenda.actions.afternoon' | translate }}
+        </button>
+        <button
+          class="btn btn-sm agenda-filter-btn"
+          [class.active]="filter === 'full'"
+          (click)="setFilter('full')"
+        >
+          {{ 'agenda.actions.fullDay' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div [ngSwitch]="viewMode">
+      <div *ngSwitchCase="'week'" class="calendar-week-view p-3 bg-white rounded shadow-sm">
+        <div class="calendar-header mb-4 d-flex justify-content-between align-items-center bg-light p-2 rounded">
+          <button class="btn btn-primary btn-sm" (click)="previousWeek()">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <div class="week-range fs-5 fw-bold text-primary text-center m-0 text-capitalize">
+            {{ weekStart | date:'d MMM y':'':currentDateLocale }} - {{ weekEnd | date:'d MMM y':'':currentDateLocale }}
+          </div>
+          <button class="btn btn-primary btn-sm" (click)="nextWeek()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div
+          class="calendar-grid rounded shadow-sm border overflow-auto"
+          [style.grid-template-columns]="'80px repeat(' + weekDays.length + ', minmax(130px, 1fr))'"
+        >
+          <div class="corner-cell bg-light"></div>
+
+          <div
+            class="day-header text-center py-2 border-start"
+            *ngFor="let day of weekDays"
+            [ngClass]="{
+              'bg-light': !isHoliday(day) && !isLeave(day),
+              'bg-danger bg-opacity-10': isHoliday(day),
+              'bg-warning bg-opacity-10': isLeave(day)
+            }"
+          >
+            <div
+              [ngClass]="{
+                'text-primary fw-bold': isToday(day),
+                'text-muted': !isToday(day)
+              }"
+              class="text-uppercase small mb-1 fw-semibold"
+            >
+              {{ getWeekdayLabelKey(day) | translate }}
+            </div>
+
+            <div
+              [ngClass]="{
+                'bg-primary text-white rounded-circle shadow-sm': isToday(day),
+                'text-dark fw-bold': !isToday(day)
+              }"
+              class="d-inline-flex justify-content-center align-items-center"
+              style="width: 32px; height: 32px; font-size: 1.1rem;"
+            >
+              {{ day | date:'d' }}
+            </div>
+
+            <div *ngIf="isHoliday(day)" class="mt-1">
+              <span class="badge bg-danger text-white small shadow-sm">
+                <i class="bi bi-calendar-event me-1"></i>
+                {{ 'agenda.badge.holiday' | translate }}
+              </span>
+              <div class="holiday-name small mt-1 fw-medium text-danger">
+                {{ getHolidayName(day) }}
+              </div>
+            </div>
+
+            <div *ngIf="isLeave(day) && !isHoliday(day)" class="mt-1">
+              <span class="badge bg-warning text-dark small shadow-sm">
+                <i class="bi bi-calendar-x me-1"></i>
+                {{ 'agenda.badge.leave' | translate }}
+              </span>
+            </div>
+          </div>
+
+          <ng-container *ngFor="let time of timeSlots">
+            <div class="calendar-hour text-center px-2 py-3 bg-light text-primary small fw-bold border-end border-bottom border-top">
+              {{ time }}
+            </div>
+
+            <div
+              class="time-cell border-bottom border-start position-relative"
+              *ngFor="let day of weekDays"
+              [ngClass]="{
+                'clickable-cell transition-all': !isHoliday(day) && !isLeaveTimeSlot(day, time),
+                'bg-white': !isHoliday(day) && !isLeaveTimeSlot(day, time),
+                'bg-danger bg-opacity-10 disabled': isHoliday(day),
+                'bg-warning bg-opacity-10 disabled': isLeaveTimeSlot(day, time),
+                'drag-over': isDragOverSlot(day, time)
+              }"
+              (dragover)="onSlotDragOver($event, day, time)"
+              (dragleave)="onSlotDragLeave(day, time)"
+              (drop)="onSlotDrop($event, day, time)"
+              (click)="!isHoliday(day) && !isLeaveTimeSlot(day, time) && openAddRdv(day, time)"
+            >
+              <div
+                *ngIf="isLeaveTimeSlot(day, time) && getRdvsForSlot(day, time).length === 0"
+                class="w-100 h-100 d-flex align-items-center justify-content-center opacity-50"
+              >
+                <i class="bi bi-ban text-warning fs-5"></i>
+              </div>
+
+              <ng-container *ngIf="getRdvsForSlot(day, time) as slotRdvs">
+                <ng-container *ngIf="slotRdvs.length > 0">
+                  <ng-container *ngIf="slotRdvs[0] as primaryRdv">
+                  <div class="slot-rdv-overlay" (click)="$event.stopPropagation()">
+                    <div
+                      class="rdv-badge rdv-badge-span rounded"
+                      [ngClass]="{
+                        'personnel': primaryRdv.isPersonnel,
+                        'dragging': draggingRdvId === primaryRdv.id,
+                        'resizing': resizingRdvId === primaryRdv.id
+                      }"
+                      [style.height]="getRdvBadgeHeight(primaryRdv)"
+                      draggable="true"
+                      (dragstart)="onRdvDragStart($event, primaryRdv)"
+                      (dragend)="onRdvDragEnd()"
+                      (click)="openEditRdv(primaryRdv); $event.stopPropagation()"
+                    >
+                      <strong class="d-block text-truncate">
+                        <i *ngIf="primaryRdv.isPersonnel" class="bi bi-person-badge me-1"></i>
+                        {{ getRdvLabel(primaryRdv) }}
+                      </strong>
+                      <div class="rdv-time d-flex justify-content-between align-items-center mt-1">
+                        <span><i class="bi bi-clock-fill"></i> {{ primaryRdv.time }} - {{ getRdvEndTime(primaryRdv) }}</span>
+                        <div class="rdv-actions">
+                          <i
+                            *ngIf="!primaryRdv.isPersonnel && primaryRdv.patientId"
+                            class="bi bi-journal-medical text-success me-1"
+                            [attr.title]="'agenda.rdv.modal.goToExamen' | translate"
+                            (click)="openGoToExamen(primaryRdv); $event.stopPropagation()"
+                          ></i>
+                          <i
+                            class="bi bi-pencil-square text-primary me-1"
+                            [attr.title]="'agenda.common.edit' | translate"
+                            (click)="openEditRdv(primaryRdv); $event.stopPropagation()"
+                          ></i>
+                          <i
+                            class="bi bi-x-circle text-danger"
+                            [attr.title]="'agenda.common.delete' | translate"
+                            (click)="deleteRdv(primaryRdv.id); $event.stopPropagation()"
+                          ></i>
+                        </div>
+                      </div>
+                      <div
+                        class="rdv-resize-handle"
+                        [attr.title]="'agenda.actions.resize' | translate"
+                        (mousedown)="startResizeRdv($event, primaryRdv)"
+                      ></div>
+                    </div>
+
+                    <button
+                      *ngIf="slotRdvs.length > 1"
+                      type="button"
+                      class="slot-side-toggle border-0 bg-white text-primary"
+                      [attr.aria-label]="(isSlotExpanded(day, time) ? 'agenda.actions.hideMoreRdvs' : 'agenda.actions.showMoreRdvs') | translate"
+                      (click)="toggleSlotExpanded(day, time); $event.stopPropagation()"
+                    >
+                      <i class="bi" [ngClass]="isSlotExpanded(day, time) ? 'bi-chevron-left' : 'bi-chevron-right'"></i>
+                      <span>{{ isSlotExpanded(day, time) ? '-' : '+' + (slotRdvs.length - 1) }}</span>
+                    </button>
+
+                    <div
+                      *ngIf="isSlotExpanded(day, time)"
+                      class="rdv-side-panel"
+                      [class.panel-left]="shouldOpenSlotPanelLeft(day)"
+                    >
+                      <div
+                        *ngFor="let rdv of slotRdvs.slice(1)"
+                        class="rdv-badge rdv-side-item rounded mb-1"
+                        [ngClass]="{
+                          'personnel': rdv.isPersonnel,
+                          'dragging': draggingRdvId === rdv.id,
+                          'resizing': resizingRdvId === rdv.id
+                        }"
+                        draggable="true"
+                        (dragstart)="onRdvDragStart($event, rdv)"
+                        (dragend)="onRdvDragEnd()"
+                        (click)="openEditRdv(rdv); $event.stopPropagation()"
+                      >
+                        <strong class="d-block text-truncate">
+                          <i *ngIf="rdv.isPersonnel" class="bi bi-person-badge me-1"></i>
+                          {{ getRdvLabel(rdv) }}
+                        </strong>
+                        <div class="rdv-time d-flex justify-content-between align-items-center mt-1">
+                          <span><i class="bi bi-clock-fill"></i> {{ rdv.time }} - {{ getRdvEndTime(rdv) }}</span>
+                          <div class="rdv-actions">
+                            <i
+                              *ngIf="!rdv.isPersonnel && rdv.patientId"
+                              class="bi bi-journal-medical text-success me-1"
+                              [attr.title]="'agenda.rdv.modal.goToExamen' | translate"
+                              (click)="openGoToExamen(rdv); $event.stopPropagation()"
+                            ></i>
+                            <i
+                              class="bi bi-pencil-square text-primary me-1"
+                              [attr.title]="'agenda.common.edit' | translate"
+                              (click)="openEditRdv(rdv); $event.stopPropagation()"
+                            ></i>
+                            <i
+                              class="bi bi-x-circle text-danger"
+                              [attr.title]="'agenda.common.delete' | translate"
+                              (click)="deleteRdv(rdv.id); $event.stopPropagation()"
+                            ></i>
+                          </div>
+                        </div>
+                        <div
+                          class="rdv-resize-handle"
+                          [attr.title]="'agenda.actions.resize' | translate"
+                          (mousedown)="startResizeRdv($event, rdv)"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <div *ngSwitchCase="'day'" class="calendar-day-view bg-white rounded shadow-sm p-3">
+        <div
+          class="d-flex justify-content-between align-items-center mb-4 p-3 rounded day-view-banner"
+          [ngClass]="{
+            'day-view-banner-holiday': isHoliday(selectedDay),
+            'day-view-banner-leave': isLeave(selectedDay),
+            'day-view-banner-default': !isHoliday(selectedDay) && !isLeave(selectedDay)
+          }"
+        >
+          <button class="btn btn-sm btn-outline-secondary bg-white shadow-sm" (click)="previousDay()">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <div class="text-center">
+            <h5
+              class="m-0 fw-bold text-capitalize"
+              [ngClass]="{
+                'text-primary': !isHoliday(selectedDay) && !isLeave(selectedDay),
+                'text-danger': isHoliday(selectedDay),
+                'text-warning text-dark': isLeave(selectedDay)
+              }"
+            >
+              {{ selectedDay | date:'EEEE d MMMM y':'':currentDateLocale }}
+            </h5>
+            <div *ngIf="isHoliday(selectedDay)" class="mt-2 badge bg-danger text-white shadow-sm px-3 py-2">
+              <i class="bi bi-calendar-event me-1"></i>
+              {{ 'agenda.badge.holiday' | translate }}: {{ getHolidayName(selectedDay) }}
+            </div>
+            <div *ngIf="isLeave(selectedDay)" class="mt-2 badge bg-warning text-dark shadow-sm px-3 py-2">
+              <i class="bi bi-calendar-x me-1"></i>
+              {{ 'agenda.badge.leave' | translate }}
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary bg-white shadow-sm" (click)="nextDay()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="border rounded shadow-sm agenda-day-grid-shell">
+          <div *ngFor="let time of timeSlots" class="d-flex calendar-row align-items-stretch border-bottom">
+            <div class="calendar-hour text-end px-3 py-3 bg-light text-primary fw-bold border-end" style="width: 100px;">
+              {{ time }}
+            </div>
+            <div
+              class="calendar-slot flex-grow-1 px-3 py-3 position-relative transition-all"
+              [ngClass]="{
+                'clickable-cell bg-white': !isHoliday(selectedDay) && !isLeaveTimeSlot(selectedDay, time),
+                'bg-danger bg-opacity-10': isHoliday(selectedDay),
+                'bg-warning bg-opacity-10': isLeaveTimeSlot(selectedDay, time),
+                'drag-over': isDragOverSlot(selectedDay, time)
+              }"
+              (dragover)="onSlotDragOver($event, selectedDay, time)"
+              (dragleave)="onSlotDragLeave(selectedDay, time)"
+              (drop)="onSlotDrop($event, selectedDay, time)"
+              (click)="!isHoliday(selectedDay) && !isLeaveTimeSlot(selectedDay, time) && openAddRdv(selectedDay, time)"
+            >
+              <ng-container *ngIf="getRdvsForSlot(selectedDay, time) as slotRdvs">
+                <ng-container *ngIf="slotRdvs.length > 0">
+                  <ng-container *ngIf="slotRdvs[0] as primaryRdv">
+                  <div class="slot-rdv-overlay" (click)="$event.stopPropagation()">
+                    <div
+                      class="rdv-badge rdv-badge-span rounded"
+                      [ngClass]="{
+                        'personnel': primaryRdv.isPersonnel,
+                        'dragging': draggingRdvId === primaryRdv.id,
+                        'resizing': resizingRdvId === primaryRdv.id
+                      }"
+                      [style.height]="getRdvBadgeHeight(primaryRdv)"
+                      draggable="true"
+                      (dragstart)="onRdvDragStart($event, primaryRdv)"
+                      (dragend)="onRdvDragEnd()"
+                      (click)="openEditRdv(primaryRdv); $event.stopPropagation()"
+                    >
+                      <strong class="d-block">
+                        <i *ngIf="primaryRdv.isPersonnel" class="bi bi-person-badge me-1"></i>
+                        {{ getRdvLabel(primaryRdv) }}
+                      </strong>
+                      <div class="rdv-time d-flex justify-content-between align-items-center mt-2">
+                        <span class="small"><i class="bi bi-clock-fill me-1"></i>{{ primaryRdv.time }} - {{ getRdvEndTime(primaryRdv) }}</span>
+                        <div class="rdv-actions">
+                          <i
+                            *ngIf="!primaryRdv.isPersonnel && primaryRdv.patientId"
+                            class="bi bi-journal-medical text-success me-1"
+                            [attr.title]="'agenda.rdv.modal.goToExamen' | translate"
+                            (click)="openGoToExamen(primaryRdv); $event.stopPropagation()"
+                          ></i>
+                          <i
+                            class="bi bi-pencil-square text-primary me-1"
+                            [attr.title]="'agenda.common.edit' | translate"
+                            (click)="openEditRdv(primaryRdv); $event.stopPropagation()"
+                          ></i>
+                          <i
+                            class="bi bi-x-circle text-danger"
+                            [attr.title]="'agenda.common.delete' | translate"
+                            (click)="deleteRdv(primaryRdv.id); $event.stopPropagation()"
+                          ></i>
+                        </div>
+                      </div>
+                      <div
+                        class="rdv-resize-handle"
+                        [attr.title]="'agenda.actions.resize' | translate"
+                        (mousedown)="startResizeRdv($event, primaryRdv)"
+                      ></div>
+                    </div>
+
+                    <button
+                      *ngIf="slotRdvs.length > 1"
+                      type="button"
+                      class="slot-side-toggle border-0 bg-white text-primary"
+                      [attr.aria-label]="(isSlotExpanded(selectedDay, time) ? 'agenda.actions.hideMoreRdvs' : 'agenda.actions.showMoreRdvs') | translate"
+                      (click)="toggleSlotExpanded(selectedDay, time); $event.stopPropagation()"
+                    >
+                      <i class="bi" [ngClass]="isSlotExpanded(selectedDay, time) ? 'bi-chevron-left' : 'bi-chevron-right'"></i>
+                      <span>{{ isSlotExpanded(selectedDay, time) ? '-' : '+' + (slotRdvs.length - 1) }}</span>
+                    </button>
+
+                    <div *ngIf="isSlotExpanded(selectedDay, time)" class="rdv-side-panel">
+                      <div
+                        *ngFor="let rdv of slotRdvs.slice(1)"
+                        class="rdv-badge rdv-side-item rounded mb-1"
+                        [ngClass]="{
+                          'personnel': rdv.isPersonnel,
+                          'dragging': draggingRdvId === rdv.id,
+                          'resizing': resizingRdvId === rdv.id
+                        }"
+                        draggable="true"
+                        (dragstart)="onRdvDragStart($event, rdv)"
+                        (dragend)="onRdvDragEnd()"
+                        (click)="openEditRdv(rdv); $event.stopPropagation()"
+                      >
+                        <strong class="d-block text-truncate">
+                          <i *ngIf="rdv.isPersonnel" class="bi bi-person-badge me-1"></i>
+                          {{ getRdvLabel(rdv) }}
+                        </strong>
+                        <div class="rdv-time d-flex justify-content-between align-items-center mt-1">
+                          <span><i class="bi bi-clock-fill"></i> {{ rdv.time }} - {{ getRdvEndTime(rdv) }}</span>
+                          <div class="rdv-actions">
+                            <i
+                              *ngIf="!rdv.isPersonnel && rdv.patientId"
+                              class="bi bi-journal-medical text-success me-1"
+                              [attr.title]="'agenda.rdv.modal.goToExamen' | translate"
+                              (click)="openGoToExamen(rdv); $event.stopPropagation()"
+                            ></i>
+                            <i
+                              class="bi bi-pencil-square text-primary me-1"
+                              [attr.title]="'agenda.common.edit' | translate"
+                              (click)="openEditRdv(rdv); $event.stopPropagation()"
+                            ></i>
+                            <i
+                              class="bi bi-x-circle text-danger"
+                              [attr.title]="'agenda.common.delete' | translate"
+                              (click)="deleteRdv(rdv.id); $event.stopPropagation()"
+                            ></i>
+                          </div>
+                        </div>
+                        <div
+                          class="rdv-resize-handle"
+                          [attr.title]="'agenda.actions.resize' | translate"
+                          (mousedown)="startResizeRdv($event, rdv)"
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngSwitchCase="'month'" class="calendar-month-view bg-white rounded shadow-sm p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <button class="btn btn-primary btn-sm" (click)="previousMonth()">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <h5 class="text-primary m-0 fw-bold text-capitalize">{{ currentMonthDate | date:'MMMM y':'':currentDateLocale }}</h5>
+          <button class="btn btn-primary btn-sm" (click)="nextMonth()">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="row text-center fw-bold border-bottom pb-2 mb-2 gx-0">
+          <div class="col p-2 small" *ngFor="let dayLabelKey of monthDayLabelKeys">
+            {{ dayLabelKey | translate }}
+          </div>
+        </div>
+
+        <div *ngFor="let week of monthWeeks" class="row g-0">
+          <div
+            *ngFor="let day of week"
+            class="col calendar-day-cell border position-relative"
+            [ngClass]="{
+              'bg-light text-muted': !day.isCurrentMonth,
+              'holiday-cell': isHoliday(day.date),
+              'leave-cell': isLeave(day.date) && !isHoliday(day.date),
+              'drag-over': isDragOverMonthDay(day.date)
+            }"
+            (dragover)="onMonthDayDragOver($event, day.date)"
+            (dragleave)="onMonthDayDragLeave(day.date)"
+            (drop)="onMonthDayDrop($event, day.date)"
+            (click)="onMonthDayCellClick(day.date)"
+            style="cursor: pointer;"
+          >
+            <div class="text-end" [ngClass]="{
+              'day-number': true,
+              'today-circle': isToday(day.date),
+              'text-muted': !day.isCurrentMonth
+            }">
+              {{ day.date.getDate() }}
+            </div>
+
+            <div *ngIf="isHoliday(day.date)">
+              <span class="badge bg-danger text-white w-100" style="font-size: 0.65rem;">
+                {{ 'agenda.badge.holiday' | translate }}
+              </span>
+            </div>
+            <div *ngIf="isLeave(day.date) && !isHoliday(day.date)">
+              <span class="badge bg-warning text-dark w-100" style="font-size: 0.65rem;">
+                {{ 'agenda.badge.leave' | translate }}
+              </span>
+            </div>
+
+            <div class="rdv-container" [style.maxHeight]="isExpanded(day.date) ? '200px' : 'auto'" style="overflow-y: auto;">
+              <ng-container *ngFor="let rdv of getRdvsForDate(day.date); let i = index">
+                <div
+                  *ngIf="isExpanded(day.date) || i < 2"
+                  class="rdv-badge rdv-badge-month rounded mb-1"
+                  [ngClass]="{'personnel': rdv.isPersonnel, 'dragging': draggingRdvId === rdv.id}"
+                  draggable="true"
+                  (dragstart)="onRdvDragStart($event, rdv)"
+                  (dragend)="onRdvDragEnd()"
+                  (click)="openEditRdv(rdv); $event.stopPropagation()"
+                  style="cursor: pointer;"
+                >
+                  <div class="d-flex align-items-center justify-content-between">
+                    <span class="text-truncate flex-grow-1" style="font-size: 0.7rem; line-height: 1.1;">
+                      <i *ngIf="rdv.isPersonnel" class="bi bi-person-badge me-1"></i>
+                      <strong>{{ getRdvLabel(rdv) }}</strong>
+                    </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-size: 0.65rem;"><i class="bi bi-clock-fill me-1"></i>{{ rdv.time }}</span>
+                    <div class="rdv-actions">
+                      <i class="bi bi-pencil-square text-primary" [attr.title]="'agenda.common.edit' | translate" style="cursor: pointer; font-size: 0.75rem;"
+                        (click)="openEditRdv(rdv); $event.stopPropagation()"></i>
+                      <i class="bi bi-x-circle text-danger" [attr.title]="'agenda.common.delete' | translate" style="cursor: pointer; font-size: 0.75rem;"
+                        (click)="deleteRdv(rdv.id); $event.stopPropagation()"></i>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+
+              <button
+                *ngIf="getRdvsForDate(day.date).length > 2"
+                type="button"
+                class="more-rdv w-100 border-0 bg-transparent text-primary"
+                style="cursor: pointer; font-size: 0.7rem; padding: 2px 0;"
+                (click)="toggleExpanded(day.date); $event.stopPropagation()"
+              >
+                {{ isExpanded(day.date) ? '-' : '+' + (getRdvsForDate(day.date).length - 2) }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="agenda-modal-overlay" *ngIf="isWorkingHoursModalOpen" (click)="closeWorkingHoursModal()">
+  <div class="agenda-modal agenda-settings-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="agenda-modal-header">
+      <h5 class="m-0">
+        <i class="bi bi-gear me-2"></i>
+        {{ 'agenda.settings.modal.title' | translate }}
+      </h5>
+      <button type="button" class="btn-close btn-sm" (click)="closeWorkingHoursModal()"></button>
+    </div>
+
+    <div class="agenda-modal-body">
+      <div class="field-row">
+        <span>{{ 'agenda.settings.modal.startHour' | translate }}</span>
+        <select class="form-select" [(ngModel)]="workingHoursForm.startHour">
+          <option *ngFor="let hour of workingHourOptions" [value]="hour">{{ hour }}</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <span>{{ 'agenda.settings.modal.endHour' | translate }}</span>
+        <select class="form-select" [(ngModel)]="workingHoursForm.endHour">
+          <option *ngFor="let hour of workingHourOptions" [value]="hour">{{ hour }}</option>
+        </select>
+      </div>
+
+      <small class="text-muted">{{ 'agenda.settings.modal.help' | translate }}</small>
+    </div>
+
+    <div class="agenda-modal-actions">
+      <button type="button" class="btn btn-light btn-sm" [disabled]="isSavingWorkingHours" (click)="closeWorkingHoursModal()">
+        {{ 'agenda.common.cancel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" [disabled]="isSavingWorkingHours" (click)="saveWorkingHours()">
+        <span *ngIf="!isSavingWorkingHours">{{ 'agenda.common.save' | translate }}</span>
+        <span *ngIf="isSavingWorkingHours" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="agenda-modal-overlay" *ngIf="isRdvModalOpen" (click)="closeRdvModal()">
+  <div class="agenda-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="agenda-modal-header">
+      <h5 class="m-0">
+        {{ (rdvModalMode === 'edit' ? 'agenda.rdv.modal.editTitle' : 'agenda.rdv.modal.createTitle') | translate }}
+      </h5>
+      <button type="button" class="btn-close btn-sm" (click)="closeRdvModal()"></button>
+    </div>
+
+    <div class="agenda-modal-body">
+      <!-- Date + selected time display (Inaya Local style) -->
+      <div class="rdv-info-box d-flex align-items-center gap-3 p-3 rounded mb-2">
+        <i class="bi bi-calendar-event-fill text-primary fs-3"></i>
+        <div>
+          <div class="fw-bold text-muted fs-6 text-capitalize">
+            {{ rdvForm.date | date:'EEEE d MMMM y':'':currentDateLocale }}
+          </div>
+          <div *ngIf="rdvForm.time" class="text-muted d-flex align-items-center gap-2 mt-1">
+            <i class="bi bi-clock-fill text-primary"></i>
+            <span>{{ rdvForm.time }}</span>
+            <button type="button" class="btn btn-link p-0 text-decoration-none" style="font-size:0.8rem;" (click)="rdvForm.time = ''">
+              <i class="bi bi-pencil-fill text-primary"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Time slot picker (shown when no time selected) -->
+      <div *ngIf="!rdvForm.time" class="mb-3">
+        <div class="fw-bold text-center mb-2 small">{{ 'agenda.timeSlot.title' | translate }}</div>
+        <div class="time-slot-grid">
+          <button
+            *ngFor="let time of fullTimeSlots"
+            type="button"
+            class="btn btn-outline-primary time-slot-btn"
+            [class.active]="rdvForm.time === time"
+            (click)="rdvForm.time = time"
+          >
+            {{ time }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Rest of form (shown when time is selected) -->
+      <ng-container *ngIf="rdvForm.time">
+        <div class="field-row">
+          <span>{{ 'agenda.rdv.modal.type' | translate }}</span>
+          <div class="type-switch">
+            <button
+              type="button"
+              class="btn btn-sm"
+              [class.btn-primary]="rdvForm.type === 'normal'"
+              [class.btn-outline-primary]="rdvForm.type !== 'normal'"
+              (click)="rdvForm.type = 'normal'; onRdvTypeChange()"
+            >
+              <i class="bi bi-person-fill me-1"></i>{{ 'agenda.rdv.modal.type.normal' | translate }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm"
+              [class.btn-danger]="rdvForm.type === 'personnel'"
+              [class.btn-outline-danger]="rdvForm.type !== 'personnel'"
+              (click)="rdvForm.type = 'personnel'; onRdvTypeChange()"
+            >
+              <i class="bi bi-person-badge me-1"></i>{{ 'agenda.rdv.modal.type.personal' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div class="field-row patient-field-row" *ngIf="rdvForm.type === 'normal'">
+          <div class="field-row-header">
+            <span>{{ 'agenda.rdv.modal.newPatient' | translate }}</span>
+            <button
+              type="button"
+              class="btn btn-link p-0 new-patient-toggle"
+              [disabled]="isCreatingRdvPatient"
+              (click)="toggleRdvNewPatientForm()"
+            >
+              <i
+                class="bi"
+                [ngClass]="isRdvNewPatientFormOpen ? 'bi-dash-circle-fill' : 'bi-plus-circle-fill'"
+              ></i>
+            </button>
+          </div>
+
+          <div *ngIf="isRdvNewPatientFormOpen" class="rdv-new-patient-form">
+            <div class="rdv-new-patient-grid">
+              <div class="field-row">
+                <span>{{ 'patients.create.fields.sex' | translate }} *</span>
+                <select
+                  [(ngModel)]="rdvNewPatientForm.sex"
+                  [class.is-invalid]="isRdvNewPatientValidationTouched && !rdvNewPatientForm.sex.trim()"
+                >
+                  <option value="">{{ 'patients.create.fields.sexSelect' | translate }}</option>
+                  <option value="Homme">{{ 'patients.create.fields.sexMale' | translate }}</option>
+                  <option value="Femme">{{ 'patients.create.fields.sexFemale' | translate }}</option>
+                </select>
+                <small class="text-danger" *ngIf="isRdvNewPatientValidationTouched && !rdvNewPatientForm.sex.trim()">
+                  {{ 'patients.create.validation.sex' | translate }}
+                </small>
+              </div>
+
+              <div class="field-row">
+                <span>{{ 'patients.create.fields.lastname' | translate }} *</span>
+                <input
+                  type="text"
+                  [(ngModel)]="rdvNewPatientForm.lastname"
+                  [class.is-invalid]="isRdvNewPatientValidationTouched && rdvNewPatientForm.lastname.trim().length < 2"
+                />
+                <small class="text-danger" *ngIf="isRdvNewPatientValidationTouched && rdvNewPatientForm.lastname.trim().length < 2">
+                  {{ 'patients.create.validation.lastname' | translate }}
+                </small>
+              </div>
+
+              <div class="field-row">
+                <span>{{ 'patients.create.fields.firstname' | translate }} *</span>
+                <input
+                  type="text"
+                  [(ngModel)]="rdvNewPatientForm.firstname"
+                  [class.is-invalid]="isRdvNewPatientValidationTouched && rdvNewPatientForm.firstname.trim().length < 2"
+                />
+                <small class="text-danger" *ngIf="isRdvNewPatientValidationTouched && rdvNewPatientForm.firstname.trim().length < 2">
+                  {{ 'patients.create.validation.firstname' | translate }}
+                </small>
+              </div>
+
+              <div class="field-row">
+                <span>{{ 'patients.create.fields.dateOfBirth' | translate }} *</span>
+                <input
+                  type="date"
+                  [(ngModel)]="rdvNewPatientForm.dateOfBirth"
+                  [max]="rdvNewPatientMaxBirthDate"
+                  [class.is-invalid]="isRdvNewPatientValidationTouched && (!rdvNewPatientForm.dateOfBirth || rdvNewPatientForm.dateOfBirth > rdvNewPatientMaxBirthDate)"
+                />
+                <small class="text-danger" *ngIf="isRdvNewPatientValidationTouched && (!rdvNewPatientForm.dateOfBirth || rdvNewPatientForm.dateOfBirth > rdvNewPatientMaxBirthDate)">
+                  {{ 'patients.create.validation.dateOfBirth' | translate }}
+                </small>
+              </div>
+
+              <div class="field-row full-width">
+                <span>{{ 'patients.create.fields.phoneNumber' | translate }}</span>
+                <input
+                  type="text"
+                  [(ngModel)]="rdvNewPatientForm.phoneNumber"
+                  [placeholder]="'agenda.rdv.modal.newPatientPhonePlaceholder' | translate"
+                />
+              </div>
+            </div>
+
+            <div class="rdv-new-patient-actions">
+              <button type="button" class="btn btn-light btn-sm" [disabled]="isCreatingRdvPatient" (click)="cancelRdvNewPatientForm()">
+                {{ 'agenda.common.cancel' | translate }}
+              </button>
+              <button type="button" class="btn btn-sm btn-add-patient" [disabled]="isCreatingRdvPatient" (click)="saveRdvNewPatientFromModal()">
+                <span *ngIf="!isCreatingRdvPatient">{{ 'agenda.rdv.modal.addPatient' | translate }}</span>
+                <span *ngIf="isCreatingRdvPatient" class="spinner-border spinner-border-sm"></span>
+              </button>
+            </div>
+          </div>
+
+          <ng-select
+            *ngIf="!isRdvNewPatientFormOpen"
+            [items]="patientOptions"
+            bindLabel="displayName"
+            bindValue="id"
+            [(ngModel)]="rdvForm.patientId"
+            [searchable]="true"
+            [clearable]="true"
+            [appendTo]="'body'"
+            [loading]="isRdvPatientLoading"
+            [placeholder]="'agenda.rdv.modal.oldPatientPlaceholder' | translate"
+            [notFoundText]="'agenda.rdv.modal.noPatientResults' | translate"
+            (search)="onPatientSearch($event)"
+            (open)="onPatientDropdownOpen()"
+          ></ng-select>
+        </div>
+
+        <div class="field-row" *ngIf="rdvForm.type === 'normal'">
+          <span>{{ 'agenda.rdv.modal.motifs' | translate }}</span>
+          <ng-select
+            [items]="availableMotifs"
+            [(ngModel)]="rdvForm.motifs"
+            [multiple]="true"
+            [searchable]="true"
+            [clearable]="true"
+            [appendTo]="'body'"
+            [placeholder]="'agenda.rdv.modal.motifsPlaceholder' | translate"
+            [notFoundText]="'agenda.rdv.modal.noMotifResults' | translate"
+          ></ng-select>
+        </div>
+
+        <div class="field-row" *ngIf="rdvForm.type === 'personnel'">
+          <span>{{ 'agenda.rdv.modal.personalDescription' | translate }}</span>
+          <input
+            type="text"
+            [(ngModel)]="rdvForm.description"
+            [placeholder]="'agenda.rdv.modal.personalDescriptionPlaceholder' | translate"
+          />
+        </div>
+
+      </ng-container>
+    </div>
+
+    <div class="agenda-modal-actions">
+      <button type="button" class="btn btn-light btn-sm" [disabled]="isSavingRdv" (click)="closeRdvModal()">
+        {{ 'agenda.common.cancel' | translate }}
+      </button>
+      <button
+        *ngIf="rdvForm.type === 'normal' && rdvForm.time"
+        type="button"
+        class="btn btn-success btn-sm"
+        [disabled]="isSavingRdv"
+        (click)="openGoToExamFromModal()"
+      >
+        <i class="bi bi-journal-medical me-1"></i>
+        {{ 'agenda.rdv.modal.goToExamen' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" [disabled]="isSavingRdv || !rdvForm.time" (click)="saveRdvFromModal()">
+        <span *ngIf="!isSavingRdv">{{ 'agenda.common.save' | translate }}</span>
+        <span *ngIf="isSavingRdv" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="agenda-modal-overlay" *ngIf="isRdvExamValidationModalOpen" (click)="closeRdvExamValidationModal()">
+  <div class="agenda-modal agenda-validation-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="agenda-modal-header">
+      <h5 class="m-0">{{ 'agenda.rdv.modal.goToExamen' | translate }}</h5>
+      <button type="button" class="btn-close btn-sm" (click)="closeRdvExamValidationModal()"></button>
+    </div>
+    <div class="agenda-modal-body">
+      <p class="mb-3">{{ 'agenda.rdv.modal.goToExamenMissingFields' | translate }}</p>
+
+      <div class="field-row" *ngIf="rdvExamMissingPatient">
+        <span>{{ 'agenda.rdv.modal.patient' | translate }}</span>
+        <ng-select
+          [items]="patientOptions"
+          bindLabel="displayName"
+          bindValue="id"
+          [(ngModel)]="rdvForm.patientId"
+          [searchable]="true"
+          [clearable]="true"
+          [appendTo]="'body'"
+          [loading]="isRdvPatientLoading"
+          [placeholder]="'agenda.rdv.modal.oldPatientPlaceholder' | translate"
+          [notFoundText]="'agenda.rdv.modal.noPatientResults' | translate"
+          (search)="onPatientSearch($event)"
+          (open)="onPatientDropdownOpen()"
+        ></ng-select>
+      </div>
+
+      <div class="field-row" *ngIf="rdvExamMissingMotifs">
+        <span>{{ 'agenda.rdv.modal.motifs' | translate }}</span>
+        <ng-select
+          [items]="availableMotifs"
+          [(ngModel)]="rdvForm.motifs"
+          [multiple]="true"
+          [searchable]="true"
+          [clearable]="true"
+          [appendTo]="'body'"
+          [placeholder]="'agenda.rdv.modal.motifsPlaceholder' | translate"
+          [notFoundText]="'agenda.rdv.modal.noMotifResults' | translate"
+        ></ng-select>
+      </div>
+    </div>
+    <div class="agenda-modal-actions">
+      <button type="button" class="btn btn-light btn-sm" (click)="closeRdvExamValidationModal()">
+        {{ 'agenda.common.cancel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="closeRdvExamValidationModal()">
+        {{ 'agenda.common.close' | translate }}
+      </button>
+      <button type="button" class="btn btn-success btn-sm" [disabled]="isSavingRdv" (click)="openGoToExamFromModal()">
+        <i class="bi bi-journal-medical me-1"></i>
+        {{ 'agenda.rdv.modal.goToExamen' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEAVE MANAGEMENT MODAL (Inaya Local clone) ===== -->
+<div class="agenda-modal-overlay" *ngIf="isLeaveManageModalOpen" (click)="closeLeaveManageModal()">
+  <div class="agenda-modal-xl" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+
+    <div class="agenda-modal-header">
+      <h5 class="m-0">
+        <i class="bi bi-calendar-x me-2"></i>
+        {{ 'agenda.leave.modal.title' | translate }}
+      </h5>
+      <button type="button" class="btn-close btn-sm" (click)="closeLeaveManageModal()"></button>
+    </div>
+
+    <div class="agenda-modal-body" style="padding: 1rem 1.25rem;">
+
+      <!-- Stats -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-body py-2">
+              <div class="row text-center">
+                <div class="col-3">
+                  <h5 class="mb-0">{{ getLeaveStats().total }}</h5>
+                  <small class="text-muted">{{ 'agenda.leave.stats.total' | translate }}</small>
+                </div>
+                <div class="col-3">
+                  <h5 class="mb-0 text-primary">{{ getLeaveStats().annual }}</h5>
+                  <small class="text-muted">{{ 'agenda.leave.stats.annual' | translate }}</small>
+                </div>
+                <div class="col-3">
+                  <h5 class="mb-0 text-danger">{{ getLeaveStats().sick }}</h5>
+                  <small class="text-muted">{{ 'agenda.leave.stats.sick' | translate }}</small>
+                </div>
+                <div class="col-3">
+                  <h5 class="mb-0 text-warning">{{ getLeaveStats().personal }}</h5>
+                  <small class="text-muted">{{ 'agenda.leave.stats.personal' | translate }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Year filter -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <label class="mb-0 fw-semibold">{{ 'agenda.leave.modal.year' | translate }} :</label>
+          <select class="form-select form-select-sm w-auto" [(ngModel)]="leaveManageYear" (change)="onLeaveManageYearChange()">
+            <option *ngFor="let y of leaveManageYears" [value]="y">{{ y }}</option>
+          </select>
+        </div>
+        <span class="badge bg-warning text-dark">
+          {{ leaveManageList.length }} {{ 'agenda.leave.manage.countInYear' | translate }} {{ leaveManageYear }}
+        </span>
+      </div>
+
+      <!-- Form card -->
+      <div class="card mb-4 border-primary">
+        <div class="card-header bg-light">
+          <h6 class="mb-0 text-primary">
+            <i class="bi me-2" [ngClass]="isLeaveManageEditing ? 'bi-pencil-circle' : 'bi-plus-circle'"></i>
+            {{ isLeaveManageEditing ? ('agenda.leave.modal.editTitle' | translate) : ('agenda.leave.modal.addTitle' | translate) }}
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">{{ 'agenda.common.date' | translate }} <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" [(ngModel)]="leaveForm.date" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ 'agenda.leave.modal.name' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="leaveForm.name" [placeholder]="'agenda.leave.modal.namePlaceholder' | translate" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ 'agenda.leave.modal.type' | translate }} <span class="text-danger">*</span></label>
+              <select class="form-select" [(ngModel)]="leaveForm.type">
+                <option value="annual">{{ 'agenda.leave.type.annual' | translate }}</option>
+                <option value="sick">{{ 'agenda.leave.type.sick' | translate }}</option>
+                <option value="personal">{{ 'agenda.leave.type.personal' | translate }}</option>
+                <option value="training">{{ 'agenda.leave.type.training' | translate }}</option>
+                <option value="other">{{ 'agenda.leave.type.other' | translate }}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ 'agenda.leave.modal.duration' | translate }}</label>
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" id="leaveFullDayManage"
+                  [(ngModel)]="leaveForm.isFullDay" (ngModelChange)="onLeaveFullDayToggle()" />
+                <label class="form-check-label" for="leaveFullDayManage">{{ 'agenda.leave.modal.fullDay' | translate }}</label>
+              </div>
+            </div>
+            <div class="col-12" *ngIf="!leaveForm.isFullDay">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">{{ 'agenda.leave.modal.startTime' | translate }} <span class="text-danger">*</span></label>
+                  <input type="time" class="form-control" [(ngModel)]="leaveForm.startTime" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">{{ 'agenda.leave.modal.endTime' | translate }} <span class="text-danger">*</span></label>
+                  <input type="time" class="form-control" [(ngModel)]="leaveForm.endTime" />
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ 'agenda.leave.modal.recurring' | translate }}</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="leaveRecurringManage" [(ngModel)]="leaveForm.isRecurring" />
+                <label class="form-check-label" for="leaveRecurringManage">{{ 'agenda.leave.modal.recurringLabel' | translate }}</label>
+              </div>
+              <small class="text-muted">{{ 'agenda.leave.modal.recurringHint' | translate }}</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ 'agenda.common.description' | translate }}</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="leaveForm.description"
+                [placeholder]="'agenda.leave.modal.descriptionPlaceholder' | translate"></textarea>
+              <div class="form-text">{{ 'agenda.leave.modal.descriptionHint' | translate }}</div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="resetLeaveForm()" *ngIf="!isLeaveManageEditing">
+                  <i class="bi bi-arrow-clockwise me-1"></i>{{ 'agenda.leave.modal.reset' | translate }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelEditLeave()" *ngIf="isLeaveManageEditing">
+                  <i class="bi bi-x-circle me-1"></i>{{ 'agenda.common.cancel' | translate }}
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" [disabled]="isSavingLeave" (click)="saveLeaveFromModal()">
+                  <span *ngIf="isSavingLeave" class="spinner-border spinner-border-sm me-1"></span>
+                  <i *ngIf="!isSavingLeave" class="bi me-1" [ngClass]="isLeaveManageEditing ? 'bi-check-circle' : 'bi-plus-circle'"></i>
+                  {{ isSavingLeave ? ('agenda.common.saving' | translate) : (isLeaveManageEditing ? ('agenda.common.edit' | translate) : ('agenda.leave.modal.add' | translate)) }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leave list -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h6 class="mb-0 text-primary">
+            <i class="bi bi-list-check me-2"></i>
+            {{ 'agenda.leave.listTitle' | translate }}
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          <div *ngIf="isLeaveManageLoading" class="text-center py-4">
+            <div class="spinner-border text-primary spinner-border-sm"></div>
+            <p class="mt-2 text-muted small">{{ 'common.loading' | translate }}</p>
+          </div>
+          <div *ngIf="!isLeaveManageLoading" class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'agenda.common.date' | translate }}</th>
+                  <th>{{ 'agenda.leave.modal.name' | translate }}</th>
+                  <th>{{ 'agenda.leave.modal.type' | translate }}</th>
+                  <th>{{ 'agenda.leave.modal.duration' | translate }}</th>
+                  <th>{{ 'agenda.leave.modal.recurring' | translate }}</th>
+                  <th>{{ 'agenda.common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let leave of leaveManageList" [class.table-primary]="isLeaveManageEditing && editingLeaveId === leave.id">
+                  <td>
+                    <strong>{{ dateFromKey(leave.date) | date:'dd/MM/yyyy':'':currentDateLocale }}</strong>
+                    <div *ngIf="leave.description" class="small text-muted">{{ leave.description }}</div>
+                  </td>
+                  <td>{{ leave.name }}</td>
+                  <td><span [class]="getLeaveTypeBadgeClass(leave.type)">{{ getLeaveTypeLabel(leave.type) }}</span></td>
+                  <td><span class="badge bg-light text-dark">{{ getLeaveDurationDisplay(leave) }}</span></td>
+                  <td>
+                    <i class="bi" [ngClass]="leave.isRecurring ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-secondary'"></i>
+                    <span class="ms-1 small">{{ leave.isRecurring ? ('agenda.common.yes' | translate) : ('agenda.common.no' | translate) }}</span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button type="button" class="btn btn-outline-secondary" (click)="startEditLeave(leave)" [attr.title]="'agenda.common.edit' | translate">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger" [disabled]="deletingLeaveId === leave.id" (click)="deleteLeave(leave.id)" [attr.title]="'agenda.common.delete' | translate">
+                        <i *ngIf="deletingLeaveId !== leave.id" class="bi bi-trash"></i>
+                        <span *ngIf="deletingLeaveId === leave.id" class="spinner-border spinner-border-sm"></span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="leaveManageList.length === 0 && !isLeaveManageLoading">
+                  <td colspan="6" class="text-center py-5">
+                    <i class="bi bi-calendar-x display-4 text-muted"></i>
+                    <h6 class="mt-3 text-muted">{{ 'agenda.leave.empty' | translate }}</h6>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+            <small class="text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              {{ 'agenda.leave.modal.recurringHint' | translate }}
+            </small>
+            <small class="text-muted">{{ leaveManageList.length }} {{ 'agenda.leave.manage.countLabel' | translate }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="agenda-modal-actions">
+      <button type="button" class="btn btn-secondary btn-sm" (click)="closeLeaveManageModal()">
+        <i class="bi bi-x-circle me-1"></i>{{ 'agenda.common.cancel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="closeLeaveManageModal()">
+        <i class="bi bi-check-circle me-1"></i>{{ 'agenda.common.save' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOLIDAY MANAGEMENT MODAL ===== -->
+<div class="agenda-modal-overlay" *ngIf="isHolidayManageModalOpen" (click)="closeHolidayManageModal()">
+  <div class="agenda-modal-xl" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="agenda-modal-header">
+      <h5 class="m-0">
+        <i class="bi bi-calendar-event me-2"></i>
+        {{ 'agenda.holiday.modal.title' | translate }}
+      </h5>
+      <button type="button" class="btn-close btn-sm" (click)="closeHolidayManageModal()"></button>
+    </div>
+
+    <div class="agenda-modal-body" style="padding: 1rem 1.25rem;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <label class="mb-0 fw-semibold">{{ 'agenda.holiday.modal.year' | translate }}</label>
+        <select class="form-select form-select-sm w-auto" [(ngModel)]="holidayManageYear" (change)="onHolidayManageYearChange()">
+          <option *ngFor="let y of leaveManageYears" [value]="y">{{ y }}</option>
+        </select>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header bg-light fw-semibold text-primary">
+          {{ 'agenda.holiday.modal.fixedTitle' | translate }}
+        </div>
+        <div class="card-body py-2">
+          <div class="holiday-fixed-list">
+            <label class="holiday-fixed-item" *ngFor="let holiday of holidayFixedChoices">
+              <input type="checkbox" [(ngModel)]="holiday.checked" />
+              <div>
+                <div class="fw-semibold">{{ holiday.name }}</div>
+                <small class="text-muted">{{ holiday.date }}</small>
+              </div>
+            </label>
+          </div>
+          <div class="d-flex justify-content-end mt-3">
+            <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="isHolidaySaving" (click)="saveFixedHolidaySelection()">
+              <span *ngIf="!isHolidaySaving">{{ 'agenda.holiday.modal.saveSelection' | translate }}</span>
+              <span *ngIf="isHolidaySaving" class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header bg-light fw-semibold text-primary">
+          {{ 'agenda.holiday.modal.variableTitle' | translate }}
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">{{ 'agenda.common.date' | translate }}</label>
+              <input type="date" class="form-control" [(ngModel)]="variableHolidayForm.date" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ 'agenda.leave.modal.name' | translate }}</label>
+              <input type="text" class="form-control" [(ngModel)]="variableHolidayForm.name" [placeholder]="'agenda.holiday.modal.namePlaceholder' | translate" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ 'agenda.holiday.modal.recurringAnnual' | translate }}</label>
+              <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" [(ngModel)]="variableHolidayForm.isRecurring" />
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ 'agenda.common.description' | translate }}</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="variableHolidayForm.description"></textarea>
+            </div>
+            <div class="col-12 d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="resetVariableHolidayForm()">
+                {{ 'agenda.leave.modal.reset' | translate }}
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" [disabled]="isHolidaySaving" (click)="saveVariableHoliday()">
+                <span *ngIf="!isHolidaySaving">{{ editingVariableHolidayId ? ('agenda.common.edit' | translate) : ('agenda.leave.modal.add' | translate) }}</span>
+                <span *ngIf="isHolidaySaving" class="spinner-border spinner-border-sm"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-light fw-semibold text-primary">
+          {{ 'agenda.holiday.modal.savedVariableTitle' | translate }}
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'agenda.common.date' | translate }}</th>
+                  <th>{{ 'agenda.leave.modal.name' | translate }}</th>
+                  <th>{{ 'agenda.leave.modal.recurring' | translate }}</th>
+                  <th>{{ 'agenda.common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let leave of variableHolidayList">
+                  <td>{{ dateFromKey(leave.date) | date:'dd/MM/yyyy':'':currentDateLocale }}</td>
+                  <td>{{ leave.name }}</td>
+                  <td>{{ leave.isRecurring ? ('agenda.common.yes' | translate) : ('agenda.common.no' | translate) }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button type="button" class="btn btn-outline-secondary" (click)="editVariableHoliday(leave)" [attr.title]="'agenda.common.edit' | translate">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button type="button" class="btn btn-outline-danger" (click)="deleteVariableHoliday(leave.id)" [attr.title]="'agenda.common.delete' | translate">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="variableHolidayList.length === 0">
+                  <td colspan="4" class="text-center text-muted py-4">{{ 'agenda.holiday.modal.emptyVariable' | translate }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="agenda-modal-actions">
+      <button type="button" class="btn btn-secondary btn-sm" (click)="closeHolidayManageModal()">{{ 'agenda.common.close' | translate }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONSULTATION INIT MODAL (go to examen) ===== -->
+<app-consultation-init-modal
+  [isOpen]="isConsultationInitOpen"
+  [patientId]="consultationInitPatientId"
+  [initialDate]="consultationInitDate"
+  [initialMotifs]="consultationInitMotifs"
+  (closed)="isConsultationInitOpen = false"
+  (created)="onConsultationCreated($event)"
+/>

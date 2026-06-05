@@ -1,0 +1,350 @@
+<div class="card shadow-sm p-3 my-3 ordonnance-section-wrapper">
+  <div class="d-flex justify-content-between align-items-center mb-2 ordonnance-header">
+    <h3 class="mb-0 ordonnance-title">{{ 'consultation.conduite.ordonnance.title' | translate }}</h3>
+    <div class="ordonnance-header-actions">
+      @if (!isTemplateReadonlyMode) {
+        <button
+          type="button"
+          class="btn btn-link p-0 ordonnance-add-btn"
+          (click)="addRow()"
+          [disabled]="!canAddRow()"
+          [title]="'consultation.conduite.ordonnance.row.add' | translate"
+        >
+          <i class="fa-solid fa-circle-plus"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="ordonnance-type-selector card p-3 shadow-sm mb-3">
+    <label class="mb-2 fw-bold">{{ 'consultation.conduite.ordonnance.typeSelector.label' | translate }}</label>
+    <ng-select
+      [items]="ordonnanceTypeOptions"
+      bindLabel="label"
+      bindValue="value"
+      [clearable]="false"
+      [searchable]="false"
+      [closeOnSelect]="true"
+      [ngModel]="selectedOrdonnanceTypeKey"
+      (ngModelChange)="onOrdonnanceTypeChange($event)"
+      [placeholder]="'consultation.conduite.ordonnance.typeSelector.placeholder' | translate"
+    >
+    </ng-select>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table text-center table-traitement tec-table m-0 ordonnance-table">
+      <thead class="ligne-paire">
+        <tr>
+          <th>{{ 'consultation.conduite.ordonnance.table.therapeuticClass' | translate }}</th>
+          <th>{{ 'consultation.conduite.ordonnance.table.category' | translate }}</th>
+          <th>{{ 'consultation.conduite.ordonnance.table.medicine' | translate }}</th>
+          <th>{{ 'consultation.conduite.ordonnance.table.posology' | translate }}</th>
+          <th>{{ 'consultation.conduite.ordonnance.table.duration' | translate }}</th>
+          @if (!isTemplateReadonlyMode) {
+            <th>{{ 'consultation.conduite.ordonnance.table.actions' | translate }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track trackRow($index, row); let i = $index) {
+          <tr [class.ligne-impaire]="i % 2 === 0" [class.ligne-paire]="i % 2 !== 0">
+            <td>
+              @if (isTemplateReadonlyMode) {
+                <span class="ordonnance-readonly-cell">{{ displayKnownDefaultTreatmentValue(row.typeClass) || '-' }}</span>
+              } @else {
+                <ng-select
+                  [items]="classOptions"
+                  bindLabel="label"
+                  bindValue="value"
+                  [clearable]="true"
+                  [searchable]="true"
+                  [closeOnSelect]="true"
+                  [addTag]="addClassTag.bind(this)"
+                  [ngModel]="row.typeClass || null"
+                  (ngModelChange)="onClassChange(row.rowId, $event)"
+                  [name]="'ord-class-' + row.rowId"
+                  [placeholder]="'consultation.conduite.ordonnance.placeholder.class' | translate"
+                >
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                    {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                  </ng-template>
+                </ng-select>
+              }
+            </td>
+
+            <td>
+              @if (isTemplateReadonlyMode) {
+                <span class="ordonnance-readonly-cell">{{ displayKnownDefaultTreatmentValue(row.category) || '-' }}</span>
+              } @else {
+                <ng-select
+                  [items]="row.categoryItems"
+                  bindLabel="label"
+                  bindValue="value"
+                  [clearable]="true"
+                  [searchable]="true"
+                  [closeOnSelect]="true"
+                  [addTag]="addCategoryTag.bind(this, row.rowId)"
+                  [ngModel]="row.category || null"
+                  (ngModelChange)="onCategoryChange(row.rowId, $event)"
+                  [name]="'ord-category-' + row.rowId"
+                  [placeholder]="'consultation.conduite.ordonnance.placeholder.category' | translate"
+                >
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                    {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                  </ng-template>
+                </ng-select>
+              }
+            </td>
+
+            <td>
+              @if (isTemplateReadonlyMode) {
+                <span class="ordonnance-readonly-cell">{{ displayKnownDefaultTreatmentValue(row.nom) || '-' }}</span>
+              } @else {
+                <ng-select
+                  [items]="row.medicineItems"
+                  bindLabel="label"
+                  bindValue="value"
+                  [clearable]="true"
+                  [searchable]="true"
+                  [closeOnSelect]="true"
+                  [addTag]="addMedicineTag.bind(this, row.rowId)"
+                  [ngModel]="row.nom || null"
+                  (ngModelChange)="onMedicineChange(row.rowId, $event)"
+                  [name]="'ord-med-' + row.rowId"
+                  [placeholder]="'consultation.conduite.ordonnance.placeholder.medicine' | translate"
+                >
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                    {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                  </ng-template>
+                </ng-select>
+              }
+            </td>
+
+            <td>
+              @if (isTemplateReadonlyMode) {
+                <span class="ordonnance-readonly-cell">{{ displayKnownDefaultTreatmentValue(row.posology) || '-' }}</span>
+              } @else {
+                <ng-select
+                  [items]="posologyOptionsForRow(row)"
+                  bindLabel="label"
+                  bindValue="value"
+                  [clearable]="true"
+                  [searchable]="true"
+                  [closeOnSelect]="true"
+                  [addTag]="addPosologyTag.bind(this)"
+                  [ngModel]="row.posology || null"
+                  (ngModelChange)="onPosologyChange(row.rowId, $event)"
+                  [name]="'ord-posology-' + row.rowId"
+                  [placeholder]="'consultation.conduite.ordonnance.placeholder.posology' | translate"
+                >
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                    {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                  </ng-template>
+                </ng-select>
+              }
+            </td>
+
+            <td>
+              @if (isTemplateReadonlyMode) {
+                <span class="ordonnance-readonly-cell">{{ displayKnownDefaultTreatmentValue(row.duree) || '-' }}</span>
+              } @else {
+                <ng-select
+                  [items]="dureeOptions"
+                  bindLabel="label"
+                  bindValue="value"
+                  [clearable]="true"
+                  [searchable]="true"
+                  [closeOnSelect]="true"
+                  [addTag]="addDureeTag.bind(this)"
+                  [ngModel]="row.duree || null"
+                  (ngModelChange)="onDureeChange(row.rowId, $event)"
+                  [name]="'ord-duree-' + row.rowId"
+                  [placeholder]="'consultation.conduite.ordonnance.placeholder.duration' | translate"
+                >
+                  <ng-template ng-label-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-option-tmp let-item="item">
+                    {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                  </ng-template>
+                  <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                    {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                  </ng-template>
+                </ng-select>
+              }
+            </td>
+
+            @if (!isTemplateReadonlyMode) {
+              <td class="actions-cell">
+                <button
+                  type="button"
+                  class="btn btn-link p-0 me-2"
+                  (click)="addRow()"
+                  [disabled]="!canAddRow()"
+                  [title]="'consultation.conduite.ordonnance.row.add' | translate"
+                >
+                  <i class="fa-solid fa-circle-plus"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-link p-0"
+                  [class.disabled]="rows.length <= 1"
+                  (click)="rows.length > 1 ? removeRow(row.rowId) : null"
+                  [title]="'consultation.conduite.ordonnance.row.delete' | translate"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ordonnance-extra-section mt-3">
+    <label>{{ 'consultation.conduite.ordonnance.section.consigne' | translate }}</label>
+    @if (isTemplateReadonlyMode) {
+      <div class="ordonnance-readonly-field">{{ displayKnownDefaultTreatmentValue(consigne) || '-' }}</div>
+    } @else {
+      <ng-select
+        [items]="consigneOptions"
+        [addTag]="addConsigneTag.bind(this)"
+        [clearable]="true"
+        [searchable]="true"
+        [closeOnSelect]="true"
+        [ngModel]="consigne || null"
+        (ngModelChange)="onConsigneChange($event)"
+        name="ord-consigne"
+        [placeholder]="'consultation.conduite.ordonnance.section.consignePlaceholder' | translate"
+      >
+        <ng-template ng-label-tmp let-item="item">
+          {{ displayKnownDefaultTreatmentValue(item) }}
+        </ng-template>
+        <ng-template ng-option-tmp let-item="item">
+          {{ displayKnownDefaultTreatmentValue(item) }}
+        </ng-template>
+        <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+          {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+        </ng-template>
+      </ng-select>
+    }
+  </div>
+
+  <div class="ordonnance-extra-section mt-2">
+    <label for="ord-information-additionnelle">{{ 'consultation.conduite.ordonnance.section.additionalInfo' | translate }}</label>
+    @if (isTemplateReadonlyMode) {
+      <div class="ordonnance-readonly-field">{{ displayKnownDefaultTreatmentValue(informationAdditionnel) || '-' }}</div>
+    } @else {
+      <textarea
+        id="ord-information-additionnelle"
+        class="form-control"
+        rows="3"
+        [ngModel]="informationAdditionnel"
+        (ngModelChange)="onInformationAdditionnelChange($event)"
+        name="ord-information-additionnelle"
+        [placeholder]="'consultation.conduite.ordonnance.section.additionalInfoPlaceholder' | translate"
+      ></textarea>
+    }
+  </div>
+
+  <div class="ordonnance-footer-actions mt-3">
+    <button
+      type="button"
+      class="btn btn-sm ordonnance-bottom-btn ordonnance-bottom-btn-green"
+      [disabled]="isLoadingLatestOrdonnance || !consultationId"
+      (click)="loadLatestOrdonnance()"
+    >
+      <i class="fa-solid" [ngClass]="isLoadingLatestOrdonnance ? 'fa-spinner fa-spin' : 'fa-clock-rotate-left'"></i>
+      <span>
+        {{ (isLoadingLatestOrdonnance ? 'consultation.conduite.ordonnance.load.loadingLatest' : 'consultation.conduite.ordonnance.load.latestOrdonnance') | translate }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-sm ordonnance-bottom-btn ordonnance-bottom-btn-green"
+      (click)="loadOngoingTreatments()"
+    >
+      <i class="fa-solid fa-pills"></i>
+      <span>{{ 'consultation.conduite.ordonnance.load.currentTreatments' | translate }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-sm ordonnance-bottom-btn ordonnance-bottom-btn-camel"
+      [disabled]="isTemplateReadonlyMode || isSavingOrdonnanceType || rows.length === 0"
+      (click)="openSaveOrdonnanceTypeModal()"
+    >
+      <i class="fa-solid" [ngClass]="isSavingOrdonnanceType ? 'fa-spinner fa-spin' : 'fa-bookmark'"></i>
+      <span>{{ 'consultation.conduite.ordonnance.saveType.button' | translate }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-primary ordonnance-print-btn"
+      [disabled]="isPrinting"
+      (click)="onPrintClick()"
+    >
+      {{ isPrinting ? ('consultation.documents.actions.printing' | translate) : ('consultation.documents.actions.print' | translate) }}
+    </button>
+  </div>
+
+  @if (showSaveTypeModal) {
+    <div class="ordonnance-modal-backdrop" (click)="closeSaveOrdonnanceTypeModal()">
+      <div class="ordonnance-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <header class="ordonnance-modal-header">
+          <h4>{{ 'consultation.conduite.ordonnance.saveType.button' | translate }}</h4>
+          <button type="button" class="ordonnance-modal-close" (click)="closeSaveOrdonnanceTypeModal()">×</button>
+        </header>
+        <section class="ordonnance-modal-body">
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            [(ngModel)]="saveTypeName"
+            [placeholder]="'consultation.conduite.ordonnance.saveType.placeholder' | translate"
+          />
+        </section>
+        <footer class="ordonnance-modal-actions">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeSaveOrdonnanceTypeModal()">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm ordonnance-save-type-btn"
+            [disabled]="!canSaveOrdonnanceType()"
+            (click)="saveCurrentOrdonnanceType()"
+          >
+            <i class="fa-solid" [ngClass]="isSavingOrdonnanceType ? 'fa-spinner fa-spin' : 'fa-bookmark'"></i>
+            <span>{{ 'consultation.conduite.ordonnance.saveType.button' | translate }}</span>
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+</div>

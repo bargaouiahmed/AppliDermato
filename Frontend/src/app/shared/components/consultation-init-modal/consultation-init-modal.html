@@ -1,0 +1,120 @@
+@if (isOpen) {
+  <div class="consultation-modal-overlay" (click)="close()">
+    <div class="consultation-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4>{{ 'patients.consultationModal.title' | translate }}</h4>
+        <button type="button" class="close-btn" (click)="close()" [disabled]="isSubmitting">
+          x
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="field-row">
+          <label for="consultation-date">{{ 'patients.consultationModal.date' | translate }}</label>
+          <input
+            id="consultation-date"
+            type="date"
+            [max]="today"
+            [(ngModel)]="consultationDateSelected"
+          />
+          <small>{{ 'patients.consultationModal.dateHint' | translate }}</small>
+        </div>
+
+        <div class="field-row">
+          <label for="motif-list">{{ 'patients.consultationModal.motifs' | translate }}</label>
+
+          <div class="motif-picker-row" #motifPicker>
+            <div class="motif-input-wrap">
+              <input
+                id="motif-list"
+                type="text"
+                [ngModel]="motifSearchTerm"
+                [placeholder]="'patients.consultationModal.selectMotif' | translate"
+                (ngModelChange)="onMotifInputChange($event)"
+                (focus)="onMotifInputFocus()"
+                (click)="onMotifInputClick()"
+                (blur)="onMotifInputBlur()"
+                (keydown.enter)="onMotifInputEnter($event)"
+                (keydown.escape)="onMotifInputEscape($event)"
+              />
+              <button
+                type="button"
+                class="motif-toggle-btn"
+                (mousedown)="$event.preventDefault()"
+                (click)="toggleMotifMenu($event)"
+                [attr.title]="'patients.consultationModal.selectMotif' | translate"
+              >
+                <i class="fa-solid" [ngClass]="isMotifMenuOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+              </button>
+            </div>
+
+            @if (isMotifMenuOpen) {
+              <div class="motif-menu">
+                @for (motif of filteredMotifs; track motif) {
+                  <button
+                    type="button"
+                    class="motif-option"
+                    (mousedown)="$event.preventDefault()"
+                    (click)="selectMotifOption(motif)"
+                  >
+                    <span>{{ motif }}</span>
+                    @if (isCustomMotif(motif)) {
+                      <span
+                        class="motif-option-trash"
+                        role="button"
+                        tabindex="0"
+                        (mousedown)="$event.preventDefault()"
+                        (click)="deleteCustomMotif($event, motif)"
+                      >
+                        <i class="fa-solid fa-trash"></i>
+                      </span>
+                    }
+                  </button>
+                }
+
+                @if (showAddTagOption) {
+                  <button
+                    type="button"
+                    class="motif-option add-option"
+                    (mousedown)="$event.preventDefault()"
+                    (click)="addTagFromSearchTerm()"
+                  >
+                    {{ 'patients.consultationModal.addTagPrefix' | translate }} "{{ motifSearchTerm.trim() }}"
+                  </button>
+                }
+
+                @if (!showAddTagOption && filteredMotifs.length === 0) {
+                  <div class="motif-empty">{{ 'patients.consultationModal.noResults' | translate }}</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (isMotifSelected) {
+          <div class="selected-motifs">
+            @for (motif of selectedMotifs; track motif) {
+              <span class="motif-chip">
+                {{ motif }}
+                <button type="button" (click)="removeMotif(motif)" [disabled]="isSubmitting">x</button>
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="close()" [disabled]="isSubmitting">
+          {{ 'patients.consultationModal.cancel' | translate }}
+        </button>
+        <button type="button" class="btn-primary" (click)="saveConsultation()" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+            {{ 'patients.consultationModal.saving' | translate }}
+          } @else {
+            {{ 'patients.consultationModal.save' | translate }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,127 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: #fffff0;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 960px;
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e0e0d8;
+}
+
+.modal-heading {
+  min-width: 0;
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #c89568;
+}
+
+.modal-subtitle {
+  display: inline-block;
+  margin-top: 0.25rem;
+  color: #175042;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #888;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 1rem 1.25rem;
+  overflow: auto;
+}
+
+.preview-body {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 240, 0.98) 0%, rgba(247, 240, 230, 0.95) 100%);
+}
+
+.modal-state {
+  padding: 0.95rem 1rem;
+  border: 1px dashed rgba(200, 149, 104, 0.5);
+  border-radius: 0.95rem;
+  background: rgba(255, 255, 240, 0.94);
+  color: #334155;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+.modal-state.error {
+  border-style: solid;
+  border-color: rgba(190, 167, 64, 0.48);
+  background: rgba(255, 248, 202, 0.72);
+  color: #5b5116;
+}
+
+.modal-footer {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #e0e0d8;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #175042;
+  color: #fff;
+  border: none;
+  border-radius: 0.35rem;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-print:hover {
+  background: #0f3a2e;
+}
+
+@media (max-width: 900px) {
+  .modal-card {
+    max-width: 100%;
+  }
+
+  .modal-body {
+    padding: 0.85rem;
+  }
+}

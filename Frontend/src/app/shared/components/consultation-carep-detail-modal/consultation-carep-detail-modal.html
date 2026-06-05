@@ -1,0 +1,351 @@
+@if (isOpen && data) {
+  <div class="modal-backdrop" #modalBackdrop (click)="onBackdropClick($event)">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>{{ data.actionLabel }}</h4>
+        <button type="button" class="modal-close" (click)="close()" title="Fermer">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        @if (isLoading) {
+          <div class="loading-state">{{ 'consultation.carepModal.loading' | translate }}</div>
+        } @else if (loadError) {
+          <div class="error-state">{{ loadError | translate }}</div>
+        } @else {
+          <!-- Ordonnance -->
+          @if (detailType === 'ordonnance') {
+            @if (ordonnanceDrugs.length > 0) {
+              <div class="detail-section">
+                <label class="detail-label">{{ 'consultation.carepModal.medications' | translate }}</label>
+                <div class="drug-list">
+                  @for (drug of ordonnanceDrugs; track drug.medicine) {
+                    <div class="drug-item">
+                      <span class="drug-name">{{ drug.medicine }}</span>
+                      @if (drug.therapeuticClass || drug.category) {
+                        <span class="drug-class">{{ drug.therapeuticClass }}{{ drug.therapeuticClass && drug.category ? ' • ' : '' }}{{ drug.category }}</span>
+                      }
+                      @if (drug.posology || drug.duration) {
+                        <span class="drug-meta">{{ drug.posology }}{{ drug.posology && drug.duration ? ' — ' : '' }}{{ drug.duration }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+            @if (ordonnanceConsigne) {
+              <div class="detail-section">
+                <label class="detail-label">{{ 'consultation.carepModal.consigne' | translate }}</label>
+                <p class="detail-text">{{ ordonnanceConsigne }}</p>
+              </div>
+            }
+            @if (ordonnanceDrugs.length === 0 && !ordonnanceConsigne) {
+              <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+            }
+          }
+
+          <!-- Certificat -->
+          @if (detailType === 'certificat') {
+            <div class="detail-section">
+              @if (certificatInfo.types) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.types' | translate }}</label>
+                  <span class="detail-value">{{ certificatInfo.types }}</span>
+                </div>
+              }
+              @if (certificatInfo.nombre) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.count' | translate }}</label>
+                  <span class="detail-value">{{ certificatInfo.nombre }}</span>
+                </div>
+              }
+              @if (certificatInfo.compterDe) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.startFrom' | translate }}</label>
+                  <span class="detail-value">{{ certificatInfo.compterDe }}</span>
+                </div>
+              }
+              @if (certificatInfo.dateCertificat) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.date' | translate }}</label>
+                  <span class="detail-value">{{ certificatInfo.dateCertificat }}</span>
+                </div>
+              }
+              @if (certificatInfo.civiliteAccompagnant || certificatInfo.nomPrenomAccompagnant) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.conduite.certificat.fields.accompaniment' | translate }}</label>
+                  <span class="detail-value">{{ certificatInfo.civiliteAccompagnant }} {{ certificatInfo.nomPrenomAccompagnant }}</span>
+                </div>
+              }
+              @if (certificatInfo.description) {
+                <div class="detail-section mt-2">
+                  <label class="detail-label">{{ 'consultation.conduite.certificat.fields.description' | translate }}</label>
+                  <p class="detail-text">{{ certificatInfo.description }}</p>
+                </div>
+              }
+              @if (!certificatInfo.types && !certificatInfo.nombre && !certificatInfo.compterDe && !certificatInfo.dateCertificat && !certificatInfo.description && !certificatInfo.nomPrenomAccompagnant) {
+                <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+              }
+            </div>
+          }
+
+          <!-- Lettre confrère -->
+          @if (detailType === 'lettre_confrere') {
+            @if (lettreInfo.medecin) {
+              <div class="detail-row">
+                <label class="detail-label">{{ 'consultation.carepModal.recipient' | translate }}</label>
+                <span class="detail-value">{{ lettreInfo.medecin }}</span>
+              </div>
+            }
+            @if (lettreInfo.contenue) {
+              <div class="detail-section">
+                <label class="detail-label">{{ 'consultation.carepModal.content' | translate }}</label>
+                <p class="detail-text">{{ lettreInfo.contenue }}</p>
+              </div>
+            }
+            @if (!lettreInfo.medecin && !lettreInfo.contenue) {
+              <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+            }
+          }
+
+          <!-- Chirurgie -->
+          @if (detailType === 'paraclinique_chirurgie') {
+            <div class="detail-section">
+              @if (chirurgieInfo.types.length > 0) {
+                <div class="detail-tags mb-3">
+                  @for (type of chirurgieInfo.types; track type) {
+                    <span class="detail-tag">{{ type }}</span>
+                  }
+                </div>
+              }
+              @if (chirurgieInfo.date) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.date' | translate }}</label>
+                  <span class="detail-value">{{ chirurgieInfo.date }}</span>
+                </div>
+              }
+              @if (chirurgieInfo.clinique) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.clinique' | translate }}</label>
+                  <span class="detail-value">{{ chirurgieInfo.clinique }}</span>
+                </div>
+              }
+              @if (chirurgieInfo.operateur) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.operateur' | translate }}</label>
+                  <span class="detail-value">{{ chirurgieInfo.operateur }}</span>
+                </div>
+              }
+              @if (chirurgieInfo.information) {
+                <div class="detail-section mt-2">
+                  <label class="detail-label">{{ 'consultation.carepModal.info' | translate }}</label>
+                  <p class="detail-text">{{ chirurgieInfo.information }}</p>
+                </div>
+              }
+              @if (chirurgieInfo.types.length === 0 && !chirurgieInfo.date && !chirurgieInfo.clinique && !chirurgieInfo.operateur && !chirurgieInfo.information) {
+                <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+              }
+            </div>
+          }
+
+          <!-- Imagerie -->
+          @if (detailType === 'paraclinique_imagerie') {
+            <div class="detail-section">
+              @if (imagerieInfo.types.length > 0) {
+                <div class="detail-tags mb-3">
+                  @for (type of imagerieInfo.types; track type) {
+                    <span class="detail-tag">{{ type }}</span>
+                  }
+                </div>
+              }
+              @if (imagerieInfo.date) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.date' | translate }}</label>
+                  <span class="detail-value">{{ imagerieInfo.date }}</span>
+                </div>
+              }
+              @if (imagerieInfo.clinique) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.clinique' | translate }}</label>
+                  <span class="detail-value">{{ imagerieInfo.clinique }}</span>
+                </div>
+              }
+              @if (imagerieInfo.information) {
+                <div class="detail-section mt-2">
+                  <label class="detail-label">{{ 'consultation.carepModal.info' | translate }}</label>
+                  <p class="detail-text">{{ imagerieInfo.information }}</p>
+                </div>
+              }
+              @if (imagerieInfo.types.length === 0 && !imagerieInfo.date && !imagerieInfo.clinique && !imagerieInfo.information) {
+                <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+              }
+            </div>
+          }
+
+          <!-- Bilan sanguin -->
+          @if (detailType === 'paraclinique_bilan_sanguin') {
+            <div class="detail-section">
+              @if (bilanSanguinInfo.tests.length > 0) {
+                <div class="test-list">
+                  @for (test of bilanSanguinInfo.tests; track test.name) {
+                    <div class="test-item-expanded mb-3">
+                      <div class="test-header">
+                        <span class="test-name">{{ test.name }}</span>
+                      </div>
+                      <div class="test-details mt-1">
+                        <div class="detail-tags">
+                          @for (item of test.checkedItems; track item) {
+                            <span class="detail-tag detail-tag-small">{{ item }}</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+              @if (bilanSanguinInfo.date) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.date' | translate }}</label>
+                  <span class="detail-value">{{ bilanSanguinInfo.date }}</span>
+                </div>
+              }
+              @if (bilanSanguinInfo.information) {
+                <div class="detail-section mt-2">
+                  <label class="detail-label">{{ 'consultation.carepModal.info' | translate }}</label>
+                  <p class="detail-text">{{ bilanSanguinInfo.information }}</p>
+                </div>
+              }
+              @if (bilanSanguinInfo.tests.length === 0 && !bilanSanguinInfo.date && !bilanSanguinInfo.information) {
+                <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+              }
+            </div>
+          }
+
+          <!-- CNAM -->
+          @if (detailType.startsWith('cnam_')) {
+            <div class="cnam-section">
+              <div class="cnam-badge">{{ cnamInfo.formType }}</div>
+
+              <div class="detail-section">
+                @if (cnamInfo.codeConventionnel) {
+                  <div class="detail-row">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.codeConventionnel' | translate }}</label>
+                    <span class="detail-value">{{ cnamInfo.codeConventionnel }}</span>
+                  </div>
+                }
+
+                @if (cnamInfo.diagnostic) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.diagnostic' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.diagnostic }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.medicationLines && cnamInfo.medicationLines.length > 0) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.medicationLines' | translate }}</label>
+                    <div class="drug-list">
+                      @for (line of cnamInfo.medicationLines; track line.designation) {
+                        <div class="drug-item">
+                          <span class="drug-name">{{ line.designation }}</span>
+                          @if (line.posologie || line.dureeTraitement) {
+                            <span class="drug-meta">{{ line.posologie }}{{ line.posologie && line.dureeTraitement ? ' — ' : '' }}{{ line.dureeTraitement }}</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (cnamInfo.therapeutique) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.therapeutique' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.therapeutique }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.natureExamen) {
+                  <div class="detail-row mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.natureExamen' | translate }}</label>
+                    <span class="detail-value">{{ cnamInfo.natureExamen }}</span>
+                  </div>
+                }
+
+                @if (cnamInfo.dateExamen) {
+                  <div class="detail-row mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.dateExamen' | translate }}</label>
+                    <span class="detail-value">{{ cnamInfo.dateExamen }}</span>
+                  </div>
+                }
+
+                @if (cnamInfo.donneesCliniques) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.donneesCliniquesParacliniques' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.donneesCliniques }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.pathologieOrigine) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.pathologieOrigine' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.pathologieOrigine }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.traitement) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.traitement' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.traitement }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.etatSante) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.etatSante' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.etatSante }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.bilanFonctionnel) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.bilanFonctionnel' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.bilanFonctionnel }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.prolongation) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.prolongation' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.prolongation }}</p>
+                  </div>
+                }
+
+                @if (cnamInfo.observation) {
+                  <div class="detail-section mt-2">
+                    <label class="detail-label">{{ 'consultation.conduite.cnam.fields.observation' | translate }}</label>
+                    <p class="detail-text">{{ cnamInfo.observation }}</p>
+                  </div>
+                }
+              </div>
+
+              <p class="cnam-hint mt-3">{{ 'consultation.carepModal.cnamHint' | translate }}</p>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="modal-footer">
+        @if (canPrint) {
+          <button type="button" class="btn-print" (click)="printDocument()">
+            <i class="bi bi-printer"></i>
+            {{ 'consultation.carepModal.print' | translate }}
+          </button>
+        }
+        <button type="button" class="btn-secondary" (click)="close()">
+          {{ 'consultation.carepModal.close' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

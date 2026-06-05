@@ -1,0 +1,147 @@
+<div class="internal-messaging chat-widget-container">
+  @if (isOpen) {
+    <div class="chat-box">
+      <div class="chat-header-controls">
+        <button type="button" class="close-chat-btn" (click)="toggleChat()" title="Fermer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="chat-shell">
+        <div class="chat-sidebar">
+          @for (room of rooms; track room.roomId) {
+            <button
+              type="button"
+              class="side-tab"
+              [class.sec1]="room.key === 'sec1'"
+              [class.sec2]="room.key === 'sec2'"
+              [class.active]="selectedRoomKey === room.key"
+              (click)="selectRoom(room)"
+            >
+              @if (room.key === 'group') {
+                Groupe
+              } @else if (room.key === 'sec1') {
+                <span>Prive</span>
+                <span>Secretaire 1</span>
+              } @else {
+                <span>Prive</span>
+                <span>Secretaire 2</span>
+              }
+            </button>
+          }
+        </div>
+
+        <div class="chat-main">
+          <div class="chat-container">
+            <div class="chat-header">
+              <div class="chat-title">Messagerie</div>
+              <div class="chat-subtitle">{{ activeRoomLabel() }}</div>
+            </div>
+
+            <div class="messages-wrapper">
+              <div class="messages-list">
+                @if (isBootstrapLoading || isMessagesLoading) {
+                  <div class="state-message">Chargement...</div>
+                } @else if (loadError) {
+                  <div class="state-message">{{ loadError }}</div>
+                } @else if (messages.length === 0) {
+                  <div class="state-message">Aucun message.</div>
+                } @else {
+                  @for (msg of messages; track msg.id) {
+                    <div class="msg-row" [class.msg-out]="isMine(msg)" [class.msg-in]="!isMine(msg)">
+                      <div class="bubble" [class.bubble-out]="isMine(msg)" [class.bubble-in]="!isMine(msg)">
+                        <div class="bubble-top">
+                          <span class="sender-label">{{ displaySender(msg) }}</span>
+                          <div class="meta-wrap">
+                            <span class="time">{{ msg.createdAt | date:'HH:mm' }}</span>
+                          </div>
+                        </div>
+
+                        @if (editingMessageId !== msg.id && !msg.deletedAt) {
+                          <div class="text">{{ msg.content }}</div>
+                        }
+
+                        @if (msg.deletedAt) {
+                          <div class="deleted-text">Ce message a ete supprime</div>
+                        }
+
+                        @if (msg.editedAt && !msg.deletedAt) {
+                          <div class="edited-text">modifie</div>
+                        }
+
+                        @if (wasSeenByOther(msg)) {
+                          <div class="status-bottom">Vu</div>
+                        }
+
+                        @if (editingMessageId === msg.id) {
+                          <div class="edit-box">
+                            <input
+                              [(ngModel)]="editingContent"
+                              (keyup.enter)="saveEdit(msg)"
+                              maxlength="1000"
+                            />
+                            <div class="edit-actions">
+                              <button type="button" class="tiny-btn ok" (click)="saveEdit(msg)" [disabled]="!editingContent.trim()">
+                                OK
+                              </button>
+                              <button type="button" class="tiny-btn cancel" (click)="cancelEdit()">Annuler</button>
+                            </div>
+                          </div>
+                        }
+
+                        @if (canEdit(msg) && editingMessageId !== msg.id) {
+                          <div class="bubble-actions">
+                            <button type="button" class="action-btn" (click)="startEdit(msg)" title="Modifier">
+                              <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="action-btn danger" (click)="deleteMessage(msg)" title="Supprimer">
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                }
+
+                @if (isTypingByOther) {
+                  <div class="typing-indicator">{{ typingLabel }} ecrit...</div>
+                }
+              </div>
+
+              <button
+                class="scroll-to-latest-btn"
+                type="button"
+                title="Aller au dernier message"
+                (click)="scrollToBottom()"
+              >
+                <i class="fa fa-arrow-down"></i>
+              </button>
+            </div>
+
+            <div class="chat-input">
+              <input
+                [(ngModel)]="newMessage"
+                (ngModelChange)="onInputChange()"
+                (keyup.enter)="envoyer()"
+                placeholder="Ecrivez votre message..."
+                type="text"
+                maxlength="1000"
+              />
+              <button type="button" class="send-btn" (click)="envoyer()" [disabled]="!newMessage.trim()">
+                Envoyer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <button class="chat-toggle-btn" type="button" (click)="toggleChat()" title="Messagerie interne">
+    <i class="fa fa-comments"></i>
+    @if (unreadCount > 0) {
+      <span class="custom-badge">{{ unreadCount }}</span>
+    }
+  </button>
+</div>

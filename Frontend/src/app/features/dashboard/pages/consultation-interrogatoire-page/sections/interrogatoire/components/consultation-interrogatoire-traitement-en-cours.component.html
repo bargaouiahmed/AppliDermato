@@ -1,0 +1,279 @@
+<div
+  class="card bg-camel shadow-sm p-3 my-3 treatment-section-wrapper"
+  [attr.dir]="dir"
+  [class.section-expanded]="!isSectionCollapsible || treatmentSectionExpanded || treatmentDropdownOpen"
+  [class.rtl-layout]="isRtl"
+  (mouseenter)="onTreatmentWrapperEnter()"
+  (mouseleave)="onTreatmentWrapperLeave()"
+>
+  <div
+    class="card-header border-bottom-0 d-flex justify-content-between align-items-center"
+    [class.non-collapsible]="!isSectionCollapsible"
+    (click)="toggleTreatmentSection($event)"
+  >
+    <h3 class="mb-0">
+      <a href="javascript:void(0)" class="treatment-mode-link" [class.active]="!isOrdonnanceHistoryMode()" (click)="switchToTecView(); $event.preventDefault(); $event.stopPropagation()">
+        {{ 'consultation.page.interrogatoire.treatments.title' | translate }}
+      </a>
+      <span class="text-muted mx-2">/</span>
+      <a href="javascript:void(0)" class="treatment-mode-link" [class.active]="isOrdonnanceHistoryMode()" (click)="switchToOrdonnancesView(); $event.preventDefault(); $event.stopPropagation()">
+        {{ 'consultation.page.interrogatoire.treatments.prescribedOrdonnances' | translate }}
+      </a>
+      @if (isOrdonnanceHistoryMode()) {
+        <span class="ordonnance-timeline-inline ms-2">
+          @if (isLoadingOrdonnanceHistory) {
+            <span class="timeline-loading">{{ 'common.loading' | translate }}</span>
+          } @else {
+            @for (item of ordonnanceHistory; track item.consultationId; let last = $last) {
+              <button type="button" class="ordonnance-date-link" [class.active]="selectedOrdonnanceConsultationId === item.consultationId" (click)="selectOrdonnanceHistory(item.consultationId); $event.stopPropagation()">
+                {{ item.consultationDate | date:'dd/MM/yy' }}
+              </button>
+              @if (!last) {
+                <span class="ordonnance-separator">,</span>
+              }
+            }
+          }
+        </span>
+      }
+    </h3>
+    <i *ngIf="isSectionCollapsible" class="bi bi-chevron-down collapse-indicator"></i>
+  </div>
+
+  <div class="treatment-collapsible-body">
+    <div id="traitement" class="treatment-body">
+      <div class="d-flex justify-content-start align-items-center mb-2">
+        @if (!isOrdonnanceHistoryMode()) {
+        <button
+          type="button"
+          class="btn btn-link p-0 treatment-add-btn"
+          (click)="addRow()"
+          [title]="'consultation.page.interrogatoire.treatments.actions.addLine' | translate"
+        >
+          <i class="fa-solid fa-circle-plus"></i>
+        </button>
+        }
+      </div>
+
+      <div class="table-responsive">
+        <table class="table text-center table-traitement tec-table m-0">
+          <thead class="ligne-paire">
+            <tr>
+              <th>
+                {{ 'consultation.page.interrogatoire.treatments.fields.therapeuticClass' | translate }}
+                <span class="header-plus-icon" aria-hidden="true"><i class="fa-solid fa-square-plus"></i></span>
+              </th>
+              <th>
+                {{ 'consultation.page.interrogatoire.treatments.fields.category' | translate }}
+                <span class="header-plus-icon" aria-hidden="true"><i class="fa-solid fa-square-plus"></i></span>
+              </th>
+              <th>
+                {{ 'consultation.page.interrogatoire.treatments.fields.medicine' | translate }}
+                <span class="header-plus-icon" aria-hidden="true"><i class="fa-solid fa-square-plus"></i></span>
+              </th>
+              <th>{{ 'consultation.page.interrogatoire.treatments.fields.posology' | translate }}</th>
+              <th>{{ 'consultation.page.interrogatoire.treatments.fields.duration' | translate }}</th>
+              <th>{{ 'consultation.page.interrogatoire.treatments.fields.date' | translate }}</th>
+              @if (!isOrdonnanceHistoryMode()) {
+                <th>{{ 'consultation.page.interrogatoire.treatments.fields.actions' | translate }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows; track row.rowId; let i = $index) {
+              <tr [class.ligne-impaire]="i % 2 === 0" [class.ligne-paire]="i % 2 !== 0">
+                <td>
+                  @if (isOrdonnanceHistoryMode()) {
+                    <span class="readonly-cell">{{ displayKnownDefaultTreatmentValue(row.therapeuticClass) || '-' }}</span>
+                  } @else {
+                  <ng-select
+                    [items]="therapeuticClassOptions"
+                    bindLabel="label"
+                    bindValue="value"
+                    [clearable]="true"
+                    [searchable]="true"
+                    [addTag]="(term) => addTherapeuticClassTag(row.rowId, term)"
+                    [labelForId]="'treatment-therapeutic-class-' + row.rowId"
+                    [inputAttrs]="{ id: 'treatment-therapeutic-class-' + row.rowId, name: 'treatment-therapeutic-class-' + row.rowId, autocomplete: 'off' }"
+                    [placeholder]="'consultation.page.interrogatoire.treatments.placeholders.therapeuticClass' | translate"
+                    [ngModel]="toSelectModel(row.therapeuticClass)"
+                    (ngModelChange)="onTherapeuticClassChange(row.rowId, $event)"
+                    (open)="onTreatmentSelectOpen()"
+                    (close)="onTreatmentSelectClose()"
+                    [dir]="dir"
+                  >
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                    </ng-template>
+                  </ng-select>
+                  }
+                </td>
+                <td>
+                  @if (isOrdonnanceHistoryMode()) {
+                    <span class="readonly-cell">{{ displayKnownDefaultTreatmentValue(row.category) || '-' }}</span>
+                  } @else {
+                  <ng-select
+                    [items]="row.categoryItems"
+                    bindLabel="label"
+                    bindValue="value"
+                    [clearable]="true"
+                    [searchable]="true"
+                    [addTag]="(term) => addCategoryTag(row.rowId, term)"
+                    [labelForId]="'treatment-category-' + row.rowId"
+                    [inputAttrs]="{ id: 'treatment-category-' + row.rowId, name: 'treatment-category-' + row.rowId, autocomplete: 'off' }"
+                    [disabled]="false"
+                    [placeholder]="'consultation.page.interrogatoire.treatments.placeholders.category' | translate"
+                    [ngModel]="toSelectModel(row.category)"
+                    (ngModelChange)="onCategoryChange(row.rowId, $event)"
+                    (open)="onTreatmentSelectOpen()"
+                    (close)="onTreatmentSelectClose()"
+                    [dir]="dir"
+                  >
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                    </ng-template>
+                  </ng-select>
+                  }
+                </td>
+                <td>
+                  @if (isOrdonnanceHistoryMode()) {
+                    <span class="readonly-cell">{{ displayKnownDefaultTreatmentValue(row.medicine) || '-' }}</span>
+                  } @else {
+                  <ng-select
+                    [items]="row.medicineItems"
+                    bindLabel="label"
+                    bindValue="value"
+                    [clearable]="true"
+                    [searchable]="true"
+                    [addTag]="(term) => addMedicineTag(row.rowId, term)"
+                    [labelForId]="'treatment-medicine-' + row.rowId"
+                    [inputAttrs]="{ id: 'treatment-medicine-' + row.rowId, name: 'treatment-medicine-' + row.rowId, autocomplete: 'off' }"
+                    [disabled]="false"
+                    [placeholder]="'consultation.page.interrogatoire.treatments.placeholders.medicine' | translate"
+                    [ngModel]="toSelectModel(row.medicine)"
+                    (ngModelChange)="onMedicineChange(row.rowId, $event)"
+                    (open)="onTreatmentSelectOpen()"
+                    (close)="onTreatmentSelectClose()"
+                    [dir]="dir"
+                  >
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item?.value ?? item?.label) }}
+                    </ng-template>
+                    <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                      <div class="ng-option" (click)="addMedicineTag(row.rowId, searchTerm)">
+                        {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                      </div>
+                    </ng-template>
+                  </ng-select>
+                  }
+                </td>
+                <td>
+                  @if (isOrdonnanceHistoryMode()) {
+                    <span class="readonly-cell">{{ displayKnownDefaultTreatmentValue(row.posology) || '-' }}</span>
+                  } @else {
+                  <ng-select
+                    [items]="posologyOptionsForRow(row)"
+                    bindLabel="label"
+                    bindValue="value"
+                    [clearable]="false"
+                    [searchable]="true"
+                    [addTag]="addPosologyTag.bind(this)"
+                    [labelForId]="'treatment-posology-' + row.rowId"
+                    [inputAttrs]="{ id: 'treatment-posology-' + row.rowId, name: 'treatment-posology-' + row.rowId, autocomplete: 'off' }"
+                    [ngModel]="row.posology"
+                    (ngModelChange)="onPosologyChange(row.rowId, $event)"
+                    (open)="onTreatmentSelectOpen()"
+                    (close)="onTreatmentSelectClose()"
+                    [dir]="dir"
+                  >
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ item?.label | translate }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item">
+                      {{ item?.label | translate }}
+                    </ng-template>
+                    <ng-template ng-notfound-tmp let-searchTerm="searchTerm">
+                      <div class="ng-option" (click)="onPosologyChange(row.rowId, addPosologyTag(searchTerm))">
+                        {{ 'consultation.page.actions.add' | translate }} : <b>{{ searchTerm }}</b>
+                      </div>
+                    </ng-template>
+                  </ng-select>
+                  }
+                </td>
+                <td>
+                  @if (isOrdonnanceHistoryMode()) {
+                    <span class="readonly-cell">{{ displayKnownDefaultTreatmentValue(row.duration) || '-' }}</span>
+                  } @else {
+                  <ng-select
+                    [items]="durationOptions"
+                    [clearable]="false"
+                    [searchable]="true"
+                    [addTag]="addDurationTag.bind(this)"
+                    [labelForId]="'treatment-duration-' + row.rowId"
+                    [inputAttrs]="{ id: 'treatment-duration-' + row.rowId, name: 'treatment-duration-' + row.rowId, autocomplete: 'off' }"
+                    [ngModel]="row.duration"
+                    (ngModelChange)="onDurationChange(row.rowId, $event)"
+                    (open)="onTreatmentSelectOpen()"
+                    (close)="onTreatmentSelectClose()"
+                    [dir]="dir"
+                  >
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item) }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item">
+                      {{ displayKnownDefaultTreatmentValue(item) }}
+                    </ng-template>
+                  </ng-select>
+                  }
+                </td>
+                <td>
+                  @if (isOrdonnanceHistoryMode()) {
+                    <span class="readonly-cell">-</span>
+                  } @else {
+                  <input
+                    class="form-control form-control-sm"
+                    type="date"
+                    [attr.id]="'treatment-date-' + row.rowId"
+                    [attr.name]="'treatment-date-' + row.rowId"
+                    [ngModel]="toDateInputValue(row.date)"
+                    (ngModelChange)="onDateChange(row.rowId, $event)"
+                  />
+                  }
+                </td>
+                @if (!isOrdonnanceHistoryMode()) {
+                <td class="actions-cell">
+                  <button
+                    type="button"
+                    class="btn btn-link p-0 me-2"
+                    (click)="addRow()"
+                    [title]="'consultation.page.interrogatoire.treatments.actions.addLine' | translate"
+                  >
+                    <i class="fa-solid fa-circle-plus"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    [class.disabled]="rows.length <= 1"
+                    (click)="rows.length > 1 ? removeRow(row.rowId) : null"
+                    [title]="'consultation.page.interrogatoire.treatments.actions.removeLine' | translate"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

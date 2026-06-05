@@ -1,0 +1,12 @@
+<div class="language-selector" aria-label="Langues">
+  @for (lang of languages; track lang.code) {
+    <button
+      class="lang-option"
+      type="button"
+      [class.active]="isLanguageActive(lang.code)"
+      (click)="selectLanguage(lang.code)"
+    >
+      {{ lang.code.toUpperCase() }}
+    </button>
+  }
+</div>

@@ -1,0 +1,131 @@
+<div class="ai-chat-container">
+  @if (isOpen()) {
+    <section class="chat-window" [class.chat-window-expanded]="isExpanded()" aria-label="Assistant IA">
+      <header class="chat-header">
+        <div class="header-controls">
+          @if (!showSessions()) {
+            <button class="icon-btn" type="button" (click)="backToSessions()" title="Discussions">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+          }
+          <h3>{{ headerTitle() }}</h3>
+        </div>
+        <div class="header-actions">
+          <button
+            class="icon-btn"
+            type="button"
+            (click)="toggleExpanded()"
+            [title]="isExpanded() ? 'Reduire' : 'Agrandir'"
+          >
+            <i class="fa-solid" [class.fa-down-left-and-up-right-to-center]="isExpanded()" [class.fa-up-right-and-down-left-from-center]="!isExpanded()"></i>
+          </button>
+          <button class="icon-btn" type="button" (click)="closeChat()" title="Fermer">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </header>
+
+      @if (showSessions()) {
+        <div class="chat-sidebar">
+          <button class="new-chat-btn" type="button" (click)="createSession()" [disabled]="isLoading()">
+            <i class="fa-solid fa-plus"></i>
+            Nouvelle discussion
+          </button>
+
+          @if (sessions().length > 0) {
+            <ul class="chat-list">
+              @for (session of sessions(); track trackById($index, session)) {
+                <li class="chat-item" (click)="selectSession(session.id)">
+                  <button class="delete-session" type="button" (click)="deleteSession($event, session.id)" title="Supprimer">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                  <span class="chat-item-title">{{ session.title }}</span>
+                  <span class="chat-item-date">{{ session.updatedAt | date: 'short' }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="empty-state">
+              Lancez une discussion avec l'assistant medical.
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="chat-view">
+          <div class="chat-body" #scrollArea (click)="onMarkdownClick($event)">
+            @for (message of messages(); track trackById($index, message)) {
+              <div
+                class="message-row"
+                [class.message-user]="message.role === 'user'"
+                [class.message-assistant]="message.role === 'assistant'"
+                [class.message-error]="message.status === 'error'"
+              >
+                <div class="bubble" [class.msg-markdown]="message.role === 'assistant'">
+                  @if (message.role === 'assistant') {
+                    @if (message.status === 'sending') {
+                      <span class="typing-text">
+                        {{ assistantStatusText() }}
+                        <span class="typing-dots" aria-hidden="true">
+                          <span></span><span></span><span></span>
+                        </span>
+                      </span>
+                    } @else {
+                      <span [innerHTML]="message.content | simpleMarkdown"></span>
+                    }
+                  } @else {
+                    <span>{{ message.content }}</span>
+                  }
+
+                  <div class="message-actions">
+                    @if (message.status === 'error') {
+                      <button type="button" (click)="retryMessage(message.id)" title="Reessayer">
+                        <i class="fa-solid fa-rotate-right"></i>
+                      </button>
+                    }
+                    @if (isPersistedId(message.id) || message.id.startsWith('tmp_')) {
+                      <button type="button" (click)="deleteMessage(message.id)" title="Supprimer">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <form class="chat-input-area" (ngSubmit)="sendMessage()">
+            <input
+              name="aiChatPrompt"
+              [ngModel]="draft()"
+              (ngModelChange)="updateDraft($event)"
+              [disabled]="isLoading() || hasPendingAssistant()"
+              [placeholder]="hasPendingAssistant() ? 'Attendez la reponse en cours...' : 'Posez une question...'"
+              autocomplete="off"
+            />
+            <button type="submit" [disabled]="!canSend()" title="Envoyer">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      }
+    </section>
+  }
+
+  @if (expandedTableHtml()) {
+    <div class="table-modal-backdrop" (click)="closeExpandedTable()">
+      <section class="table-modal" aria-label="Tableau agrandi" (click)="$event.stopPropagation()">
+        <header class="table-modal-header">
+          <h3>Tableau</h3>
+          <button class="icon-btn table-close-btn" type="button" (click)="closeExpandedTable()" title="Fermer">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </header>
+        <div class="table-modal-body" [innerHTML]="expandedTableHtml()"></div>
+      </section>
+    </div>
+  }
+
+  <button class="chat-toggle-btn" type="button" (click)="toggleChat()" title="Assistant IA">
+    <i class="fa-solid fa-robot"></i>
+  </button>
+</div>
