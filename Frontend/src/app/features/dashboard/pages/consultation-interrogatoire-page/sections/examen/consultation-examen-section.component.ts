@@ -39,11 +39,16 @@ import { bodyBack } from '../../../sketchfab-test-page/react-muscle-assets/asset
 import { bodyFemaleBack } from '../../../sketchfab-test-page/react-muscle-assets/assets/bodyFemaleBack';
 import { bodyFemaleFront } from '../../../sketchfab-test-page/react-muscle-assets/assets/bodyFemaleFront';
 import { bodyFront } from '../../../sketchfab-test-page/react-muscle-assets/assets/bodyFront';
-import { BodyPart, BodyPartSide, Slug } from '../../../sketchfab-test-page/react-muscle-assets';
+import { BodyPart, BodyPartSide } from '../../../sketchfab-test-page/react-muscle-assets';
 import { BODY_OUTLINE_PATHS } from '../../../sketchfab-test-page/sketchfab-test-page';
+import {
+  BODY_REGION_DEFINITIONS,
+  BodyRegionBounds,
+  BodyRegionDefinition,
+} from './consultation-examen-body-regions';
 
 type RegionSegment = 'common' | BodyPartSide;
-type RegionKeyPart = Slug | 'unknown';
+type RegionKeyPart = string;
 
 type DrawingPoint = {
   x: number;
@@ -80,9 +85,10 @@ type ZoneModalState = {
   draftDrawingPath: string;
 };
 
-type HeadDrawingSurface = {
+type BodyDrawingSurface = {
   viewBox: string;
   parts: BodyPart[];
+  region: BodyRegionDefinition | null;
 };
 
 @Component({
@@ -219,8 +225,8 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     return this.bodyPartsFor(view);
   }
 
-  protected get isHeadDrawingModal(): boolean {
-    return this.modalState?.slug === 'head' || this.modalState?.slug === 'hair';
+  protected get isDrawingModal(): boolean {
+    return !!this.modalState && !!this.bodyRegionDefinitionFor(this.modalState);
   }
 
   protected viewBoxFor(view: BodyView): string {
@@ -231,22 +237,80 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     return view === 'front' ? '0 0 724 1448' : '724 0 724 1448';
   }
 
-  private headDrawingViewBoxFor(view: BodyView): string {
-    if (this.bodyGender === 'female') {
-      return view === 'front' ? '165 -12 250 320' : '985 -12 245 295';
-    }
-
-    return view === 'front' ? '292 88 145 170' : '1018 88 132 160';
-  }
-
   protected outlinePathFor(view: BodyView): string {
     return BODY_OUTLINE_PATHS[this.bodyGender][view];
   }
 
-  protected headDrawingSurfaceFor(view: BodyView): HeadDrawingSurface {
+  protected bodyRegionsFor(view: BodyView): BodyRegionDefinition[] {
+    return BODY_REGION_DEFINITIONS[this.bodyGender][view];
+  }
+
+  protected bodyRegionId(view: BodyView, region: BodyRegionDefinition): string {
+    return this.regionId(view, region.slug, region.segment, region.pathIndex);
+  }
+
+  protected bodyRegionFill(view: BodyView, region: BodyRegionDefinition): string {
+    return this.zoneById(this.bodyRegionId(view, region)) ? '#d94b5f' : region.color;
+  }
+
+  protected bodyRegionClass(view: BodyView, region: BodyRegionDefinition): string {
+    return this.zoneById(this.bodyRegionId(view, region))
+      ? 'body-region-path is-documented'
+      : 'body-region-path';
+  }
+
+  protected drawingSurfaceFor(modalState: ZoneModalState): BodyDrawingSurface {
+    const region = this.bodyRegionDefinitionFor(modalState);
     return {
-      viewBox: this.headDrawingViewBoxFor(view),
-      parts: this.bodyPartsFor(view).filter((part) => part.slug === 'head' || part.slug === 'hair'),
+      viewBox: this.drawingViewBoxForRegion(modalState.view, region),
+      parts: this.bodyPartsFor(modalState.view),
+      region,
+    };
+  }
+
+  private bodyRegionDefinitionFor(modalState: Pick<ZoneModalState, 'view' | 'slug' | 'segment' | 'pathIndex'>): BodyRegionDefinition | null {
+    return (
+      this.bodyRegionsFor(modalState.view).find(
+        (region) =>
+          region.slug === modalState.slug &&
+          region.segment === modalState.segment &&
+          region.pathIndex === modalState.pathIndex,
+      ) ?? null
+    );
+  }
+
+  private drawingViewBoxForRegion(view: BodyView, region: BodyRegionDefinition | null): string {
+    if (!region) {
+      return this.viewBoxFor(view);
+    }
+
+    const fullViewBox = this.parseViewBox(this.viewBoxFor(view));
+    const paddingX = Math.max(region.bounds.width * 0.42, 34);
+    const paddingY = Math.max(region.bounds.height * 0.42, 34);
+    const left = Math.max(fullViewBox.x, region.bounds.x - paddingX);
+    const top = Math.max(fullViewBox.y, region.bounds.y - paddingY);
+    const right = Math.min(fullViewBox.x + fullViewBox.width, region.bounds.x + region.bounds.width + paddingX);
+    const bottom = Math.min(fullViewBox.y + fullViewBox.height, region.bounds.y + region.bounds.height + paddingY);
+
+    return [
+      this.formatDrawingNumber(left),
+      this.formatDrawingNumber(top),
+      this.formatDrawingNumber(Math.max(80, right - left)),
+      this.formatDrawingNumber(Math.max(80, bottom - top)),
+    ].join(' ');
+  }
+
+  private parseViewBox(viewBox: string): BodyRegionBounds {
+    const [x, y, width, height] = viewBox
+      .split(/\s+/)
+      .map((part) => Number(part))
+      .filter((value) => Number.isFinite(value));
+
+    return {
+      x: x ?? 0,
+      y: y ?? 0,
+      width: width ?? 724,
+      height: height ?? 1448,
     };
   }
 
@@ -383,16 +447,6 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   private translateBodyMapPart(slug: RegionKeyPart, view: BodyView, segment: RegionSegment): string {
-    if (slug === 'head') {
-      const viewKey = view === 'front'
-        ? 'consultation.page.exam.bodyMap.parts.face'
-        : 'consultation.page.exam.bodyMap.parts.rearHead';
-      const translatedView = this.i18n.t(viewKey);
-      if (translatedView !== viewKey) {
-        return translatedView;
-      }
-    }
-
     const safeSlug = slug || 'unknown';
     const key = `consultation.page.exam.bodyMap.parts.${safeSlug}`;
     const translated = this.i18n.t(key);
@@ -449,7 +503,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
     const input = event.target as HTMLInputElement | null;
     const file = input?.files?.[0] ?? null;
-    if (this.isHeadDrawingModal) {
+    if (this.isDrawingModal) {
       this.updateSelectedDrawingLesion((lesion) => ({
         ...lesion,
         nextFile: file,
@@ -470,7 +524,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
-    if (this.isHeadDrawingModal) {
+    if (this.isDrawingModal) {
       this.updateSelectedDrawingLesion((lesion) => ({
         ...lesion,
         nextFile: null,
@@ -491,7 +545,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
-    if (this.isHeadDrawingModal) {
+    if (this.isDrawingModal) {
       this.clearHeadDrawing();
       return;
     }
@@ -510,7 +564,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected startHeadDrawing(event: PointerEvent): void {
-    if (!this.modalState || !this.isHeadDrawingModal || this.isSavingZone) {
+    if (!this.modalState || !this.isDrawingModal || this.isSavingZone) {
       return;
     }
 
@@ -525,7 +579,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected continueHeadDrawing(event: PointerEvent): void {
-    if (!this.modalState || this.activeDrawingPoints.length === 0 || !this.isHeadDrawingModal) {
+    if (!this.modalState || this.activeDrawingPoints.length === 0 || !this.isDrawingModal) {
       return;
     }
 
@@ -681,7 +735,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     }
 
     const modalState = this.modalState;
-    if (modalState.slug === 'head' || modalState.slug === 'hair') {
+    if (this.bodyRegionDefinitionFor(modalState)) {
       this.saveHeadDrawingZone(modalState);
       return;
     }
@@ -1281,13 +1335,13 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     if (
       normalizedLesions.length === 0 ||
       !this.modalState ||
-      (this.modalState.slug !== 'head' && this.modalState.slug !== 'hair')
+      !this.bodyRegionDefinitionFor(this.modalState)
     ) {
       return null;
     }
 
     return {
-      viewBox: this.headDrawingSurfaceFor(view).viewBox,
+      viewBox: this.drawingViewBoxForRegion(view, this.bodyRegionDefinitionFor(this.modalState)),
       lesions: normalizedLesions,
     };
   }

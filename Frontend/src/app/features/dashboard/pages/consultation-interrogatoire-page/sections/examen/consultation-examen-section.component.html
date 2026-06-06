@@ -180,6 +180,19 @@
                   }
                 }
 
+                @for (region of bodyRegionsFor('front'); track bodyRegionId('front', region)) {
+                  <path
+                    [attr.d]="region.path"
+                    [attr.fill]="bodyRegionFill('front', region)"
+                    [attr.class]="bodyRegionClass('front', region)"
+                    tabindex="0"
+                    (click)="onRegionClick(bodyRegionId('front', region))"
+                    (keydown)="onRegionKeydown($event, bodyRegionId('front', region))"
+                  >
+                    <title>{{ regionLabel(bodyRegionId('front', region)) }}</title>
+                  </path>
+                }
+
               </svg>
             </div>
           </div>
@@ -233,6 +246,19 @@
                       (keydown)="onRegionKeydown($event, regionId('back', part.slug, 'right', $index))"
                     />
                   }
+                }
+
+                @for (region of bodyRegionsFor('back'); track bodyRegionId('back', region)) {
+                  <path
+                    [attr.d]="region.path"
+                    [attr.fill]="bodyRegionFill('back', region)"
+                    [attr.class]="bodyRegionClass('back', region)"
+                    tabindex="0"
+                    (click)="onRegionClick(bodyRegionId('back', region))"
+                    (keydown)="onRegionKeydown($event, bodyRegionId('back', region))"
+                  >
+                    <title>{{ regionLabel(bodyRegionId('back', region)) }}</title>
+                  </path>
                 }
 
               </svg>
@@ -300,10 +326,10 @@
         </div>
 
         <div class="zone-modal-body">
-          @if (isHeadDrawingModal) {
+          @if (isDrawingModal) {
             <div class="modal-field head-drawing-field">
               <div class="drawing-field-header">
-                <span>{{ 'consultation.page.exam.bodyMap.headDrawing' | translate }}</span>
+                <span>{{ 'consultation.page.exam.bodyMap.regionDrawing' | translate }}</span>
                 <div class="drawing-actions">
                   <button
                     type="button"
@@ -326,13 +352,17 @@
 
               <svg
                 class="head-drawing-svg"
-                [attr.viewBox]="headDrawingSurfaceFor(modalState.view).viewBox"
+                [attr.viewBox]="drawingSurfaceFor(modalState).viewBox"
                 (pointerdown)="startHeadDrawing($event)"
                 (pointermove)="continueHeadDrawing($event)"
                 (pointerup)="finishHeadDrawing($event)"
                 (pointercancel)="cancelHeadDrawing($event)"
               >
-                @for (part of headDrawingSurfaceFor(modalState.view).parts; track part.slug) {
+                @if (outlinePathFor(modalState.view)) {
+                  <path class="body-skin-path" [attr.d]="outlinePathFor(modalState.view)" />
+                }
+
+                @for (part of drawingSurfaceFor(modalState).parts; track part.slug) {
                   @for (path of part.path?.common ?? []; track $index) {
                     <path
                       class="head-drawing-base"
@@ -357,6 +387,9 @@
                       [attr.fill]="part.color"
                     />
                   }
+                }
+                @if (drawingSurfaceFor(modalState).region; as region) {
+                  <path class="body-region-focus" [attr.d]="region.path" [attr.fill]="region.color" />
                 }
                 @for (lesion of modalState.drawingLesions; track lesion.id) {
                   <path
@@ -393,7 +426,7 @@
             </div>
           }
 
-          @if (isHeadDrawingModal) {
+          @if (isDrawingModal) {
             @if (selectedDrawingLesion; as lesion) {
               <label class="modal-field lesion-editor-field">
                 <span>{{ 'consultation.page.exam.bodyMap.selectedLesionDescription' | translate }}</span>

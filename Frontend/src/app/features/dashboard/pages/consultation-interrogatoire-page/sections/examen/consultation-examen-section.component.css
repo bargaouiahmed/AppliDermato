@@ -159,26 +159,44 @@
   fill: rgba(255, 255, 255, 0.28);
   stroke: rgba(116, 81, 62, 0.26);
   stroke-width: 5;
+  pointer-events: none;
 }
 
 .muscle-path {
-  cursor: pointer;
   stroke: rgba(255, 255, 255, 0.9);
   stroke-width: 2;
-  transition: transform 0.16s ease, filter 0.16s ease, fill 0.16s ease;
+  pointer-events: none;
+  transition: filter 0.16s ease, fill 0.16s ease;
   transform-origin: center;
-}
-
-.muscle-path:hover,
-.muscle-path:focus-visible {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  outline: none;
 }
 
 .muscle-path.is-documented {
   stroke: #6f1020;
   stroke-width: 2.4;
+}
+
+.body-region-path {
+  fill-opacity: 0.055;
+  stroke: rgba(31, 71, 61, 0.1);
+  stroke-width: 2;
+  cursor: pointer;
+  transition: fill-opacity 0.16s ease, stroke 0.16s ease, filter 0.16s ease;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.body-region-path:hover,
+.body-region-path:focus-visible {
+  fill-opacity: 0.24;
+  stroke: rgba(15, 111, 89, 0.72);
+  filter: brightness(1.03);
+  outline: none;
+}
+
+.body-region-path.is-documented {
+  fill-opacity: 0.34;
+  stroke: #a43949;
+  stroke-width: 3.2;
 }
 
 .derm-sidebar {
@@ -343,12 +361,23 @@
 .head-drawing-base {
   stroke: rgba(116, 81, 62, 0.42);
   stroke-width: 3;
+  fill-opacity: 0.3;
   vector-effect: non-scaling-stroke;
 }
 
 .head-drawing-base.is-active {
   stroke: #a43949;
   stroke-width: 4;
+}
+
+.body-region-focus {
+  fill-opacity: 0.13;
+  stroke: rgba(210, 154, 0, 0.9);
+  stroke-width: 3;
+  stroke-dasharray: 7 6;
+  stroke-linejoin: round;
+  pointer-events: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .head-lesion-shape {
