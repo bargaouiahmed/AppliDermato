@@ -11,6 +11,19 @@ export interface DermatologyExamImage {
   createdAt: string;
 }
 
+export interface DermatologyExamDrawing {
+  viewBox: string;
+  lesions: DermatologyExamDrawingLesion[];
+  paths?: string[];
+}
+
+export interface DermatologyExamDrawingLesion {
+  id: string;
+  path: string;
+  description: string;
+  image: DermatologyExamImage | null;
+}
+
 export interface DermatologyExamZone {
   regionId: string;
   label: string;
@@ -20,6 +33,7 @@ export interface DermatologyExamZone {
   view: BodyView;
   description: string;
   image: DermatologyExamImage | null;
+  drawing: DermatologyExamDrawing | null;
   updatedAt: string | null;
 }
 
@@ -69,6 +83,7 @@ export function createDefaultDermatologyExamZone(
     view: input.view,
     description: input.description?.trim() ?? '',
     image: input.image ?? null,
+    drawing: input.drawing ?? null,
     updatedAt: input.updatedAt ?? null,
   };
 }

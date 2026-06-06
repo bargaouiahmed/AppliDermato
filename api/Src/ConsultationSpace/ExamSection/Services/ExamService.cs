@@ -417,11 +417,101 @@ public class ExamService(AppDbContext db) : IExamService
                 ["view"] = NormalizeView(ReadStringProperty(zone, "view")),
                 ["description"] = NormalizeText(ReadStringProperty(zone, "description"), 4000),
                 ["image"] = NormalizeImage(ReadObjectProperty(zone, "image")),
+                ["drawing"] = NormalizeDrawing(ReadObjectProperty(zone, "drawing")),
                 ["updatedAt"] = NormalizeNullableText(ReadStringProperty(zone, "updatedAt"), 64),
             };
         }
 
         return normalized;
+    }
+
+    private static object? NormalizeDrawing(JsonElement drawingElement)
+    {
+        if (drawingElement.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        var lesions = new List<Dictionary<string, object?>>();
+        if (drawingElement.TryGetProperty("lesions", out var lesionsElement)
+            && lesionsElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var lesionElement in lesionsElement.EnumerateArray())
+            {
+                if (lesionElement.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var path = NormalizeText(ReadStringProperty(lesionElement, "path"), 8000);
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    continue;
+                }
+
+                var lesionId = NormalizeText(ReadStringProperty(lesionElement, "id"), 80);
+                if (string.IsNullOrWhiteSpace(lesionId))
+                {
+                    lesionId = $"lesion-{lesions.Count + 1}";
+                }
+
+                lesions.Add(new Dictionary<string, object?>
+                {
+                    ["id"] = lesionId,
+                    ["path"] = path,
+                    ["description"] = NormalizeText(ReadStringProperty(lesionElement, "description"), 4000),
+                    ["image"] = NormalizeImage(ReadObjectProperty(lesionElement, "image")),
+                });
+
+                if (lesions.Count >= 24)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (lesions.Count == 0
+            && drawingElement.TryGetProperty("paths", out var pathsElement)
+            && pathsElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var pathElement in pathsElement.EnumerateArray())
+            {
+                if (pathElement.ValueKind != JsonValueKind.String)
+                {
+                    continue;
+                }
+
+                var path = NormalizeText(pathElement.GetString(), 8000);
+                if (!string.IsNullOrWhiteSpace(path))
+                {
+                    lesions.Add(new Dictionary<string, object?>
+                    {
+                        ["id"] = $"legacy-lesion-{lesions.Count + 1}",
+                        ["path"] = path,
+                        ["description"] = string.Empty,
+                        ["image"] = null,
+                    });
+                }
+
+                if (lesions.Count >= 24)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (lesions.Count == 0)
+        {
+            return null;
+        }
+
+        return new Dictionary<string, object?>
+        {
+            ["viewBox"] = NormalizeText(ReadStringProperty(drawingElement, "viewBox"), 80) is { Length: > 0 } viewBox
+                ? viewBox
+                : "0 0 200 260",
+            ["lesions"] = lesions,
+        };
     }
 
     private static object? NormalizeImage(JsonElement imageElement)

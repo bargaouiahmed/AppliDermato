@@ -306,6 +306,112 @@
   gap: 0.45rem;
 }
 
+.drawing-field-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.drawing-field-header > span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6f7f79;
+}
+
+.drawing-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.head-drawing-svg {
+  width: 100%;
+  min-height: 20rem;
+  max-height: 48vh;
+  border: 1px solid #ead9d1;
+  border-radius: 0.85rem;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.95), rgba(255, 247, 242, 0.94)),
+    #fffaf6;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+}
+
+.head-drawing-base {
+  stroke: rgba(116, 81, 62, 0.42);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.head-drawing-base.is-active {
+  stroke: #a43949;
+  stroke-width: 4;
+}
+
+.head-lesion-shape {
+  fill: rgba(217, 75, 95, 0.34);
+  stroke: #a43949;
+  stroke-width: 2.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  cursor: pointer;
+  pointer-events: visiblePainted;
+  vector-effect: non-scaling-stroke;
+}
+
+.head-lesion-shape.is-selected {
+  fill: rgba(248, 206, 75, 0.38);
+  stroke: #d29a00;
+  stroke-width: 4;
+}
+
+.head-lesion-shape.is-draft {
+  fill: rgba(217, 75, 95, 0.18);
+  stroke-dasharray: 5 4;
+  pointer-events: none;
+}
+
+.head-lesion-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.head-lesion-chip {
+  border: 1px solid #e7b0bb;
+  border-radius: 999px;
+  background: #fff0f3;
+  color: #8b2436;
+  padding: 0.38rem 0.68rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.head-lesion-chip.is-active {
+  border-color: #d29a00;
+  background: #fff3bf;
+  color: #795200;
+}
+
+.head-lesion-chip small {
+  border-radius: 999px;
+  background: #ffffff;
+  color: inherit;
+  padding: 0.08rem 0.35rem;
+  font-size: 0.66rem;
+}
+
+.delete-lesion-btn {
+  justify-self: start;
+}
+
 .modal-close,
 .link-btn {
   border: none;

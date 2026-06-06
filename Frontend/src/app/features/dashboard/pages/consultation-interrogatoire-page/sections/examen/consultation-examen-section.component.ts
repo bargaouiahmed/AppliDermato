@@ -19,6 +19,8 @@ import {
   BodyGender,
   BodyView,
   ConsultationExamPayload,
+  DermatologyExamDrawing,
+  DermatologyExamDrawingLesion,
   DermatologyExamImage,
   DermatologyExamZone,
   cloneConsultationExamPayload,
@@ -43,6 +45,24 @@ import { BODY_OUTLINE_PATHS } from '../../../sketchfab-test-page/sketchfab-test-
 type RegionSegment = 'common' | BodyPartSide;
 type RegionKeyPart = Slug | 'unknown';
 
+type DrawingPoint = {
+  x: number;
+  y: number;
+};
+
+type ZoneDrawingLesionState = {
+  id: string;
+  path: string;
+  description: string;
+  existingImage: DermatologyExamImage | null;
+  nextFile: File | null;
+  removeExistingImage: boolean;
+};
+
+type SavedDrawingLesion = DermatologyExamDrawingLesion & {
+  previousDocumentIdToDelete: string | null;
+};
+
 type ZoneModalState = {
   regionId: string;
   label: string;
@@ -54,6 +74,15 @@ type ZoneModalState = {
   existingImage: DermatologyExamImage | null;
   nextFile: File | null;
   removeExistingImage: boolean;
+  drawingLesions: ZoneDrawingLesionState[];
+  selectedDrawingLesionId: string | null;
+  removedDrawingDocumentIds: string[];
+  draftDrawingPath: string;
+};
+
+type HeadDrawingSurface = {
+  viewBox: string;
+  parts: BodyPart[];
 };
 
 @Component({
@@ -106,6 +135,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   private timelineDragStartScrollLeft = 0;
   private timelineHasDragged = false;
   private suppressNextTimelineClick = false;
+  private activeDrawingPoints: DrawingPoint[] = [];
 
   protected get historyTotalPages(): number {
     return Math.max(1, Math.ceil(this.historyTotalCount / this.historyPageSize));
@@ -153,11 +183,28 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected get lesionCount(): number {
-    return this.documentedZones.length;
+    return this.documentedZones.reduce((count, zone) => {
+      const drawingLesionCount = zone.drawing?.lesions?.length ?? 0;
+      return count + (drawingLesionCount > 0 ? drawingLesionCount : 1);
+    }, 0);
   }
 
   protected get imageCount(): number {
-    return this.documentedZones.filter((zone) => !!zone.image?.fileUrl).length;
+    return this.documentedZones.reduce((count, zone) => {
+      const zoneImageCount = zone.image?.fileUrl ? 1 : 0;
+      const drawingImageCount = zone.drawing?.lesions?.filter((lesion) => !!lesion.image?.fileUrl).length ?? 0;
+      return count + zoneImageCount + drawingImageCount;
+    }, 0);
+  }
+
+  protected get selectedDrawingLesion(): ZoneDrawingLesionState | null {
+    if (!this.modalState?.selectedDrawingLesionId) {
+      return null;
+    }
+
+    return (
+      this.modalState.drawingLesions.find((lesion) => lesion.id === this.modalState?.selectedDrawingLesionId) ?? null
+    );
   }
 
   protected bodyPartsFor(view: BodyView): BodyPart[] {
@@ -168,6 +215,14 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     return view === 'front' ? bodyFront : bodyBack;
   }
 
+  protected bodySelectablePartsFor(view: BodyView): BodyPart[] {
+    return this.bodyPartsFor(view);
+  }
+
+  protected get isHeadDrawingModal(): boolean {
+    return this.modalState?.slug === 'head' || this.modalState?.slug === 'hair';
+  }
+
   protected viewBoxFor(view: BodyView): string {
     if (this.bodyGender === 'female') {
       return view === 'front' ? '-60 -10 760 1600' : '740 -10 810 1505';
@@ -176,8 +231,23 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     return view === 'front' ? '0 0 724 1448' : '724 0 724 1448';
   }
 
+  private headDrawingViewBoxFor(view: BodyView): string {
+    if (this.bodyGender === 'female') {
+      return view === 'front' ? '165 -12 250 320' : '985 -12 245 295';
+    }
+
+    return view === 'front' ? '292 88 145 170' : '1018 88 132 160';
+  }
+
   protected outlinePathFor(view: BodyView): string {
     return BODY_OUTLINE_PATHS[this.bodyGender][view];
+  }
+
+  protected headDrawingSurfaceFor(view: BodyView): HeadDrawingSurface {
+    return {
+      viewBox: this.headDrawingViewBoxFor(view),
+      parts: this.bodyPartsFor(view).filter((part) => part.slug === 'head' || part.slug === 'hair'),
+    };
   }
 
   ngOnInit(): void {
@@ -313,7 +383,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   private translateBodyMapPart(slug: RegionKeyPart, view: BodyView, segment: RegionSegment): string {
-    if (slug === 'head' && segment === 'common') {
+    if (slug === 'head') {
       const viewKey = view === 'front'
         ? 'consultation.page.exam.bodyMap.parts.face'
         : 'consultation.page.exam.bodyMap.parts.rearHead';
@@ -379,6 +449,15 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
     const input = event.target as HTMLInputElement | null;
     const file = input?.files?.[0] ?? null;
+    if (this.isHeadDrawingModal) {
+      this.updateSelectedDrawingLesion((lesion) => ({
+        ...lesion,
+        nextFile: file,
+        removeExistingImage: file ? false : lesion.removeExistingImage,
+      }));
+      return;
+    }
+
     this.modalState = {
       ...this.modalState,
       nextFile: file,
@@ -388,6 +467,15 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
   protected removeZoneImage(): void {
     if (!this.modalState) {
+      return;
+    }
+
+    if (this.isHeadDrawingModal) {
+      this.updateSelectedDrawingLesion((lesion) => ({
+        ...lesion,
+        nextFile: null,
+        removeExistingImage: true,
+      }));
       return;
     }
 
@@ -403,12 +491,179 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
+    if (this.isHeadDrawingModal) {
+      this.clearHeadDrawing();
+      return;
+    }
+
     this.modalState = {
       ...this.modalState,
       description: '',
       nextFile: null,
       removeExistingImage: !!this.modalState.existingImage,
+      drawingLesions: [],
+      selectedDrawingLesionId: null,
+      removedDrawingDocumentIds: [],
+      draftDrawingPath: '',
     };
+    this.activeDrawingPoints = [];
+  }
+
+  protected startHeadDrawing(event: PointerEvent): void {
+    if (!this.modalState || !this.isHeadDrawingModal || this.isSavingZone) {
+      return;
+    }
+
+    const point = this.pointerEventToSvgPoint(event);
+    this.activeDrawingPoints = [point];
+    this.modalState = {
+      ...this.modalState,
+      draftDrawingPath: this.pointsToPath(this.activeDrawingPoints, false),
+    };
+    (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  }
+
+  protected continueHeadDrawing(event: PointerEvent): void {
+    if (!this.modalState || this.activeDrawingPoints.length === 0 || !this.isHeadDrawingModal) {
+      return;
+    }
+
+    const point = this.pointerEventToSvgPoint(event);
+    const lastPoint = this.activeDrawingPoints[this.activeDrawingPoints.length - 1];
+    if (this.distanceBetweenPoints(lastPoint, point) < 1.4) {
+      return;
+    }
+
+    this.activeDrawingPoints = [...this.activeDrawingPoints, point];
+    this.modalState = {
+      ...this.modalState,
+      draftDrawingPath: this.pointsToPath(this.activeDrawingPoints, false),
+    };
+    event.preventDefault();
+  }
+
+  protected finishHeadDrawing(event: PointerEvent): void {
+    if (!this.modalState || this.activeDrawingPoints.length === 0) {
+      return;
+    }
+
+    const nextLesions = [...this.modalState.drawingLesions];
+    let selectedDrawingLesionId = this.modalState.selectedDrawingLesionId;
+    if (this.activeDrawingPoints.length >= 3) {
+      const lesion = this.createDrawingLesionState(this.pointsToPath(this.activeDrawingPoints, true));
+      nextLesions.push(lesion);
+      selectedDrawingLesionId = lesion.id;
+    }
+
+    this.activeDrawingPoints = [];
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: nextLesions,
+      selectedDrawingLesionId,
+      draftDrawingPath: '',
+    };
+    (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
+    event.preventDefault();
+  }
+
+  protected cancelHeadDrawing(event: PointerEvent): void {
+    if (!this.modalState) {
+      return;
+    }
+
+    this.activeDrawingPoints = [];
+    this.modalState = {
+      ...this.modalState,
+      draftDrawingPath: '',
+    };
+    (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
+  }
+
+  protected undoHeadDrawing(): void {
+    if (!this.modalState || this.modalState.drawingLesions.length === 0) {
+      return;
+    }
+
+    const removedLesion = this.modalState.drawingLesions[this.modalState.drawingLesions.length - 1];
+    const removedDocumentIds = this.collectDrawingDocumentIds([removedLesion]);
+    const nextLesions = this.modalState.drawingLesions.slice(0, -1);
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: nextLesions,
+      selectedDrawingLesionId:
+        this.modalState.selectedDrawingLesionId === removedLesion.id
+          ? nextLesions[nextLesions.length - 1]?.id ?? null
+          : this.modalState.selectedDrawingLesionId,
+      removedDrawingDocumentIds: [...this.modalState.removedDrawingDocumentIds, ...removedDocumentIds],
+      draftDrawingPath: '',
+    };
+    this.activeDrawingPoints = [];
+  }
+
+  protected clearHeadDrawing(): void {
+    if (!this.modalState) {
+      return;
+    }
+
+    const removedDocumentIds = this.collectDrawingDocumentIds(this.modalState.drawingLesions);
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: [],
+      selectedDrawingLesionId: null,
+      removedDrawingDocumentIds: [...this.modalState.removedDrawingDocumentIds, ...removedDocumentIds],
+      draftDrawingPath: '',
+    };
+    this.activeDrawingPoints = [];
+  }
+
+  protected deleteSelectedHeadLesion(): void {
+    if (!this.modalState?.selectedDrawingLesionId) {
+      return;
+    }
+
+    const selectedId = this.modalState.selectedDrawingLesionId;
+    const selectedIndex = this.modalState.drawingLesions.findIndex((lesion) => lesion.id === selectedId);
+    if (selectedIndex < 0) {
+      return;
+    }
+
+    const selectedLesion = this.modalState.drawingLesions[selectedIndex];
+    const nextLesions = this.modalState.drawingLesions.filter((lesion) => lesion.id !== selectedId);
+    const nextSelectedLesion = nextLesions[selectedIndex] ?? nextLesions[selectedIndex - 1] ?? null;
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: nextLesions,
+      selectedDrawingLesionId: nextSelectedLesion?.id ?? null,
+      removedDrawingDocumentIds: [
+        ...this.modalState.removedDrawingDocumentIds,
+        ...this.collectDrawingDocumentIds([selectedLesion]),
+      ],
+      draftDrawingPath: '',
+    };
+    this.activeDrawingPoints = [];
+  }
+
+  protected selectHeadLesion(lesionId: string, event?: Event): void {
+    if (!this.modalState) {
+      return;
+    }
+
+    event?.stopPropagation();
+    event?.preventDefault();
+    this.activeDrawingPoints = [];
+    this.modalState = {
+      ...this.modalState,
+      selectedDrawingLesionId: lesionId,
+      draftDrawingPath: '',
+    };
+  }
+
+  protected updateSelectedDrawingLesionDescription(description: string): void {
+    this.updateSelectedDrawingLesion((lesion) => ({
+      ...lesion,
+      description,
+    }));
   }
 
   protected closeZoneModal(): void {
@@ -416,6 +671,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
+    this.activeDrawingPoints = [];
     this.modalState = null;
   }
 
@@ -424,21 +680,27 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
-    const description = this.normalizeMultilineText(this.modalState.description);
-    const previousImage = this.modalState.existingImage;
-    const shouldRemoveExistingImage = !!previousImage && this.modalState.removeExistingImage && !this.modalState.nextFile;
+    const modalState = this.modalState;
+    if (modalState.slug === 'head' || modalState.slug === 'hair') {
+      this.saveHeadDrawingZone(modalState);
+      return;
+    }
+
+    const description = this.normalizeMultilineText(modalState.description);
+    const previousImage = modalState.existingImage;
+    const shouldRemoveExistingImage = !!previousImage && modalState.removeExistingImage && !modalState.nextFile;
 
     this.isSavingZone = true;
 
-    const upload$: Observable<ConsultationExplorationDocumentResponse | null> = this.modalState.nextFile
+    const upload$: Observable<ConsultationExplorationDocumentResponse | null> = modalState.nextFile
       ? this.documentsService.createExplorationDocument(this.consultationId, {
           typeLabels: ['Dermatology lesion'],
           clinic: '',
           forfait: '',
           operator: '',
           precaution: '',
-          additionalInformation: `${this.modalState.label}${description ? ` - ${description}` : ''}`,
-          file: this.modalState.nextFile,
+          additionalInformation: `${modalState.label}${description ? ` - ${description}` : ''}`,
+          file: modalState.nextFile,
         })
       : of(null);
 
@@ -453,14 +715,15 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
           const currentZones = { ...(this.payload.bodyMap.zones ?? {}) };
           const nextZone = createDefaultDermatologyExamZone({
-            regionId: this.modalState!.regionId,
-            label: this.modalState!.label,
-            slug: this.modalState!.slug,
-            segment: this.modalState!.segment,
-            pathIndex: this.modalState!.pathIndex,
-            view: this.modalState!.view,
+            regionId: modalState.regionId,
+            label: modalState.label,
+            slug: modalState.slug,
+            segment: modalState.segment,
+            pathIndex: modalState.pathIndex,
+            view: modalState.view,
             description,
             image: nextImage,
+            drawing: null,
             updatedAt: new Date().toISOString(),
           });
 
@@ -496,6 +759,112 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
             catchError(() => of(response)),
           );
         }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response: { consultationId: string; payload: ConsultationExamPayload }) => {
+          this.isHydratingFromBackend = true;
+          this.payload = this.normalizePayload(response?.payload);
+          this.persistedCurrentPayload = cloneConsultationExamPayload(this.payload);
+          this.isHydratingFromBackend = false;
+          this.emitPayloadChange();
+          this.isSavingZone = false;
+          this.modalState = null;
+          this.toastService.success(this.i18n.t('consultation.page.toast.saved'));
+        },
+        error: () => {
+          this.isSavingZone = false;
+          this.toastService.error(this.i18n.t('consultation.page.toast.saveError'));
+        },
+      });
+  }
+
+  private saveHeadDrawingZone(modalState: ZoneModalState): void {
+    this.isSavingZone = true;
+
+    const drawableLesions = modalState.drawingLesions.filter((lesion) => this.normalizeText(lesion.path).length > 0);
+    const uploadOperations: Observable<SavedDrawingLesion>[] = drawableLesions.map((lesion, index) => {
+      const description = this.normalizeMultilineText(lesion.description);
+      const previousDocumentId = lesion.existingImage?.documentId?.trim() || null;
+      const baseLesion = {
+        id: this.normalizeText(lesion.id) || this.createDrawingLesionId(),
+        path: this.normalizeText(lesion.path),
+        description,
+      };
+
+      if (!lesion.nextFile) {
+        return of({
+          ...baseLesion,
+          image: lesion.removeExistingImage ? null : lesion.existingImage,
+          previousDocumentIdToDelete: lesion.removeExistingImage ? previousDocumentId : null,
+        });
+      }
+
+      return this.documentsService
+        .createExplorationDocument(this.consultationId!, {
+          typeLabels: ['Dermatology lesion'],
+          clinic: '',
+          forfait: '',
+          operator: '',
+          precaution: '',
+          additionalInformation: `${modalState.label} - Lesion ${index + 1}${description ? ` - ${description}` : ''}`,
+          file: lesion.nextFile,
+        })
+        .pipe(
+          map((documentResponse) => ({
+            ...baseLesion,
+            image: this.mapDocumentToExamImage(documentResponse),
+            previousDocumentIdToDelete: previousDocumentId,
+          })),
+        );
+    });
+
+    const uploads$ = uploadOperations.length > 0 ? forkJoin(uploadOperations) : of([] as SavedDrawingLesion[]);
+
+    uploads$
+      .pipe(
+        switchMap((savedLesions) => {
+          const drawing = this.createDrawingFromLesions(savedLesions, modalState.view);
+          const currentZones = { ...(this.payload.bodyMap.zones ?? {}) };
+          const nextZone = createDefaultDermatologyExamZone({
+            regionId: modalState.regionId,
+            label: modalState.label,
+            slug: modalState.slug,
+            segment: modalState.segment,
+            pathIndex: modalState.pathIndex,
+            view: modalState.view,
+            description: '',
+            image: null,
+            drawing,
+            updatedAt: new Date().toISOString(),
+          });
+
+          if (this.hasZoneData(nextZone)) {
+            currentZones[nextZone.regionId] = nextZone;
+          } else {
+            delete currentZones[nextZone.regionId];
+          }
+
+          const nextPayload: ConsultationExamPayload = {
+            bodyMap: {
+              ...this.payload.bodyMap,
+              zones: currentZones,
+            },
+          };
+
+          return this.examService.updateConsultationExam(this.consultationId!, { payload: nextPayload }).pipe(
+            map((response) => ({
+              response,
+              documentIdsToDelete: [
+                ...modalState.removedDrawingDocumentIds,
+                ...savedLesions.map((lesion) => lesion.previousDocumentIdToDelete),
+              ],
+            })),
+          );
+        }),
+        switchMap(({ response, documentIdsToDelete }) =>
+          this.deleteExplorationDocumentsAfterSave(response, documentIdsToDelete),
+        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -811,15 +1180,17 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     for (const [regionId, rawZone] of Object.entries(bodyMap?.zones ?? {})) {
       const view = rawZone?.view === 'back' ? 'back' : 'front';
       const segment = rawZone?.segment === 'left' || rawZone?.segment === 'right' ? rawZone.segment : 'common';
+      const slug = this.normalizeText(rawZone?.slug || 'unknown');
       const zone = createDefaultDermatologyExamZone({
         regionId: this.normalizeText(rawZone?.regionId || regionId),
         label: this.normalizeText(rawZone?.label || this.regionLabel(regionId)),
-        slug: this.normalizeText(rawZone?.slug || 'unknown'),
+        slug,
         segment,
         pathIndex: Number.isFinite(Number(rawZone?.pathIndex)) ? Number(rawZone?.pathIndex) : 0,
         view,
         description: this.normalizeMultilineText(rawZone?.description ?? ''),
         image: this.normalizeImage(rawZone?.image),
+        drawing: this.normalizeDrawing(rawZone?.drawing),
         updatedAt: this.normalizeText(rawZone?.updatedAt ?? '') || null,
       });
 
@@ -852,9 +1223,123 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     };
   }
 
+  private normalizeDrawing(drawing: DermatologyExamZone['drawing'] | null | undefined): DermatologyExamDrawing | null {
+    const lesions: DermatologyExamDrawingLesion[] = Array.isArray(drawing?.lesions)
+      ? drawing.lesions
+          .map((lesion, index) => this.normalizeDrawingLesion(lesion, `lesion-${index + 1}`))
+          .filter((lesion): lesion is DermatologyExamDrawingLesion => !!lesion)
+      : [];
+
+    if (lesions.length === 0 && Array.isArray(drawing?.paths)) {
+      drawing.paths
+        .map((path) => this.normalizeText(path))
+        .filter((path) => path.length > 0)
+        .forEach((path, index) => {
+          lesions.push({
+            id: `legacy-lesion-${index + 1}`,
+            path,
+            description: '',
+            image: null,
+          });
+        });
+    }
+
+    const normalizedLesions = lesions.slice(0, 24);
+    if (normalizedLesions.length === 0) {
+      return null;
+    }
+
+    return {
+      viewBox: this.normalizeText(drawing?.viewBox ?? '') || '0 0 200 260',
+      lesions: normalizedLesions,
+    };
+  }
+
+  private normalizeDrawingLesion(
+    lesion: DermatologyExamDrawingLesion | null | undefined,
+    fallbackId: string,
+  ): DermatologyExamDrawingLesion | null {
+    const path = this.normalizeText(lesion?.path ?? '');
+    if (!path) {
+      return null;
+    }
+
+    return {
+      id: this.normalizeText(lesion?.id ?? '') || fallbackId,
+      path,
+      description: this.normalizeMultilineText(lesion?.description ?? ''),
+      image: this.normalizeImage(lesion?.image),
+    };
+  }
+
+  private createDrawingFromLesions(lesions: SavedDrawingLesion[], view: BodyView): DermatologyExamDrawing | null {
+    const normalizedLesions = lesions
+      .map((lesion, index) => this.normalizeDrawingLesion(lesion, `lesion-${index + 1}`))
+      .filter((lesion): lesion is DermatologyExamDrawingLesion => !!lesion)
+      .slice(0, 24);
+
+    if (
+      normalizedLesions.length === 0 ||
+      !this.modalState ||
+      (this.modalState.slug !== 'head' && this.modalState.slug !== 'hair')
+    ) {
+      return null;
+    }
+
+    return {
+      viewBox: this.headDrawingSurfaceFor(view).viewBox,
+      lesions: normalizedLesions,
+    };
+  }
+
+  private pointerEventToSvgPoint(event: PointerEvent): DrawingPoint {
+    const svg = event.currentTarget as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    const viewBox = svg.viewBox.baseVal;
+    const xRatio = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 0;
+    const yRatio = rect.height > 0 ? (event.clientY - rect.top) / rect.height : 0;
+    const x = viewBox.x + xRatio * viewBox.width;
+    const y = viewBox.y + yRatio * viewBox.height;
+
+    return {
+      x: this.clampNumber(x, viewBox.x, viewBox.x + viewBox.width),
+      y: this.clampNumber(y, viewBox.y, viewBox.y + viewBox.height),
+    };
+  }
+
+  private pointsToPath(points: DrawingPoint[], closePath: boolean): string {
+    if (points.length === 0) {
+      return '';
+    }
+
+    const [firstPoint, ...remainingPoints] = points;
+    const commands = [
+      `M ${this.formatDrawingNumber(firstPoint.x)} ${this.formatDrawingNumber(firstPoint.y)}`,
+      ...remainingPoints.map((point) => `L ${this.formatDrawingNumber(point.x)} ${this.formatDrawingNumber(point.y)}`),
+    ];
+
+    return closePath ? `${commands.join(' ')} Z` : commands.join(' ');
+  }
+
+  private distanceBetweenPoints(left: DrawingPoint, right: DrawingPoint): number {
+    const deltaX = left.x - right.x;
+    const deltaY = left.y - right.y;
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  }
+
+  private clampNumber(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  private formatDrawingNumber(value: number): string {
+    return value.toFixed(1).replace(/\.0$/, '');
+  }
+
   private openZoneModal(regionId: string): void {
     const [viewValue, slugValue, segmentValue, pathIndexValue] = regionId.split('|');
     const existingZone = this.zoneById(regionId);
+    const existingDrawing = this.normalizeDrawing(existingZone?.drawing);
+    const drawingLesions = existingDrawing?.lesions.map((lesion) => this.toDrawingLesionState(lesion)) ?? [];
 
     this.modalState = {
       regionId,
@@ -867,7 +1352,12 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       existingImage: existingZone?.image ?? null,
       nextFile: null,
       removeExistingImage: false,
+      drawingLesions,
+      selectedDrawingLesionId: drawingLesions[0]?.id ?? null,
+      removedDrawingDocumentIds: [],
+      draftDrawingPath: '',
     };
+    this.activeDrawingPoints = [];
   }
 
   private zoneById(regionId: string): DermatologyExamZone | null {
@@ -876,7 +1366,12 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   private hasZoneData(zone: DermatologyExamZone | null | undefined): boolean {
-    return !!zone && (!!this.normalizeMultilineText(zone.description) || !!zone.image?.fileUrl);
+    return !!zone && (
+      !!this.normalizeMultilineText(zone.description) ||
+      !!zone.image?.fileUrl ||
+      !!zone.drawing?.lesions?.length ||
+      !!zone.drawing?.paths?.length
+    );
   }
 
   private applyPatientSexToPayload(patientSex: string, allowAutosave: boolean): void {
@@ -914,6 +1409,73 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       fileSizeBytes: documentResponse.fileSizeBytes,
       createdAt: documentResponse.createdAt,
     };
+  }
+
+  private toDrawingLesionState(lesion: DermatologyExamDrawingLesion): ZoneDrawingLesionState {
+    return {
+      id: this.normalizeText(lesion.id) || this.createDrawingLesionId(),
+      path: this.normalizeText(lesion.path),
+      description: this.normalizeMultilineText(lesion.description),
+      existingImage: this.normalizeImage(lesion.image),
+      nextFile: null,
+      removeExistingImage: false,
+    };
+  }
+
+  private createDrawingLesionState(path: string): ZoneDrawingLesionState {
+    return {
+      id: this.createDrawingLesionId(),
+      path,
+      description: '',
+      existingImage: null,
+      nextFile: null,
+      removeExistingImage: false,
+    };
+  }
+
+  private updateSelectedDrawingLesion(
+    update: (lesion: ZoneDrawingLesionState) => ZoneDrawingLesionState,
+  ): void {
+    if (!this.modalState?.selectedDrawingLesionId) {
+      return;
+    }
+
+    const selectedId = this.modalState.selectedDrawingLesionId;
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: this.modalState.drawingLesions.map((lesion) =>
+        lesion.id === selectedId ? update(lesion) : lesion,
+      ),
+    };
+  }
+
+  private collectDrawingDocumentIds(lesions: ZoneDrawingLesionState[]): string[] {
+    return lesions
+      .map((lesion) => lesion.existingImage?.documentId?.trim() ?? '')
+      .filter((documentId) => documentId.length > 0);
+  }
+
+  private createDrawingLesionId(): string {
+    return `lesion-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  private deleteExplorationDocumentsAfterSave<T>(
+    response: T,
+    documentIds: Array<string | null | undefined>,
+  ): Observable<T> {
+    const uniqueDocumentIds = Array.from(
+      new Set(documentIds.map((documentId) => documentId?.trim() ?? '').filter((documentId) => documentId.length > 0)),
+    );
+
+    if (!this.consultationId || uniqueDocumentIds.length === 0) {
+      return of(response);
+    }
+
+    return forkJoin(
+      uniqueDocumentIds.map((documentId) =>
+        this.documentsService.deleteExplorationDocument(this.consultationId!, documentId).pipe(catchError(() => of(null))),
+      ),
+    ).pipe(map(() => response));
   }
 
   private queueAutosave(): void {

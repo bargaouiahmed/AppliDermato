@@ -145,7 +145,7 @@
                   <path class="body-skin-path" [attr.d]="outlinePathFor('front')" />
                 }
 
-                @for (part of bodyPartsFor('front'); track part.slug) {
+                @for (part of bodySelectablePartsFor('front'); track part.slug) {
                   @for (path of part.path?.common ?? []; track $index) {
                     <path
                       [attr.d]="path"
@@ -179,6 +179,7 @@
                     />
                   }
                 }
+
               </svg>
             </div>
           </div>
@@ -199,7 +200,7 @@
                   <path class="body-skin-path" [attr.d]="outlinePathFor('back')" />
                 }
 
-                @for (part of bodyPartsFor('back'); track part.slug) {
+                @for (part of bodySelectablePartsFor('back'); track part.slug) {
                   @for (path of part.path?.common ?? []; track $index) {
                     <path
                       [attr.d]="path"
@@ -233,6 +234,7 @@
                     />
                   }
                 }
+
               </svg>
             </div>
           </div>
@@ -298,39 +300,182 @@
         </div>
 
         <div class="zone-modal-body">
-          <label class="modal-field">
-            <span>{{ 'consultation.page.exam.bodyMap.lesionDescription' | translate }}</span>
-            <textarea
-              rows="6"
-              [(ngModel)]="modalState.description"
-              [placeholder]="'consultation.page.exam.bodyMap.lesionDescriptionPlaceholder' | translate"
-            ></textarea>
-          </label>
-
-          <div class="modal-field">
-            <span>{{ 'consultation.page.exam.bodyMap.zoneImage' | translate }}</span>
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              (change)="onZoneFileSelected($event)"
-            />
-
-            @if (modalState.nextFile) {
-              <p class="file-hint">{{ 'consultation.page.exam.bodyMap.newFile' | translate }}: {{ modalState.nextFile.name }}</p>
-            } @else if (modalState.existingImage && !modalState.removeExistingImage) {
-              <div class="image-preview-card">
-                @if ((modalState.existingImage.contentType || '').startsWith('image/')) {
-                  <img [src]="resolveImageUrl(modalState.existingImage)" [alt]="modalState.label" />
-                }
-                <div class="image-preview-meta">
-                  <span>{{ modalState.existingImage.originalFileName || ('consultation.page.exam.bodyMap.currentImage' | translate) }}</span>
-                  <button type="button" class="link-btn" (click)="removeZoneImage()">{{ 'consultation.page.exam.bodyMap.removeImage' | translate }}</button>
+          @if (isHeadDrawingModal) {
+            <div class="modal-field head-drawing-field">
+              <div class="drawing-field-header">
+                <span>{{ 'consultation.page.exam.bodyMap.headDrawing' | translate }}</span>
+                <div class="drawing-actions">
+                  <button
+                    type="button"
+                    class="ghost-btn"
+                    [disabled]="modalState.drawingLesions.length === 0 || isSavingZone"
+                    (click)="undoHeadDrawing()"
+                  >
+                    {{ 'consultation.page.exam.bodyMap.undoDrawing' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost-btn"
+                    [disabled]="(modalState.drawingLesions.length === 0 && !modalState.draftDrawingPath) || isSavingZone"
+                    (click)="clearHeadDrawing()"
+                  >
+                    {{ 'consultation.page.exam.bodyMap.clearDrawing' | translate }}
+                  </button>
                 </div>
               </div>
-            } @else if (modalState.removeExistingImage) {
-              <p class="file-hint warning">{{ 'consultation.page.exam.bodyMap.imageWillBeRemoved' | translate }}</p>
+
+              <svg
+                class="head-drawing-svg"
+                [attr.viewBox]="headDrawingSurfaceFor(modalState.view).viewBox"
+                (pointerdown)="startHeadDrawing($event)"
+                (pointermove)="continueHeadDrawing($event)"
+                (pointerup)="finishHeadDrawing($event)"
+                (pointercancel)="cancelHeadDrawing($event)"
+              >
+                @for (part of headDrawingSurfaceFor(modalState.view).parts; track part.slug) {
+                  @for (path of part.path?.common ?? []; track $index) {
+                    <path
+                      class="head-drawing-base"
+                      [class.is-active]="part.slug === modalState.slug"
+                      [attr.d]="path"
+                      [attr.fill]="part.color"
+                    />
+                  }
+                  @for (path of part.path?.left ?? []; track $index) {
+                    <path
+                      class="head-drawing-base"
+                      [class.is-active]="part.slug === modalState.slug"
+                      [attr.d]="path"
+                      [attr.fill]="part.color"
+                    />
+                  }
+                  @for (path of part.path?.right ?? []; track $index) {
+                    <path
+                      class="head-drawing-base"
+                      [class.is-active]="part.slug === modalState.slug"
+                      [attr.d]="path"
+                      [attr.fill]="part.color"
+                    />
+                  }
+                }
+                @for (lesion of modalState.drawingLesions; track lesion.id) {
+                  <path
+                    class="head-lesion-shape"
+                    [class.is-selected]="lesion.id === modalState.selectedDrawingLesionId"
+                    [attr.d]="lesion.path"
+                    (pointerdown)="selectHeadLesion(lesion.id, $event)"
+                  />
+                }
+                @if (modalState.draftDrawingPath) {
+                  <path class="head-lesion-shape is-draft" [attr.d]="modalState.draftDrawingPath" />
+                }
+              </svg>
+
+              @if (modalState.drawingLesions.length > 0) {
+                <div class="head-lesion-list">
+                  @for (lesion of modalState.drawingLesions; track lesion.id; let index = $index) {
+                    <button
+                      type="button"
+                      class="head-lesion-chip"
+                      [class.is-active]="lesion.id === modalState.selectedDrawingLesionId"
+                      (click)="selectHeadLesion(lesion.id)"
+                    >
+                      <span>#{{ index + 1 }}</span>
+                      @if (lesion.existingImage?.fileUrl || lesion.nextFile) {
+                        <small>{{ 'consultation.page.exam.bodyMap.photoTag' | translate }}</small>
+                      }
+                    </button>
+                  }
+                </div>
+              } @else {
+                <p class="file-hint">{{ 'consultation.page.exam.bodyMap.drawLesionHint' | translate }}</p>
+              }
+            </div>
+          }
+
+          @if (isHeadDrawingModal) {
+            @if (selectedDrawingLesion; as lesion) {
+              <label class="modal-field lesion-editor-field">
+                <span>{{ 'consultation.page.exam.bodyMap.selectedLesionDescription' | translate }}</span>
+                <textarea
+                  rows="5"
+                  [ngModel]="lesion.description"
+                  (ngModelChange)="updateSelectedDrawingLesionDescription($event)"
+                  [placeholder]="'consultation.page.exam.bodyMap.selectedLesionDescriptionPlaceholder' | translate"
+                ></textarea>
+              </label>
+
+              <div class="modal-field">
+                <span>{{ 'consultation.page.exam.bodyMap.selectedLesionImage' | translate }}</span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  (change)="onZoneFileSelected($event)"
+                />
+
+                @if (lesion.nextFile) {
+                  <p class="file-hint">{{ 'consultation.page.exam.bodyMap.newFile' | translate }}: {{ lesion.nextFile.name }}</p>
+                } @else if (lesion.existingImage && !lesion.removeExistingImage) {
+                  <div class="image-preview-card">
+                    @if ((lesion.existingImage.contentType || '').startsWith('image/')) {
+                      <img [src]="resolveImageUrl(lesion.existingImage)" [alt]="modalState.label" />
+                    }
+                    <div class="image-preview-meta">
+                      <span>{{ lesion.existingImage.originalFileName || ('consultation.page.exam.bodyMap.currentImage' | translate) }}</span>
+                      <button type="button" class="link-btn" (click)="removeZoneImage()">{{ 'consultation.page.exam.bodyMap.removeImage' | translate }}</button>
+                    </div>
+                  </div>
+                } @else if (lesion.removeExistingImage) {
+                  <p class="file-hint warning">{{ 'consultation.page.exam.bodyMap.imageWillBeRemoved' | translate }}</p>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="ghost-btn delete-lesion-btn"
+                [disabled]="isSavingZone"
+                (click)="deleteSelectedHeadLesion()"
+              >
+                {{ 'consultation.page.exam.bodyMap.deleteSelectedLesion' | translate }}
+              </button>
+            } @else {
+              <p class="file-hint">{{ 'consultation.page.exam.bodyMap.selectLesionHint' | translate }}</p>
             }
-          </div>
+          } @else {
+            <label class="modal-field">
+              <span>{{ 'consultation.page.exam.bodyMap.lesionDescription' | translate }}</span>
+              <textarea
+                rows="6"
+                [(ngModel)]="modalState.description"
+                [placeholder]="'consultation.page.exam.bodyMap.lesionDescriptionPlaceholder' | translate"
+              ></textarea>
+            </label>
+
+            <div class="modal-field">
+              <span>{{ 'consultation.page.exam.bodyMap.zoneImage' | translate }}</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                (change)="onZoneFileSelected($event)"
+              />
+
+              @if (modalState.nextFile) {
+                <p class="file-hint">{{ 'consultation.page.exam.bodyMap.newFile' | translate }}: {{ modalState.nextFile.name }}</p>
+              } @else if (modalState.existingImage && !modalState.removeExistingImage) {
+                <div class="image-preview-card">
+                  @if ((modalState.existingImage.contentType || '').startsWith('image/')) {
+                    <img [src]="resolveImageUrl(modalState.existingImage)" [alt]="modalState.label" />
+                  }
+                  <div class="image-preview-meta">
+                    <span>{{ modalState.existingImage.originalFileName || ('consultation.page.exam.bodyMap.currentImage' | translate) }}</span>
+                    <button type="button" class="link-btn" (click)="removeZoneImage()">{{ 'consultation.page.exam.bodyMap.removeImage' | translate }}</button>
+                  </div>
+                </div>
+              } @else if (modalState.removeExistingImage) {
+                <p class="file-hint warning">{{ 'consultation.page.exam.bodyMap.imageWillBeRemoved' | translate }}</p>
+              }
+            </div>
+          }
         </div>
 
         <div class="zone-modal-footer">
