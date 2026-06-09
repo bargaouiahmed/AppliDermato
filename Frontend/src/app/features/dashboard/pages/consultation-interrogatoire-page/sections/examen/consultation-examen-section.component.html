@@ -380,17 +380,13 @@
                     />
                   }
                   @for (path of part.path?.right ?? []; track $index) {
-                    <path
-                      class="head-drawing-base"
-                      [class.is-active]="part.slug === modalState.slug"
-                      [attr.d]="path"
-                      [attr.fill]="part.color"
-                    />
-                  }
+                  <path
+                    class="head-drawing-base"
+                    [attr.d]="path"
+                    [attr.fill]="part.color"
+                  />
                 }
-                @if (drawingSurfaceFor(modalState).region; as region) {
-                  <path class="body-region-focus" [attr.d]="region.path" [attr.fill]="region.color" />
-                }
+              }
                 @for (lesion of modalState.drawingLesions; track lesion.id) {
                   <path
                     class="head-lesion-shape"

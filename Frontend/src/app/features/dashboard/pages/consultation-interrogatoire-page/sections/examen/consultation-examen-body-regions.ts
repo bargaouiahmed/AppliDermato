@@ -34,6 +34,19 @@ type FrontRegionConfig = {
   footY: number;
   armScale: number;
   legScale: number;
+  footScale?: number;
+  hipScale?: number;
+  thoraxTopY?: number;
+  abdomenTopOffset?: number;
+  abdomenTopHalfWidth?: number;
+  abdomenBottomHalfWidth?: number;
+  hipTopOffset?: number;
+  hairCxOffset?: number;
+  hairRx?: number;
+  hairRy?: number;
+  hairCyOffset?: number;
+  hairBehindHead?: boolean;
+  armYOffset?: number;
 };
 
 type BackRegionConfig = {
@@ -51,6 +64,22 @@ type BackRegionConfig = {
   footY: number;
   armScale: number;
   legScale: number;
+  footScale?: number;
+  hairCxOffset?: number;
+  hairRx?: number;
+  hairRy?: number;
+  hairCyOffset?: number;
+  hairBehindHead?: boolean;
+  armYOffset?: number;
+  torsoTopScale?: number;
+  torsoMidScale?: number;
+  torsoBottomScale?: number;
+  upperBackTopOffset?: number;
+  upperBackBottomOffset?: number;
+  lowerBackTopOffset?: number;
+  lowerBackBottomOffset?: number;
+  buttockYOffset?: number;
+  buttockScale?: number;
 };
 
 const COLORS = {
@@ -124,6 +153,37 @@ function ellipseRegion(
   };
 }
 
+function polygonRegion(
+  slug: string,
+  segment: BodyRegionSegment,
+  points: Array<[number, number]>,
+  color: string,
+  pathIndex = 0,
+): BodyRegionDefinition {
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const [firstX, firstY] = points[0] ?? [0, 0];
+  const path = [
+    `M ${firstX} ${firstY}`,
+    ...points.slice(1).map(([x, y]) => `L ${x} ${y}`),
+    'Z',
+  ].join(' ');
+
+  return {
+    slug,
+    segment,
+    pathIndex,
+    bounds: {
+      x: Math.min(...xs),
+      y: Math.min(...ys),
+      width: Math.max(...xs) - Math.min(...xs),
+      height: Math.max(...ys) - Math.min(...ys),
+    },
+    path,
+    color,
+  };
+}
+
 function sideRect(
   slug: string,
   side: BodyRegionSegment,
@@ -140,12 +200,77 @@ function sideRect(
 
 function frontRegions(config: FrontRegionConfig, sex: BodyRegionGender): BodyRegionDefinition[] {
   const c = config.cx;
-  const arm = config.armScale;
   const leg = config.legScale;
-  const patientLeftArmX = 58 * arm;
-  const patientRightArmX = -116 * arm;
-  const patientLeftLegX = 15 * leg;
-  const patientRightLegX = -70 * leg;
+  const patientLeftLegX = 12 * leg;
+  const patientRightLegX = -66 * leg;
+  const leftUpperArm = polygonRegion('arm', 'left', [
+    [c + 54, config.shoulderY + 18],
+    [c + 112, config.shoulderY + 6],
+    [c + 160, config.shoulderY + 62],
+    [c + 172, config.shoulderY + 204],
+    [c + 142, config.shoulderY + 296],
+    [c + 92, config.shoulderY + 272],
+    [c + 58, config.shoulderY + 122],
+  ], COLORS.arm);
+  const rightUpperArm = polygonRegion('arm', 'right', [
+    [c - 54, config.shoulderY + 18],
+    [c - 112, config.shoulderY + 6],
+    [c - 160, config.shoulderY + 62],
+    [c - 172, config.shoulderY + 204],
+    [c - 142, config.shoulderY + 296],
+    [c - 92, config.shoulderY + 272],
+    [c - 58, config.shoulderY + 122],
+  ], COLORS.arm);
+  const leftForearm = polygonRegion('forearm', 'left', [
+    [c + 90, config.shoulderY + 262],
+    [c + 142, config.shoulderY + 298],
+    [c + 162, config.shoulderY + 440],
+    [c + 132, config.shoulderY + 508],
+    [c + 86, config.shoulderY + 474],
+    [c + 76, config.shoulderY + 314],
+  ], COLORS.arm);
+  const rightForearm = polygonRegion('forearm', 'right', [
+    [c - 90, config.shoulderY + 262],
+    [c - 142, config.shoulderY + 298],
+    [c - 162, config.shoulderY + 440],
+    [c - 132, config.shoulderY + 508],
+    [c - 86, config.shoulderY + 474],
+    [c - 76, config.shoulderY + 314],
+  ], COLORS.arm);
+  const leftHand = polygonRegion('hand', 'left', [
+    [c + 96, config.shoulderY + 470],
+    [c + 154, config.shoulderY + 492],
+    [c + 162, config.shoulderY + 580],
+    [c + 130, config.shoulderY + 620],
+    [c + 86, config.shoulderY + 586],
+    [c + 84, config.shoulderY + 500],
+  ], COLORS.arm);
+  const rightHand = polygonRegion('hand', 'right', [
+    [c - 96, config.shoulderY + 470],
+    [c - 154, config.shoulderY + 492],
+    [c - 162, config.shoulderY + 580],
+    [c - 130, config.shoulderY + 620],
+    [c - 86, config.shoulderY + 586],
+    [c - 84, config.shoulderY + 500],
+  ], COLORS.arm);
+  const leftFoot = polygonRegion('foot', 'left', [
+    [c + patientLeftLegX - 6, config.footY + 20],
+    [c + patientLeftLegX + 30, config.footY + 6],
+    [c + patientLeftLegX + 78, config.footY + 18],
+    [c + patientLeftLegX + 86, config.footY + 48],
+    [c + patientLeftLegX + 56, config.footY + 80],
+    [c + patientLeftLegX + 2, config.footY + 82],
+    [c + patientLeftLegX - 16, config.footY + 54],
+  ], COLORS.leg);
+  const rightFoot = polygonRegion('foot', 'right', [
+    [c + patientRightLegX - 6, config.footY + 20],
+    [c + patientRightLegX + 30, config.footY + 6],
+    [c + patientRightLegX + 78, config.footY + 18],
+    [c + patientRightLegX + 86, config.footY + 48],
+    [c + patientRightLegX + 56, config.footY + 80],
+    [c + patientRightLegX + 2, config.footY + 82],
+    [c + patientRightLegX - 16, config.footY + 54],
+  ], COLORS.leg);
   const genitalRegions = sex === 'female'
     ? [ellipseRegion('vulva', 'common', c, config.pelvisY + 42, 28, 28, COLORS.pelvis)]
     : [
@@ -154,124 +279,752 @@ function frontRegions(config: FrontRegionConfig, sex: BodyRegionGender): BodyReg
       ];
 
   return [
-    rectRegion('trunk', 'common', c - 70, config.chestY - 10, 140, 330, COLORS.trunk),
-    rectRegion('leg', 'left', c + patientLeftLegX, config.thighY, 58, 500, COLORS.leg),
-    rectRegion('leg', 'right', c + patientRightLegX, config.thighY, 58, 500, COLORS.leg),
-    rectRegion('arm', 'left', c + patientLeftArmX, config.shoulderY + 64, 52, 470, COLORS.arm),
-    rectRegion('arm', 'right', c + patientRightArmX, config.shoulderY + 64, 52, 470, COLORS.arm),
+    polygonRegion('trunk', 'common', [
+      [c - 88, config.chestY - 12],
+      [c + 88, config.chestY - 12],
+      [c + 82, config.abdomenY + 34],
+      [c + 104, config.pelvisY + 58],
+      [c + 78, config.thighY + 10],
+      [c - 78, config.thighY + 10],
+      [c - 104, config.pelvisY + 58],
+      [c - 82, config.abdomenY + 34],
+    ], COLORS.trunk),
+    rectRegion('leg', 'left', c + patientLeftLegX, config.thighY, 62, 510, COLORS.leg),
+    rectRegion('leg', 'right', c + patientRightLegX, config.thighY, 62, 510, COLORS.leg),
+    leftUpperArm,
+    rightUpperArm,
 
-    ellipseRegion('head', 'common', c, config.headY + 34, 60, 42, COLORS.head),
-    ellipseRegion('hair', 'common', c, config.headY + 54, 66, 54, COLORS.head),
-    ellipseRegion('face', 'common', c, config.headY + 112, 48, 63, COLORS.face),
-    rectRegion('forehead', 'common', c - 32, config.headY + 76, 64, 26, COLORS.face),
-    sideRect('eyebrow', 'left', c, 8, config.headY + 106, 27, 12, COLORS.face),
-    sideRect('eyebrow', 'right', c, -35, config.headY + 106, 27, 12, COLORS.face),
-    sideRect('eye', 'left', c, 8, config.headY + 121, 27, 18, COLORS.face),
-    sideRect('eye', 'right', c, -35, config.headY + 121, 27, 18, COLORS.face),
-    rectRegion('nose', 'common', c - 13, config.headY + 128, 26, 35, COLORS.face),
-    sideRect('ear', 'left', c, 47, config.headY + 115, 22, 48, COLORS.face),
-    sideRect('ear', 'right', c, -69, config.headY + 115, 22, 48, COLORS.face),
-    sideRect('cheek', 'left', c, 15, config.headY + 146, 32, 29, COLORS.face),
-    sideRect('cheek', 'right', c, -47, config.headY + 146, 32, 29, COLORS.face),
-    rectRegion('lips', 'common', c - 21, config.headY + 170, 42, 20, COLORS.face),
-    rectRegion('chin', 'common', c - 25, config.headY + 191, 50, 28, COLORS.face),
-    rectRegion('neck', 'common', c - 32, config.neckY, 64, 64, COLORS.neutral),
+    ellipseRegion('head', 'common', c, config.headY + 110, 66, 94, COLORS.head),
+    ellipseRegion('hair', 'common', c, config.headY + 48, 72, 54, COLORS.head),
+    ellipseRegion('face', 'common', c, config.headY + 118, 54, 70, COLORS.face),
+    polygonRegion('neck', 'common', [
+      [c - 30, config.neckY],
+      [c + 30, config.neckY],
+      [c + 42, config.chestY - 18],
+      [c - 42, config.chestY - 18],
+    ], COLORS.neutral),
 
-    rectRegion('thorax', 'common', c - 70, config.chestY, 140, 145, COLORS.trunk),
-    sideRect('breast', 'left', c, 5, config.chestY + 30, 58, 66, COLORS.trunk),
-    sideRect('breast', 'right', c, -63, config.chestY + 30, 58, 66, COLORS.trunk),
-    rectRegion('abdomen', 'common', c - 62, config.abdomenY, 124, 155, COLORS.trunk),
-    ellipseRegion('umbilicus', 'common', c, config.abdomenY + 70, 24, 24, COLORS.trunk),
-    rectRegion('pubis', 'common', c - 42, config.pelvisY, 84, 56, COLORS.pelvis),
-    sideRect('groin', 'left', c, 16, config.pelvisY + 46, 52, 58, COLORS.pelvis),
-    sideRect('groin', 'right', c, -68, config.pelvisY + 46, 52, 58, COLORS.pelvis),
+    polygonRegion('thorax', 'common', [
+      [c - 96, config.chestY - 8],
+      [c + 96, config.chestY - 8],
+      [c + 82, config.abdomenY - 18],
+      [c - 82, config.abdomenY - 18],
+    ], COLORS.trunk),
+    polygonRegion('breast', 'left', [
+      [c + 8, config.chestY + 24],
+      [c + 78, config.chestY + 28],
+      [c + 88, config.chestY + 104],
+      [c + 22, config.chestY + 118],
+    ], COLORS.trunk),
+    polygonRegion('breast', 'right', [
+      [c - 8, config.chestY + 24],
+      [c - 78, config.chestY + 28],
+      [c - 88, config.chestY + 104],
+      [c - 22, config.chestY + 118],
+    ], COLORS.trunk),
+    polygonRegion('abdomen', 'common', [
+      [c - 78, config.abdomenY - 16],
+      [c + 78, config.abdomenY - 16],
+      [c + 60, config.pelvisY + 8],
+      [c - 60, config.pelvisY + 8],
+    ], COLORS.trunk),
+    ellipseRegion('umbilicus', 'common', c, config.abdomenY + 74, 24, 24, COLORS.trunk),
+    polygonRegion('pubis', 'common', [
+      [c - 48, config.pelvisY + 2],
+      [c + 48, config.pelvisY + 2],
+      [c + 40, config.pelvisY + 82],
+      [c - 40, config.pelvisY + 82],
+    ], COLORS.pelvis),
+    polygonRegion('groin', 'left', [
+      [c + 18, config.pelvisY + 40],
+      [c + 86, config.pelvisY + 54],
+      [c + 76, config.thighY + 18],
+      [c + 30, config.thighY + 6],
+    ], COLORS.pelvis),
+    polygonRegion('groin', 'right', [
+      [c - 18, config.pelvisY + 40],
+      [c - 86, config.pelvisY + 54],
+      [c - 76, config.thighY + 18],
+      [c - 30, config.thighY + 6],
+    ], COLORS.pelvis),
     ...genitalRegions,
-    sideRect('hip', 'left', c, 35, config.hipY, 55, 90, COLORS.pelvis),
-    sideRect('hip', 'right', c, -90, config.hipY, 55, 90, COLORS.pelvis),
+    polygonRegion('hip', 'left', [
+      [c + 48, config.pelvisY + 8],
+      [c + 132, config.pelvisY + 68],
+      [c + 120, config.thighY + 30],
+      [c + 52, config.thighY],
+    ], COLORS.pelvis),
+    polygonRegion('hip', 'right', [
+      [c - 48, config.pelvisY + 8],
+      [c - 132, config.pelvisY + 68],
+      [c - 120, config.thighY + 30],
+      [c - 52, config.thighY],
+    ], COLORS.pelvis),
 
-    sideRect('shoulder', 'left', c, 54 * arm, config.shoulderY, 70, 78, COLORS.arm),
-    sideRect('shoulder', 'right', c, -124 * arm, config.shoulderY, 70, 78, COLORS.arm),
-    sideRect('armpit', 'left', c, 48 * arm, config.shoulderY + 78, 48, 54, COLORS.arm),
-    sideRect('armpit', 'right', c, -96 * arm, config.shoulderY + 78, 48, 54, COLORS.arm),
-    sideRect('elbow', 'left', c, 80 * arm, config.shoulderY + 230, 45, 58, COLORS.arm),
-    sideRect('elbow', 'right', c, -125 * arm, config.shoulderY + 230, 45, 58, COLORS.arm),
-    sideRect('forearm', 'left', c, 78 * arm, config.shoulderY + 282, 48, 150, COLORS.arm),
-    sideRect('forearm', 'right', c, -126 * arm, config.shoulderY + 282, 48, 150, COLORS.arm),
-    sideRect('wrist', 'left', c, 78 * arm, config.shoulderY + 430, 42, 32, COLORS.arm),
-    sideRect('wrist', 'right', c, -120 * arm, config.shoulderY + 430, 42, 32, COLORS.arm),
-    sideRect('hand', 'left', c, 73 * arm, config.shoulderY + 460, 52, 88, COLORS.arm),
-    sideRect('hand', 'right', c, -125 * arm, config.shoulderY + 460, 52, 88, COLORS.arm),
-    sideRect('fingers', 'left', c, 76 * arm, config.shoulderY + 530, 48, 48, COLORS.arm),
-    sideRect('fingers', 'right', c, -124 * arm, config.shoulderY + 530, 48, 48, COLORS.arm),
+    leftForearm,
+    rightForearm,
+    leftHand,
+    rightHand,
 
-    sideRect('thigh', 'left', c, patientLeftLegX, config.thighY, 62, 200, COLORS.leg),
-    sideRect('thigh', 'right', c, patientRightLegX, config.thighY, 62, 200, COLORS.leg),
-    sideRect('knee', 'left', c, patientLeftLegX + 4, config.kneeY, 54, 70, COLORS.leg),
-    sideRect('knee', 'right', c, patientRightLegX + 4, config.kneeY, 54, 70, COLORS.leg),
-    sideRect('calf', 'left', c, patientLeftLegX + 4, config.legY, 54, 210, COLORS.leg),
-    sideRect('calf', 'right', c, patientRightLegX + 4, config.legY, 54, 210, COLORS.leg),
-    sideRect('ankle', 'left', c, patientLeftLegX + 8, config.ankleY, 46, 54, COLORS.leg),
-    sideRect('ankle', 'right', c, patientRightLegX + 8, config.ankleY, 46, 54, COLORS.leg),
-    sideRect('foot', 'left', c, patientLeftLegX - 2, config.footY, 68, 80, COLORS.leg),
-    sideRect('foot', 'right', c, patientRightLegX - 8, config.footY, 68, 80, COLORS.leg),
+    polygonRegion('thigh', 'left', [
+      [c + 2, config.thighY - 10],
+      [c + 120, config.thighY + 8],
+      [c + 110, config.kneeY - 12],
+      [c + 64, config.kneeY + 20],
+      [c + 20, config.kneeY + 6],
+      [c - 2, config.thighY + 82],
+    ], COLORS.leg),
+    polygonRegion('thigh', 'right', [
+      [c - 2, config.thighY - 10],
+      [c - 120, config.thighY + 8],
+      [c - 110, config.kneeY - 12],
+      [c - 64, config.kneeY + 20],
+      [c - 20, config.kneeY + 6],
+      [c + 2, config.thighY + 82],
+    ], COLORS.leg),
+    polygonRegion('knee', 'left', [
+      [c + 16, config.kneeY - 8],
+      [c + 92, config.kneeY - 6],
+      [c + 88, config.kneeY + 70],
+      [c + 24, config.kneeY + 72],
+    ], COLORS.leg),
+    polygonRegion('knee', 'right', [
+      [c - 16, config.kneeY - 8],
+      [c - 92, config.kneeY - 6],
+      [c - 88, config.kneeY + 70],
+      [c - 24, config.kneeY + 72],
+    ], COLORS.leg),
+    polygonRegion('calf', 'left', [
+      [c + 18, config.legY - 10],
+      [c + 102, config.legY - 8],
+      [c + 92, config.ankleY - 6],
+      [c + 56, config.ankleY + 18],
+      [c + 20, config.ankleY - 2],
+      [c + 8, config.legY + 90],
+    ], COLORS.leg),
+    polygonRegion('calf', 'right', [
+      [c - 18, config.legY - 10],
+      [c - 102, config.legY - 8],
+      [c - 92, config.ankleY - 6],
+      [c - 56, config.ankleY + 18],
+      [c - 20, config.ankleY - 2],
+      [c - 8, config.legY + 90],
+    ], COLORS.leg),
+    polygonRegion('ankle', 'left', [
+      [c + 18, config.ankleY],
+      [c + 86, config.ankleY + 2],
+      [c + 82, config.footY],
+      [c + 22, config.footY + 2],
+    ], COLORS.leg),
+    polygonRegion('ankle', 'right', [
+      [c - 18, config.ankleY],
+      [c - 86, config.ankleY + 2],
+      [c - 82, config.footY],
+      [c - 22, config.footY + 2],
+    ], COLORS.leg),
+    leftFoot,
+    rightFoot,
   ];
 }
 
 function backRegions(config: BackRegionConfig): BodyRegionDefinition[] {
   const c = config.cx;
-  const arm = config.armScale;
   const leg = config.legScale;
-  const patientLeftArmX = -124 * arm;
-  const patientRightArmX = 72 * arm;
-  const patientLeftLegX = -70 * leg;
-  const patientRightLegX = 12 * leg;
+  const patientLeftLegX = -66 * leg;
+  const patientRightLegX = 10 * leg;
+  const leftUpperArm = polygonRegion('arm', 'left', [
+    [c - 54, config.shoulderY + 18],
+    [c - 114, config.shoulderY + 8],
+    [c - 164, config.shoulderY + 70],
+    [c - 174, config.shoulderY + 214],
+    [c - 142, config.shoulderY + 304],
+    [c - 92, config.shoulderY + 274],
+    [c - 58, config.shoulderY + 126],
+  ], COLORS.arm);
+  const rightUpperArm = polygonRegion('arm', 'right', [
+    [c + 54, config.shoulderY + 18],
+    [c + 114, config.shoulderY + 8],
+    [c + 164, config.shoulderY + 70],
+    [c + 174, config.shoulderY + 214],
+    [c + 142, config.shoulderY + 304],
+    [c + 92, config.shoulderY + 274],
+    [c + 58, config.shoulderY + 126],
+  ], COLORS.arm);
+  const leftForearm = polygonRegion('forearm', 'left', [
+    [c - 88, config.shoulderY + 268],
+    [c - 144, config.shoulderY + 304],
+    [c - 164, config.shoulderY + 442],
+    [c - 132, config.shoulderY + 508],
+    [c - 86, config.shoulderY + 476],
+    [c - 74, config.shoulderY + 318],
+  ], COLORS.arm);
+  const rightForearm = polygonRegion('forearm', 'right', [
+    [c + 88, config.shoulderY + 268],
+    [c + 144, config.shoulderY + 304],
+    [c + 164, config.shoulderY + 442],
+    [c + 132, config.shoulderY + 508],
+    [c + 86, config.shoulderY + 476],
+    [c + 74, config.shoulderY + 318],
+  ], COLORS.arm);
+  const leftHand = polygonRegion('hand', 'left', [
+    [c - 96, config.shoulderY + 472],
+    [c - 154, config.shoulderY + 496],
+    [c - 160, config.shoulderY + 580],
+    [c - 128, config.shoulderY + 618],
+    [c - 88, config.shoulderY + 586],
+    [c - 84, config.shoulderY + 504],
+  ], COLORS.arm);
+  const rightHand = polygonRegion('hand', 'right', [
+    [c + 96, config.shoulderY + 472],
+    [c + 154, config.shoulderY + 496],
+    [c + 160, config.shoulderY + 580],
+    [c + 128, config.shoulderY + 618],
+    [c + 88, config.shoulderY + 586],
+    [c + 84, config.shoulderY + 504],
+  ], COLORS.arm);
+  const leftFoot = polygonRegion('foot', 'left', [
+    [c + patientLeftLegX - 10, config.footY + 16],
+    [c + patientLeftLegX + 18, config.footY + 4],
+    [c + patientLeftLegX + 52, config.footY + 10],
+    [c + patientLeftLegX + 68, config.footY + 40],
+    [c + patientLeftLegX + 44, config.footY + 74],
+    [c + patientLeftLegX - 4, config.footY + 80],
+    [c + patientLeftLegX - 22, config.footY + 48],
+  ], COLORS.leg);
+  const rightFoot = polygonRegion('foot', 'right', [
+    [c + patientRightLegX - 10, config.footY + 16],
+    [c + patientRightLegX + 18, config.footY + 4],
+    [c + patientRightLegX + 52, config.footY + 10],
+    [c + patientRightLegX + 68, config.footY + 40],
+    [c + patientRightLegX + 44, config.footY + 74],
+    [c + patientRightLegX - 4, config.footY + 80],
+    [c + patientRightLegX - 22, config.footY + 48],
+  ], COLORS.leg);
 
   return [
-    rectRegion('back', 'common', c - 78, config.upperBackY, 156, 270, COLORS.back),
-    rectRegion('leg', 'left', c + patientLeftLegX, config.thighY, 58, 500, COLORS.leg),
-    rectRegion('leg', 'right', c + patientRightLegX, config.thighY, 58, 500, COLORS.leg),
-    rectRegion('arm', 'left', c + patientLeftArmX, config.shoulderY + 70, 52, 430, COLORS.arm),
-    rectRegion('arm', 'right', c + patientRightArmX, config.shoulderY + 70, 52, 430, COLORS.arm),
+    polygonRegion('back', 'common', [
+      [c - 88, config.upperBackY - 18],
+      [c + 88, config.upperBackY - 18],
+      [c + 106, config.lowerBackY + 28],
+      [c + 90, config.buttockY + 12],
+      [c - 90, config.buttockY + 12],
+      [c - 106, config.lowerBackY + 28],
+    ], COLORS.back),
+    rectRegion('leg', 'left', c + patientLeftLegX, config.thighY, 62, 510, COLORS.leg),
+    rectRegion('leg', 'right', c + patientRightLegX, config.thighY, 62, 510, COLORS.leg),
+    leftUpperArm,
+    rightUpperArm,
 
-    ellipseRegion('rearHead', 'common', c, config.headY + 72, 60, 70, COLORS.head),
-    ellipseRegion('hair', 'common', c, config.headY + 62, 70, 66, COLORS.head),
-    rectRegion('nape', 'common', c - 38, config.neckY, 76, 70, COLORS.neutral),
-    rectRegion('neck', 'common', c - 32, config.neckY + 14, 64, 54, COLORS.neutral),
-    rectRegion('upper-back', 'common', c - 80, config.upperBackY, 160, 150, COLORS.back),
-    rectRegion('lower-back', 'common', c - 72, config.lowerBackY, 144, 150, COLORS.back),
-    sideRect('shoulder', 'left', c, -132 * arm, config.shoulderY, 82, 85, COLORS.arm),
-    sideRect('shoulder', 'right', c, 50 * arm, config.shoulderY, 82, 85, COLORS.arm),
-    sideRect('elbow', 'left', c, -132 * arm, config.shoulderY + 230, 45, 58, COLORS.arm),
-    sideRect('elbow', 'right', c, 86 * arm, config.shoulderY + 230, 45, 58, COLORS.arm),
-    sideRect('forearm', 'left', c, -132 * arm, config.shoulderY + 282, 48, 150, COLORS.arm),
-    sideRect('forearm', 'right', c, 86 * arm, config.shoulderY + 282, 48, 150, COLORS.arm),
-    sideRect('wrist', 'left', c, -126 * arm, config.shoulderY + 430, 42, 32, COLORS.arm),
-    sideRect('wrist', 'right', c, 86 * arm, config.shoulderY + 430, 42, 32, COLORS.arm),
-    sideRect('hand', 'left', c, -131 * arm, config.shoulderY + 460, 52, 82, COLORS.arm),
-    sideRect('hand', 'right', c, 81 * arm, config.shoulderY + 460, 52, 82, COLORS.arm),
-    sideRect('fingers', 'left', c, -130 * arm, config.shoulderY + 526, 48, 42, COLORS.arm),
-    sideRect('fingers', 'right', c, 84 * arm, config.shoulderY + 526, 48, 42, COLORS.arm),
+    ellipseRegion('rearHead', 'common', c, config.headY + 112, 66, 94, COLORS.head),
+    ellipseRegion('hair', 'common', c, config.headY + 56, 74, 58, COLORS.head),
+    polygonRegion('nape', 'common', [
+      [c - 38, config.neckY],
+      [c + 38, config.neckY],
+      [c + 52, config.upperBackY - 10],
+      [c - 52, config.upperBackY - 10],
+    ], COLORS.neutral),
+    polygonRegion('neck', 'common', [
+      [c - 30, config.neckY + 18],
+      [c + 30, config.neckY + 18],
+      [c + 40, config.upperBackY - 18],
+      [c - 40, config.upperBackY - 18],
+    ], COLORS.neutral),
+    polygonRegion('upper-back', 'common', [
+      [c - 100, config.upperBackY - 12],
+      [c + 100, config.upperBackY - 12],
+      [c + 90, config.lowerBackY - 24],
+      [c - 90, config.lowerBackY - 24],
+    ], COLORS.back),
+    polygonRegion('lower-back', 'common', [
+      [c - 114, config.lowerBackY - 18],
+      [c + 114, config.lowerBackY - 18],
+      [c + 94, config.buttockY + 8],
+      [c - 94, config.buttockY + 8],
+    ], COLORS.back),
+    leftForearm,
+    rightForearm,
+    leftHand,
+    rightHand,
 
-    sideRect('buttock', 'left', c, -60, config.buttockY, 62, 105, COLORS.pelvis),
-    sideRect('buttock', 'right', c, 0, config.buttockY, 62, 105, COLORS.pelvis),
-    sideRect('thigh', 'left', c, patientLeftLegX, config.thighY, 62, 205, COLORS.leg),
-    sideRect('thigh', 'right', c, patientRightLegX, config.thighY, 62, 205, COLORS.leg),
-    sideRect('knee', 'left', c, patientLeftLegX + 4, config.kneeY, 54, 66, COLORS.leg),
-    sideRect('knee', 'right', c, patientRightLegX + 4, config.kneeY, 54, 66, COLORS.leg),
-    sideRect('calf', 'left', c, patientLeftLegX + 4, config.calfY, 54, 230, COLORS.leg),
-    sideRect('calf', 'right', c, patientRightLegX + 4, config.calfY, 54, 230, COLORS.leg),
-    sideRect('ankle', 'left', c, patientLeftLegX + 8, config.ankleY, 46, 52, COLORS.leg),
-    sideRect('ankle', 'right', c, patientRightLegX + 8, config.ankleY, 46, 52, COLORS.leg),
-    sideRect('heel', 'left', c, patientLeftLegX + 7, config.footY, 46, 48, COLORS.leg),
-    sideRect('heel', 'right', c, patientRightLegX + 9, config.footY, 46, 48, COLORS.leg),
-    sideRect('foot', 'left', c, patientLeftLegX - 4, config.footY + 34, 66, 62, COLORS.leg),
-    sideRect('foot', 'right', c, patientRightLegX - 4, config.footY + 34, 66, 62, COLORS.leg),
+    polygonRegion('buttock', 'left', [
+      [c - 92, config.buttockY - 8],
+      [c - 2, config.buttockY - 4],
+      [c - 8, config.thighY + 44],
+      [c - 82, config.thighY + 46],
+      [c - 126, config.buttockY + 66],
+    ], COLORS.pelvis),
+    polygonRegion('buttock', 'right', [
+      [c + 92, config.buttockY - 8],
+      [c + 2, config.buttockY - 4],
+      [c + 8, config.thighY + 44],
+      [c + 82, config.thighY + 46],
+      [c + 126, config.buttockY + 66],
+    ], COLORS.pelvis),
+    polygonRegion('thigh', 'left', [
+      [c - 118, config.thighY + 8],
+      [c - 4, config.thighY - 10],
+      [c - 16, config.kneeY + 4],
+      [c - 66, config.kneeY + 22],
+      [c - 108, config.kneeY - 16],
+    ], COLORS.leg),
+    polygonRegion('thigh', 'right', [
+      [c + 118, config.thighY + 8],
+      [c + 4, config.thighY - 10],
+      [c + 16, config.kneeY + 4],
+      [c + 66, config.kneeY + 22],
+      [c + 108, config.kneeY - 16],
+    ], COLORS.leg),
+    polygonRegion('knee', 'left', [
+      [c - 94, config.kneeY - 8],
+      [c - 16, config.kneeY - 10],
+      [c - 22, config.kneeY + 68],
+      [c - 88, config.kneeY + 68],
+    ], COLORS.leg),
+    polygonRegion('knee', 'right', [
+      [c + 94, config.kneeY - 8],
+      [c + 16, config.kneeY - 10],
+      [c + 22, config.kneeY + 68],
+      [c + 88, config.kneeY + 68],
+    ], COLORS.leg),
+    polygonRegion('calf', 'left', [
+      [c - 102, config.calfY - 6],
+      [c - 18, config.calfY - 8],
+      [c - 10, config.ankleY - 4],
+      [c - 54, config.ankleY + 18],
+      [c - 90, config.ankleY - 2],
+    ], COLORS.leg),
+    polygonRegion('calf', 'right', [
+      [c + 102, config.calfY - 6],
+      [c + 18, config.calfY - 8],
+      [c + 10, config.ankleY - 4],
+      [c + 54, config.ankleY + 18],
+      [c + 90, config.ankleY - 2],
+    ], COLORS.leg),
+    polygonRegion('ankle', 'left', [
+      [c - 90, config.ankleY],
+      [c - 18, config.ankleY],
+      [c - 20, config.footY + 2],
+      [c - 84, config.footY + 4],
+    ], COLORS.leg),
+    polygonRegion('ankle', 'right', [
+      [c + 90, config.ankleY],
+      [c + 18, config.ankleY],
+      [c + 20, config.footY + 2],
+      [c + 84, config.footY + 4],
+    ], COLORS.leg),
+    polygonRegion('heel', 'left', [
+      [c - 84, config.footY + 4],
+      [c - 40, config.footY],
+      [c - 34, config.footY + 42],
+      [c - 80, config.footY + 46],
+    ], COLORS.leg),
+    polygonRegion('heel', 'right', [
+      [c + 84, config.footY + 4],
+      [c + 40, config.footY],
+      [c + 34, config.footY + 42],
+      [c + 80, config.footY + 46],
+    ], COLORS.leg),
+    leftFoot,
+    rightFoot,
+  ];
+}
+
+function maleFrontRegions(config: FrontRegionConfig): BodyRegionDefinition[] {
+  const c = config.cx;
+  const armYScale = config.armScale || 1;
+  const armYOffset = config.armYOffset ?? 0;
+  const bodyScale = config.legScale || 1;
+  const footScale = config.footScale ?? 1;
+  const hipScale = config.hipScale ?? bodyScale;
+  const thoraxTopY = config.thoraxTopY ?? config.chestY - 8;
+  const abdomenTopY = config.abdomenY + (config.abdomenTopOffset ?? -18);
+  const abdomenTopHalfWidth = config.abdomenTopHalfWidth ?? 92;
+  const abdomenBottomHalfWidth = config.abdomenBottomHalfWidth ?? 74;
+  const hipTopY = config.pelvisY + (config.hipTopOffset ?? 0);
+  const armPoint = (x: number, y: number): [number, number] => [c + x, config.shoulderY + y * armYScale + armYOffset];
+  const bodyPoint = (x: number, y: number): [number, number] => [c + x * bodyScale, y];
+  const footPoint = (x: number, y: number): [number, number] => [c + x * footScale, y];
+  const hipPoint = (x: number, y: number): [number, number] => [c + x * hipScale, y];
+
+  const leftArm = polygonRegion('arm', 'left', [
+    armPoint(78, 40),
+    armPoint(150, 54),
+    armPoint(204, 238),
+    armPoint(188, 326),
+    armPoint(112, 304),
+    armPoint(82, 112),
+  ], COLORS.arm);
+  const rightArm = polygonRegion('arm', 'right', [
+    armPoint(-78, 40),
+    armPoint(-150, 54),
+    armPoint(-204, 238),
+    armPoint(-188, 326),
+    armPoint(-112, 304),
+    armPoint(-82, 112),
+  ], COLORS.arm);
+  const leftForearm = polygonRegion('forearm', 'left', [
+    armPoint(142, 278),
+    armPoint(214, 300),
+    armPoint(274, 442),
+    armPoint(252, 500),
+    armPoint(184, 462),
+    armPoint(128, 320),
+  ], COLORS.arm);
+  const rightForearm = polygonRegion('forearm', 'right', [
+    armPoint(-142, 278),
+    armPoint(-214, 300),
+    armPoint(-274, 442),
+    armPoint(-252, 500),
+    armPoint(-184, 462),
+    armPoint(-128, 320),
+  ], COLORS.arm);
+  const leftHand = polygonRegion('hand', 'left', [
+    armPoint(194, 456),
+    armPoint(292, 466),
+    armPoint(326, 550),
+    armPoint(266, 612),
+    armPoint(184, 552),
+  ], COLORS.arm);
+  const rightHand = polygonRegion('hand', 'right', [
+    armPoint(-194, 456),
+    armPoint(-292, 466),
+    armPoint(-326, 550),
+    armPoint(-266, 612),
+    armPoint(-184, 552),
+  ], COLORS.arm);
+
+  const leftThigh = polygonRegion('thigh', 'left', [
+    bodyPoint(4, config.thighY - 12),
+    bodyPoint(126, config.thighY + 6),
+    bodyPoint(116, config.kneeY - 18),
+    bodyPoint(72, config.kneeY + 22),
+    bodyPoint(24, config.kneeY + 2),
+    bodyPoint(-2, config.thighY + 80),
+  ], COLORS.leg);
+  const rightThigh = polygonRegion('thigh', 'right', [
+    bodyPoint(-4, config.thighY - 12),
+    bodyPoint(-126, config.thighY + 6),
+    bodyPoint(-116, config.kneeY - 18),
+    bodyPoint(-72, config.kneeY + 22),
+    bodyPoint(-24, config.kneeY + 2),
+    bodyPoint(2, config.thighY + 80),
+  ], COLORS.leg);
+  const leftKnee = polygonRegion('knee', 'left', [
+    bodyPoint(18, config.kneeY - 12),
+    bodyPoint(98, config.kneeY - 10),
+    bodyPoint(94, config.kneeY + 66),
+    bodyPoint(24, config.kneeY + 68),
+  ], COLORS.leg);
+  const rightKnee = polygonRegion('knee', 'right', [
+    bodyPoint(-18, config.kneeY - 12),
+    bodyPoint(-98, config.kneeY - 10),
+    bodyPoint(-94, config.kneeY + 66),
+    bodyPoint(-24, config.kneeY + 68),
+  ], COLORS.leg);
+  const leftCalf = polygonRegion('calf', 'left', [
+    bodyPoint(18, config.legY - 10),
+    bodyPoint(112, config.legY - 4),
+    bodyPoint(98, config.ankleY - 8),
+    bodyPoint(62, config.ankleY + 18),
+    bodyPoint(20, config.ankleY - 4),
+    bodyPoint(8, config.legY + 88),
+  ], COLORS.leg);
+  const rightCalf = polygonRegion('calf', 'right', [
+    bodyPoint(-18, config.legY - 10),
+    bodyPoint(-112, config.legY - 4),
+    bodyPoint(-98, config.ankleY - 8),
+    bodyPoint(-62, config.ankleY + 18),
+    bodyPoint(-20, config.ankleY - 4),
+    bodyPoint(-8, config.legY + 88),
+  ], COLORS.leg);
+  const leftAnkle = polygonRegion('ankle', 'left', [
+    bodyPoint(20, config.ankleY),
+    bodyPoint(96, config.ankleY + 2),
+    bodyPoint(90, config.footY),
+    bodyPoint(22, config.footY + 2),
+  ], COLORS.leg);
+  const rightAnkle = polygonRegion('ankle', 'right', [
+    bodyPoint(-20, config.ankleY),
+    bodyPoint(-96, config.ankleY + 2),
+    bodyPoint(-90, config.footY),
+    bodyPoint(-22, config.footY + 2),
+  ], COLORS.leg);
+  const leftFoot = polygonRegion('foot', 'left', [
+    footPoint(46, config.footY + 2),
+    footPoint(108, config.footY - 4),
+    footPoint(152, config.footY + 32),
+    footPoint(126, config.footY + 80),
+    footPoint(54, config.footY + 72),
+    footPoint(24, config.footY + 42),
+  ], COLORS.leg);
+  const rightFoot = polygonRegion('foot', 'right', [
+    footPoint(-46, config.footY + 2),
+    footPoint(-108, config.footY - 4),
+    footPoint(-152, config.footY + 32),
+    footPoint(-126, config.footY + 80),
+    footPoint(-54, config.footY + 72),
+    footPoint(-24, config.footY + 42),
+  ], COLORS.leg);
+  const head = ellipseRegion('head', 'common', c, config.headY + 104, 58, 92, COLORS.head);
+  const hair = ellipseRegion(
+    'hair',
+    'common',
+    c + (config.hairCxOffset ?? 0),
+    config.headY + (config.hairCyOffset ?? 48),
+    config.hairRx ?? 62,
+    config.hairRy ?? 52,
+    COLORS.head,
+  );
+  const headRegions = config.hairBehindHead ? [hair, head] : [head, hair];
+
+  return [
+    ...headRegions,
+
+    polygonRegion('thorax', 'common', [
+      bodyPoint(-102, thoraxTopY),
+      bodyPoint(102, thoraxTopY),
+      bodyPoint(88, config.abdomenY - 12),
+      bodyPoint(-88, config.abdomenY - 12),
+    ], COLORS.trunk),
+    polygonRegion('abdomen', 'common', [
+      bodyPoint(-abdomenTopHalfWidth, abdomenTopY),
+      bodyPoint(abdomenTopHalfWidth, abdomenTopY),
+      bodyPoint(abdomenBottomHalfWidth, config.pelvisY),
+      bodyPoint(-abdomenBottomHalfWidth, config.pelvisY),
+    ], COLORS.trunk),
+    polygonRegion('pubis', 'common', [
+      bodyPoint(-58, config.pelvisY - 10),
+      bodyPoint(58, config.pelvisY - 10),
+      bodyPoint(48, config.pelvisY + 82),
+      bodyPoint(-48, config.pelvisY + 82),
+    ], COLORS.pelvis),
+    polygonRegion('hip', 'left', [
+      hipPoint(48, hipTopY),
+      hipPoint(132, config.pelvisY + 62),
+      hipPoint(120, config.thighY + 22),
+      hipPoint(54, config.thighY),
+    ], COLORS.pelvis),
+    polygonRegion('hip', 'right', [
+      hipPoint(-48, hipTopY),
+      hipPoint(-132, config.pelvisY + 62),
+      hipPoint(-120, config.thighY + 22),
+      hipPoint(-54, config.thighY),
+    ], COLORS.pelvis),
+
+    leftForearm,
+    rightForearm,
+    leftArm,
+    rightArm,
+    leftHand,
+    rightHand,
+    leftThigh,
+    rightThigh,
+    leftKnee,
+    rightKnee,
+    leftCalf,
+    rightCalf,
+    leftAnkle,
+    rightAnkle,
+    leftFoot,
+    rightFoot,
+  ];
+}
+
+function maleBackRegions(config: BackRegionConfig): BodyRegionDefinition[] {
+  const c = config.cx;
+  const armYScale = config.armScale || 1;
+  const bodyScale = config.legScale || 1;
+  const torsoTopScale = config.torsoTopScale ?? bodyScale;
+  const torsoMidScale = config.torsoMidScale ?? bodyScale;
+  const torsoBottomScale = config.torsoBottomScale ?? bodyScale;
+  const buttockYOffset = config.buttockYOffset ?? 0;
+  const buttockScale = config.buttockScale ?? bodyScale;
+  const armYOffset = config.armYOffset ?? 0;
+  const footScale = config.footScale ?? bodyScale;
+  const armPoint = (x: number, y: number): [number, number] => [c + x, config.shoulderY + y * armYScale + armYOffset];
+  const bodyPoint = (x: number, y: number): [number, number] => [c + x * bodyScale, y];
+  const footPoint = (x: number, y: number): [number, number] => [c + x * footScale, y];
+  const torsoPoint = (x: number, y: number, scale = torsoMidScale): [number, number] => [c + x * scale, y];
+  const buttockPoint = (x: number, y: number): [number, number] => [c + x * buttockScale, y + buttockYOffset];
+
+  const leftArm = polygonRegion('arm', 'left', [
+    armPoint(-78, 44),
+    armPoint(-152, 56),
+    armPoint(-212, 240),
+    armPoint(-190, 326),
+    armPoint(-116, 304),
+    armPoint(-84, 116),
+  ], COLORS.arm);
+  const rightArm = polygonRegion('arm', 'right', [
+    armPoint(78, 44),
+    armPoint(152, 56),
+    armPoint(212, 240),
+    armPoint(190, 326),
+    armPoint(116, 304),
+    armPoint(84, 116),
+  ], COLORS.arm);
+  const leftForearm = polygonRegion('forearm', 'left', [
+    armPoint(-142, 278),
+    armPoint(-216, 300),
+    armPoint(-276, 442),
+    armPoint(-254, 500),
+    armPoint(-186, 462),
+    armPoint(-128, 320),
+  ], COLORS.arm);
+  const rightForearm = polygonRegion('forearm', 'right', [
+    armPoint(142, 278),
+    armPoint(216, 300),
+    armPoint(276, 442),
+    armPoint(254, 500),
+    armPoint(186, 462),
+    armPoint(128, 320),
+  ], COLORS.arm);
+  const leftHand = polygonRegion('hand', 'left', [
+    armPoint(-198, 456),
+    armPoint(-298, 466),
+    armPoint(-332, 550),
+    armPoint(-272, 612),
+    armPoint(-188, 552),
+  ], COLORS.arm);
+  const rightHand = polygonRegion('hand', 'right', [
+    armPoint(198, 456),
+    armPoint(298, 466),
+    armPoint(332, 550),
+    armPoint(272, 612),
+    armPoint(188, 552),
+  ], COLORS.arm);
+
+  const leftThigh = polygonRegion('thigh', 'left', [
+    bodyPoint(-126, config.thighY + 8),
+    bodyPoint(-4, config.thighY - 12),
+    bodyPoint(-18, config.kneeY + 2),
+    bodyPoint(-68, config.kneeY + 24),
+    bodyPoint(-116, config.kneeY - 18),
+  ], COLORS.leg);
+  const rightThigh = polygonRegion('thigh', 'right', [
+    bodyPoint(126, config.thighY + 8),
+    bodyPoint(4, config.thighY - 12),
+    bodyPoint(18, config.kneeY + 2),
+    bodyPoint(68, config.kneeY + 24),
+    bodyPoint(116, config.kneeY - 18),
+  ], COLORS.leg);
+  const leftKnee = polygonRegion('knee', 'left', [
+    bodyPoint(-100, config.kneeY - 10),
+    bodyPoint(-18, config.kneeY - 12),
+    bodyPoint(-24, config.kneeY + 66),
+    bodyPoint(-94, config.kneeY + 66),
+  ], COLORS.leg);
+  const rightKnee = polygonRegion('knee', 'right', [
+    bodyPoint(100, config.kneeY - 10),
+    bodyPoint(18, config.kneeY - 12),
+    bodyPoint(24, config.kneeY + 66),
+    bodyPoint(94, config.kneeY + 66),
+  ], COLORS.leg);
+  const leftCalf = polygonRegion('calf', 'left', [
+    bodyPoint(-112, config.calfY - 6),
+    bodyPoint(-18, config.calfY - 10),
+    bodyPoint(-10, config.ankleY - 6),
+    bodyPoint(-58, config.ankleY + 16),
+    bodyPoint(-98, config.ankleY - 4),
+  ], COLORS.leg);
+  const rightCalf = polygonRegion('calf', 'right', [
+    bodyPoint(112, config.calfY - 6),
+    bodyPoint(18, config.calfY - 10),
+    bodyPoint(10, config.ankleY - 6),
+    bodyPoint(58, config.ankleY + 16),
+    bodyPoint(98, config.ankleY - 4),
+  ], COLORS.leg);
+  const leftAnkle = polygonRegion('ankle', 'left', [
+    bodyPoint(-98, config.ankleY),
+    bodyPoint(-20, config.ankleY),
+    bodyPoint(-24, config.footY),
+    bodyPoint(-92, config.footY + 2),
+  ], COLORS.leg);
+  const rightAnkle = polygonRegion('ankle', 'right', [
+    bodyPoint(98, config.ankleY),
+    bodyPoint(20, config.ankleY),
+    bodyPoint(24, config.footY),
+    bodyPoint(92, config.footY + 2),
+  ], COLORS.leg);
+  const leftFoot = polygonRegion('foot', 'left', [
+    footPoint(-112, config.footY + 2),
+    footPoint(-46, config.footY),
+    footPoint(-20, config.footY + 42),
+    footPoint(-54, config.footY + 80),
+    footPoint(-126, config.footY + 72),
+    footPoint(-154, config.footY + 32),
+  ], COLORS.leg);
+  const rightFoot = polygonRegion('foot', 'right', [
+    footPoint(112, config.footY + 2),
+    footPoint(46, config.footY),
+    footPoint(20, config.footY + 42),
+    footPoint(54, config.footY + 80),
+    footPoint(126, config.footY + 72),
+    footPoint(154, config.footY + 32),
+  ], COLORS.leg);
+  const rearHead = ellipseRegion('rearHead', 'common', c, config.headY + 104, 58, 92, COLORS.head);
+  const hair = ellipseRegion(
+    'hair',
+    'common',
+    c + (config.hairCxOffset ?? 0),
+    config.headY + (config.hairCyOffset ?? 50),
+    config.hairRx ?? 64,
+    config.hairRy ?? 54,
+    COLORS.head,
+  );
+  const headRegions = config.hairBehindHead ? [hair, rearHead] : [rearHead, hair];
+
+  return [
+    ...headRegions,
+    polygonRegion('upper-back', 'common', [
+      torsoPoint(-104, config.upperBackY + (config.upperBackTopOffset ?? -8), torsoTopScale),
+      torsoPoint(104, config.upperBackY + (config.upperBackTopOffset ?? -8), torsoTopScale),
+      torsoPoint(90, config.lowerBackY + (config.upperBackBottomOffset ?? -10), torsoMidScale),
+      torsoPoint(-90, config.lowerBackY + (config.upperBackBottomOffset ?? -10), torsoMidScale),
+    ], COLORS.back),
+    polygonRegion('lower-back', 'common', [
+      torsoPoint(-118, config.lowerBackY + (config.lowerBackTopOffset ?? -16), torsoMidScale),
+      torsoPoint(118, config.lowerBackY + (config.lowerBackTopOffset ?? -16), torsoMidScale),
+      torsoPoint(98, config.buttockY + (config.lowerBackBottomOffset ?? 0), torsoBottomScale),
+      torsoPoint(-98, config.buttockY + (config.lowerBackBottomOffset ?? 0), torsoBottomScale),
+    ], COLORS.back),
+    polygonRegion('buttock', 'left', [
+      buttockPoint(-94, config.buttockY - 10),
+      buttockPoint(-2, config.buttockY - 4),
+      buttockPoint(-8, config.thighY + 38),
+      buttockPoint(-86, config.thighY + 42),
+      buttockPoint(-128, config.buttockY + 62),
+    ], COLORS.pelvis),
+    polygonRegion('buttock', 'right', [
+      buttockPoint(94, config.buttockY - 10),
+      buttockPoint(2, config.buttockY - 4),
+      buttockPoint(8, config.thighY + 38),
+      buttockPoint(86, config.thighY + 42),
+      buttockPoint(128, config.buttockY + 62),
+    ], COLORS.pelvis),
+
+    leftForearm,
+    rightForearm,
+    leftArm,
+    rightArm,
+    leftHand,
+    rightHand,
+    leftThigh,
+    rightThigh,
+    leftKnee,
+    rightKnee,
+    leftCalf,
+    rightCalf,
+    leftAnkle,
+    rightAnkle,
+    leftFoot,
+    rightFoot,
   ];
 }
 
 export const BODY_REGION_DEFINITIONS: Record<BodyRegionGender, Record<BodyRegionView, BodyRegionDefinition[]>> = {
   male: {
-    front: frontRegions({
+    front: maleFrontRegions({
       cx: 365,
       headY: 92,
       neckY: 228,
@@ -287,8 +1040,8 @@ export const BODY_REGION_DEFINITIONS: Record<BodyRegionGender, Record<BodyRegion
       footY: 1285,
       armScale: 1,
       legScale: 1,
-    }, 'male'),
-    back: backRegions({
+    }),
+    back: maleBackRegions({
       cx: 1085,
       headY: 92,
       neckY: 210,
@@ -306,38 +1059,67 @@ export const BODY_REGION_DEFINITIONS: Record<BodyRegionGender, Record<BodyRegion
     }),
   },
   female: {
-    front: frontRegions({
+    front: maleFrontRegions({
       cx: 320,
-      headY: 0,
-      neckY: 255,
-      shoulderY: 305,
-      chestY: 335,
-      abdomenY: 465,
-      pelvisY: 630,
-      hipY: 690,
-      thighY: 735,
-      kneeY: 930,
-      legY: 1005,
-      ankleY: 1248,
-      footY: 1305,
-      armScale: 1.1,
-      legScale: 1.02,
-    }, 'female'),
-    back: backRegions({
-      cx: 1098,
-      headY: 0,
-      neckY: 240,
-      shoulderY: 300,
-      upperBackY: 355,
-      lowerBackY: 520,
-      buttockY: 690,
-      thighY: 770,
-      kneeY: 970,
-      calfY: 1040,
-      ankleY: 1272,
-      footY: 1320,
-      armScale: 1.08,
-      legScale: 1.02,
+      headY: 76,
+    neckY: 224,
+    shoulderY: 270,
+    chestY: 326,
+    thoraxTopY: 270,
+    abdomenY: 516,
+    pelvisY: 676,
+      hipY: 704,
+      thighY: 758,
+      kneeY: 972,
+      legY: 1048,
+      ankleY: 1288,
+      footY: 1348,
+      armScale: 0.9,
+    legScale: 1.12,
+    footScale: 0.68,
+    hipScale: 1.24,
+    abdomenTopOffset: -104,
+    abdomenTopHalfWidth: 108,
+    abdomenBottomHalfWidth: 108,
+    hipTopOffset: -64,
+    armYOffset: -24,
+    hairCxOffset: -24,
+    hairRx: 112,
+    hairRy: 126,
+    hairCyOffset: 74,
+      hairBehindHead: true,
+    }),
+    back: maleBackRegions({
+      cx: 1136,
+      headY: 76,
+      neckY: 224,
+      shoulderY: 270,
+      upperBackY: 336,
+      lowerBackY: 516,
+      buttockY: 676,
+      thighY: 758,
+      kneeY: 972,
+      calfY: 1048,
+      ankleY: 1288,
+      footY: 1348,
+      armScale: 0.9,
+      legScale: 1.12,
+      footScale: 0.68,
+    hairCxOffset: -24,
+    hairRx: 112,
+    hairRy: 126,
+    hairCyOffset: 74,
+      hairBehindHead: true,
+      armYOffset: -24,
+      torsoTopScale: 0.86,
+      torsoMidScale: 0.82,
+      torsoBottomScale: 1.05,
+      upperBackTopOffset: -50,
+      upperBackBottomOffset: 44,
+      lowerBackTopOffset: -2,
+      lowerBackBottomOffset: -16,
+      buttockYOffset: -24,
+      buttockScale: 1.24,
     }),
   },
 };

@@ -285,8 +285,8 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     }
 
     const fullViewBox = this.parseViewBox(this.viewBoxFor(view));
-    const paddingX = Math.max(region.bounds.width * 0.42, 34);
-    const paddingY = Math.max(region.bounds.height * 0.42, 34);
+    const paddingX = Math.max(region.bounds.width * 0.18, 24);
+    const paddingY = Math.max(region.bounds.height * 0.18, 24);
     const left = Math.max(fullViewBox.x, region.bounds.x - paddingX);
     const top = Math.max(fullViewBox.y, region.bounds.y - paddingY);
     const right = Math.min(fullViewBox.x + fullViewBox.width, region.bounds.x + region.bounds.width + paddingX);
