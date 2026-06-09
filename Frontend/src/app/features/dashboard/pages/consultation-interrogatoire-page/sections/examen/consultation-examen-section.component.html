@@ -327,10 +327,43 @@
 
         <div class="zone-modal-body">
           @if (isDrawingModal) {
-            <div class="modal-field head-drawing-field">
+            <div class="modal-field head-drawing-field" (contextmenu)="onDrawingContextMenu($event)">
               <div class="drawing-field-header">
                 <span>{{ 'consultation.page.exam.bodyMap.regionDrawing' | translate }}</span>
                 <div class="drawing-actions">
+                  <div
+                    class="drawing-zoom-controls"
+                    role="group"
+                    [attr.aria-label]="'consultation.page.exam.bodyMap.zoomControls' | translate"
+                  >
+                    <button
+                      type="button"
+                      class="ghost-btn drawing-zoom-btn"
+                      [attr.aria-label]="'consultation.page.exam.bodyMap.zoomOut' | translate"
+                      [disabled]="drawingZoom <= drawingZoomLevels[0] || isSavingZone"
+                      (click)="zoomDrawingOut()"
+                    >
+                      −
+                    </button>
+                    <span class="drawing-zoom-label">{{ drawingZoomLabel }}</span>
+                    <button
+                      type="button"
+                      class="ghost-btn drawing-zoom-btn"
+                      [attr.aria-label]="'consultation.page.exam.bodyMap.zoomIn' | translate"
+                      [disabled]="drawingZoom >= drawingZoomLevels[drawingZoomLevels.length - 1] || isSavingZone"
+                      (click)="zoomDrawingIn()"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost-btn"
+                      [disabled]="drawingZoom === drawingZoomLevels[0] || isSavingZone"
+                      (click)="resetDrawingZoom()"
+                    >
+                      {{ 'consultation.page.exam.bodyMap.resetZoom' | translate }}
+                    </button>
+                  </div>
                   <button
                     type="button"
                     class="ghost-btn"
@@ -352,11 +385,13 @@
 
               <svg
                 class="head-drawing-svg"
+                [class.is-panning]="isDrawingPanning"
                 [attr.viewBox]="drawingSurfaceFor(modalState).viewBox"
                 (pointerdown)="startHeadDrawing($event)"
                 (pointermove)="continueHeadDrawing($event)"
                 (pointerup)="finishHeadDrawing($event)"
                 (pointercancel)="cancelHeadDrawing($event)"
+                (contextmenu)="onDrawingContextMenu($event)"
               >
                 @if (outlinePathFor(modalState.view)) {
                   <path class="body-skin-path" [attr.d]="outlinePathFor(modalState.view)" />

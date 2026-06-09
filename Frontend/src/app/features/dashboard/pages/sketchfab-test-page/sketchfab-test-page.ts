@@ -62,7 +62,7 @@ export class SketchfabTestPage {
     const view = this.activeView();
 
     if (gender === 'female') {
-      return view === 'front' ? '-60 -10 760 1600' : '740 -10 810 1505';
+      return view === 'front' ? '-60 -10 760 1505' : '740 -10 810 1505';
     }
 
     return view === 'front' ? '0 0 724 1448' : '724 0 724 1448';
@@ -145,6 +145,10 @@ export class SketchfabTestPage {
 
     if (color === 'red') {
       return '#d94b5f';
+    }
+
+    if (this.activeGender() === 'female' && regionId === 'front|head|common|0') {
+      return '#ffffff';
     }
 
     return this.baseRegionColor(regionId);

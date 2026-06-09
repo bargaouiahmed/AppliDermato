@@ -38,9 +38,14 @@ type FrontRegionConfig = {
   hipScale?: number;
   thoraxTopY?: number;
   abdomenTopOffset?: number;
+  abdomenBottomOffset?: number;
   abdomenTopHalfWidth?: number;
   abdomenBottomHalfWidth?: number;
   hipTopOffset?: number;
+  hipYOffset?: number;
+  hipExtraWidth?: number;
+  smoothHip?: boolean;
+  thighBottomOffset?: number;
   hairCxOffset?: number;
   hairRx?: number;
   hairRy?: number;
@@ -179,6 +184,24 @@ function polygonRegion(
       width: Math.max(...xs) - Math.min(...xs),
       height: Math.max(...ys) - Math.min(...ys),
     },
+    path,
+    color,
+  };
+}
+
+function pathRegion(
+  slug: string,
+  segment: BodyRegionSegment,
+  path: string,
+  bounds: BodyRegionBounds,
+  color: string,
+  pathIndex = 0,
+): BodyRegionDefinition {
+  return {
+    slug,
+    segment,
+    pathIndex,
+    bounds,
     path,
     color,
   };
@@ -638,13 +661,43 @@ function maleFrontRegions(config: FrontRegionConfig): BodyRegionDefinition[] {
   const hipScale = config.hipScale ?? bodyScale;
   const thoraxTopY = config.thoraxTopY ?? config.chestY - 8;
   const abdomenTopY = config.abdomenY + (config.abdomenTopOffset ?? -18);
+  const abdomenBottomY = config.pelvisY + (config.abdomenBottomOffset ?? 0);
   const abdomenTopHalfWidth = config.abdomenTopHalfWidth ?? 92;
   const abdomenBottomHalfWidth = config.abdomenBottomHalfWidth ?? 74;
   const hipTopY = config.pelvisY + (config.hipTopOffset ?? 0);
+  const hipY = config.hipYOffset ?? 0;
+  const hipExtraWidth = config.hipExtraWidth ?? 0;
+  const thighBottomOffset = config.thighBottomOffset ?? 0;
   const armPoint = (x: number, y: number): [number, number] => [c + x, config.shoulderY + y * armYScale + armYOffset];
   const bodyPoint = (x: number, y: number): [number, number] => [c + x * bodyScale, y];
   const footPoint = (x: number, y: number): [number, number] => [c + x * footScale, y];
   const hipPoint = (x: number, y: number): [number, number] => [c + x * hipScale, y];
+  const smoothHipRegion = (segment: BodyRegionSegment, side: 1 | -1): BodyRegionDefinition => {
+    const innerTop = hipPoint(side * 48, hipTopY + hipY);
+    const upperOuter = hipPoint(side * (112 + hipExtraWidth), hipTopY + 28 + hipY);
+    const widest = hipPoint(side * (142 + hipExtraWidth), config.pelvisY + 78 + hipY);
+    const lowerOuter = hipPoint(side * (126 + hipExtraWidth), config.thighY + 50 + hipY);
+    const innerBottom = hipPoint(side * 52, config.thighY + 8 + hipY);
+    const innerMid = hipPoint(side * 72, config.pelvisY + 36 + hipY);
+    const points = [innerTop, upperOuter, widest, lowerOuter, innerBottom, innerMid];
+    const xs = points.map(([x]) => x);
+    const ys = points.map(([, y]) => y);
+    const path = [
+      `M ${innerTop[0]} ${innerTop[1]}`,
+      `C ${upperOuter[0]} ${upperOuter[1]} ${widest[0]} ${widest[1] - 38} ${widest[0]} ${widest[1]}`,
+      `C ${widest[0]} ${widest[1] + 24} ${lowerOuter[0]} ${lowerOuter[1] - 12} ${lowerOuter[0]} ${lowerOuter[1]}`,
+      `C ${innerBottom[0] + side * 18} ${lowerOuter[1] + 8} ${innerBottom[0]} ${innerBottom[1] + 10} ${innerBottom[0]} ${innerBottom[1]}`,
+      `C ${innerMid[0]} ${innerMid[1]} ${innerTop[0] + side * 10} ${innerTop[1] + 36} ${innerTop[0]} ${innerTop[1]}`,
+      'Z',
+    ].join(' ');
+
+    return pathRegion('hip', segment, path, {
+      x: Math.min(...xs),
+      y: Math.min(...ys),
+      width: Math.max(...xs) - Math.min(...xs),
+      height: Math.max(...ys) - Math.min(...ys),
+    }, COLORS.pelvis);
+  };
 
   const leftArm = polygonRegion('arm', 'left', [
     armPoint(78, 40),
@@ -696,17 +749,17 @@ function maleFrontRegions(config: FrontRegionConfig): BodyRegionDefinition[] {
   const leftThigh = polygonRegion('thigh', 'left', [
     bodyPoint(4, config.thighY - 12),
     bodyPoint(126, config.thighY + 6),
-    bodyPoint(116, config.kneeY - 18),
-    bodyPoint(72, config.kneeY + 22),
-    bodyPoint(24, config.kneeY + 2),
+    bodyPoint(116, config.kneeY - 18 + thighBottomOffset),
+    bodyPoint(72, config.kneeY + 22 + thighBottomOffset),
+    bodyPoint(24, config.kneeY + 2 + thighBottomOffset),
     bodyPoint(-2, config.thighY + 80),
   ], COLORS.leg);
   const rightThigh = polygonRegion('thigh', 'right', [
     bodyPoint(-4, config.thighY - 12),
     bodyPoint(-126, config.thighY + 6),
-    bodyPoint(-116, config.kneeY - 18),
-    bodyPoint(-72, config.kneeY + 22),
-    bodyPoint(-24, config.kneeY + 2),
+    bodyPoint(-116, config.kneeY - 18 + thighBottomOffset),
+    bodyPoint(-72, config.kneeY + 22 + thighBottomOffset),
+    bodyPoint(-24, config.kneeY + 2 + thighBottomOffset),
     bodyPoint(2, config.thighY + 80),
   ], COLORS.leg);
   const leftKnee = polygonRegion('knee', 'left', [
@@ -776,6 +829,22 @@ function maleFrontRegions(config: FrontRegionConfig): BodyRegionDefinition[] {
     COLORS.head,
   );
   const headRegions = config.hairBehindHead ? [hair, head] : [head, hair];
+  const hipRegions = config.smoothHip
+    ? [smoothHipRegion('left', 1), smoothHipRegion('right', -1)]
+    : [
+        polygonRegion('hip', 'left', [
+          hipPoint(48, hipTopY + hipY),
+          hipPoint(132, config.pelvisY + 62 + hipY),
+          hipPoint(120, config.thighY + 22 + hipY),
+          hipPoint(54, config.thighY + hipY),
+        ], COLORS.pelvis),
+        polygonRegion('hip', 'right', [
+          hipPoint(-48, hipTopY + hipY),
+          hipPoint(-132, config.pelvisY + 62 + hipY),
+          hipPoint(-120, config.thighY + 22 + hipY),
+          hipPoint(-54, config.thighY + hipY),
+        ], COLORS.pelvis),
+      ];
 
   return [
     ...headRegions,
@@ -789,8 +858,8 @@ function maleFrontRegions(config: FrontRegionConfig): BodyRegionDefinition[] {
     polygonRegion('abdomen', 'common', [
       bodyPoint(-abdomenTopHalfWidth, abdomenTopY),
       bodyPoint(abdomenTopHalfWidth, abdomenTopY),
-      bodyPoint(abdomenBottomHalfWidth, config.pelvisY),
-      bodyPoint(-abdomenBottomHalfWidth, config.pelvisY),
+      bodyPoint(abdomenBottomHalfWidth, abdomenBottomY),
+      bodyPoint(-abdomenBottomHalfWidth, abdomenBottomY),
     ], COLORS.trunk),
     polygonRegion('pubis', 'common', [
       bodyPoint(-58, config.pelvisY - 10),
@@ -798,18 +867,7 @@ function maleFrontRegions(config: FrontRegionConfig): BodyRegionDefinition[] {
       bodyPoint(48, config.pelvisY + 82),
       bodyPoint(-48, config.pelvisY + 82),
     ], COLORS.pelvis),
-    polygonRegion('hip', 'left', [
-      hipPoint(48, hipTopY),
-      hipPoint(132, config.pelvisY + 62),
-      hipPoint(120, config.thighY + 22),
-      hipPoint(54, config.thighY),
-    ], COLORS.pelvis),
-    polygonRegion('hip', 'right', [
-      hipPoint(-48, hipTopY),
-      hipPoint(-132, config.pelvisY + 62),
-      hipPoint(-120, config.thighY + 22),
-      hipPoint(-54, config.thighY),
-    ], COLORS.pelvis),
+    ...hipRegions,
 
     leftForearm,
     rightForearm,
@@ -1040,6 +1098,10 @@ export const BODY_REGION_DEFINITIONS: Record<BodyRegionGender, Record<BodyRegion
       footY: 1285,
       armScale: 1,
       legScale: 1,
+      abdomenTopHalfWidth: 104,
+      abdomenBottomHalfWidth: 88,
+      smoothHip: true,
+      hipExtraWidth: 0,
     }),
     back: maleBackRegions({
       cx: 1085,
@@ -1069,7 +1131,7 @@ export const BODY_REGION_DEFINITIONS: Record<BodyRegionGender, Record<BodyRegion
     abdomenY: 516,
     pelvisY: 676,
       hipY: 704,
-      thighY: 758,
+      thighY: 730,
       kneeY: 972,
       legY: 1048,
       ankleY: 1288,
@@ -1079,9 +1141,14 @@ export const BODY_REGION_DEFINITIONS: Record<BodyRegionGender, Record<BodyRegion
     footScale: 0.68,
     hipScale: 1.24,
     abdomenTopOffset: -104,
+    abdomenBottomOffset: -10,
     abdomenTopHalfWidth: 108,
     abdomenBottomHalfWidth: 108,
     hipTopOffset: -64,
+    hipYOffset: -32,
+    hipExtraWidth: 12,
+    smoothHip: true,
+    thighBottomOffset: 32,
     armYOffset: -24,
     hairCxOffset: -24,
     hairRx: 112,

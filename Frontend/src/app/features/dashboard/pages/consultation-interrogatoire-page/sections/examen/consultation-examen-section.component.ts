@@ -91,6 +91,8 @@ type BodyDrawingSurface = {
   region: BodyRegionDefinition | null;
 };
 
+const DRAWING_ZOOM_LEVELS = [1, 1.5, 2, 3] as const;
+
 @Component({
   selector: 'app-consultation-examen-section',
   standalone: true,
@@ -130,6 +132,9 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   protected timelineScrollProgress = 0;
   protected modalState: ZoneModalState | null = null;
   protected isSavingZone = false;
+  protected readonly drawingZoomLevels = DRAWING_ZOOM_LEVELS;
+  protected drawingZoom = 1;
+  protected isDrawingPanning = false;
 
   private readonly autosaveTrigger = new Subject<string>();
   private isHydratingFromBackend = false;
@@ -142,6 +147,9 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   private timelineHasDragged = false;
   private suppressNextTimelineClick = false;
   private activeDrawingPoints: DrawingPoint[] = [];
+  private drawingPanOffset: DrawingPoint = { x: 0, y: 0 };
+  private drawingPanPointerId: number | null = null;
+  private drawingPanLastClientPoint: DrawingPoint | null = null;
 
   protected get historyTotalPages(): number {
     return Math.max(1, Math.ceil(this.historyTotalCount / this.historyPageSize));
@@ -213,6 +221,10 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     );
   }
 
+  protected get drawingZoomLabel(): string {
+    return `${Math.round(this.drawingZoom * 100)}%`;
+  }
+
   protected bodyPartsFor(view: BodyView): BodyPart[] {
     if (this.bodyGender === 'female') {
       return view === 'front' ? bodyFemaleFront : bodyFemaleBack;
@@ -231,7 +243,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
   protected viewBoxFor(view: BodyView): string {
     if (this.bodyGender === 'female') {
-      return view === 'front' ? '-60 -10 760 1600' : '740 -10 810 1505';
+      return view === 'front' ? '-60 -10 760 1505' : '740 -10 810 1505';
     }
 
     return view === 'front' ? '0 0 724 1448' : '724 0 724 1448';
@@ -262,7 +274,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   protected drawingSurfaceFor(modalState: ZoneModalState): BodyDrawingSurface {
     const region = this.bodyRegionDefinitionFor(modalState);
     return {
-      viewBox: this.drawingViewBoxForRegion(modalState.view, region),
+      viewBox: this.drawingViewBoxForRegion(modalState.view, region, this.drawingZoom),
       parts: this.bodyPartsFor(modalState.view),
       region,
     };
@@ -279,12 +291,17 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     );
   }
 
-  private drawingViewBoxForRegion(view: BodyView, region: BodyRegionDefinition | null): string {
+  private drawingViewBoxForRegion(view: BodyView, region: BodyRegionDefinition | null, zoom = 1): string {
+    const bounds = this.drawingBoundsForRegion(view, region);
+    return this.formatViewBox(this.zoomDrawingBounds(bounds, bounds, zoom, region?.bounds ?? bounds, this.drawingPanOffset));
+  }
+
+  private drawingBoundsForRegion(view: BodyView, region: BodyRegionDefinition | null): BodyRegionBounds {
+    const fullViewBox = this.parseViewBox(this.viewBoxFor(view));
     if (!region) {
-      return this.viewBoxFor(view);
+      return fullViewBox;
     }
 
-    const fullViewBox = this.parseViewBox(this.viewBoxFor(view));
     const paddingX = Math.max(region.bounds.width * 0.18, 24);
     const paddingY = Math.max(region.bounds.height * 0.18, 24);
     const left = Math.max(fullViewBox.x, region.bounds.x - paddingX);
@@ -292,11 +309,43 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     const right = Math.min(fullViewBox.x + fullViewBox.width, region.bounds.x + region.bounds.width + paddingX);
     const bottom = Math.min(fullViewBox.y + fullViewBox.height, region.bounds.y + region.bounds.height + paddingY);
 
+    return {
+      x: left,
+      y: top,
+      width: Math.max(80, right - left),
+      height: Math.max(80, bottom - top),
+    };
+  }
+
+  private zoomDrawingBounds(
+    bounds: BodyRegionBounds,
+    clampBounds: BodyRegionBounds,
+    zoom: number,
+    focusBounds = bounds,
+    panOffset: DrawingPoint = { x: 0, y: 0 },
+  ): BodyRegionBounds {
+    const safeZoom = this.clampNumber(zoom, DRAWING_ZOOM_LEVELS[0], DRAWING_ZOOM_LEVELS[DRAWING_ZOOM_LEVELS.length - 1]);
+    const width = Math.max(80, Math.min(bounds.width, bounds.width / safeZoom));
+    const height = Math.max(80, Math.min(bounds.height, bounds.height / safeZoom));
+    const centerX = focusBounds.x + focusBounds.width / 2 + (safeZoom > 1 ? panOffset.x : 0);
+    const centerY = focusBounds.y + focusBounds.height / 2 + (safeZoom > 1 ? panOffset.y : 0);
+    const maxX = clampBounds.x + clampBounds.width - width;
+    const maxY = clampBounds.y + clampBounds.height - height;
+
+    return {
+      x: this.clampNumber(centerX - width / 2, clampBounds.x, maxX),
+      y: this.clampNumber(centerY - height / 2, clampBounds.y, maxY),
+      width,
+      height,
+    };
+  }
+
+  private formatViewBox(bounds: BodyRegionBounds): string {
     return [
-      this.formatDrawingNumber(left),
-      this.formatDrawingNumber(top),
-      this.formatDrawingNumber(Math.max(80, right - left)),
-      this.formatDrawingNumber(Math.max(80, bottom - top)),
+      this.formatDrawingNumber(bounds.x),
+      this.formatDrawingNumber(bounds.y),
+      this.formatDrawingNumber(bounds.width),
+      this.formatDrawingNumber(bounds.height),
     ].join(' ');
   }
 
@@ -472,7 +521,15 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected pathFill(regionId: string): string {
-    return this.zoneById(regionId) ? '#d94b5f' : this.baseRegionColor(regionId);
+    if (this.zoneById(regionId)) {
+      return '#d94b5f';
+    }
+
+    if (this.bodyGender === 'female' && regionId === 'front|head|common|0') {
+      return '#ffffff';
+    }
+
+    return this.baseRegionColor(regionId);
   }
 
   protected pathClass(regionId: string): string {
@@ -568,6 +625,17 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
+    if (this.shouldStartDrawingPan(event)) {
+      this.startDrawingPan(event);
+      return;
+    }
+
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     const point = this.pointerEventToSvgPoint(event);
     this.activeDrawingPoints = [point];
     this.modalState = {
@@ -579,6 +647,11 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected continueHeadDrawing(event: PointerEvent): void {
+    if (this.isDrawingPanning) {
+      this.continueDrawingPan(event);
+      return;
+    }
+
     if (!this.modalState || this.activeDrawingPoints.length === 0 || !this.isDrawingModal) {
       return;
     }
@@ -598,6 +671,11 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected finishHeadDrawing(event: PointerEvent): void {
+    if (this.isDrawingPanning) {
+      this.finishDrawingPan(event);
+      return;
+    }
+
     if (!this.modalState || this.activeDrawingPoints.length === 0) {
       return;
     }
@@ -622,6 +700,11 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected cancelHeadDrawing(event: PointerEvent): void {
+    if (this.isDrawingPanning) {
+      this.finishDrawingPan(event);
+      return;
+    }
+
     if (!this.modalState) {
       return;
     }
@@ -632,6 +715,11 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       draftDrawingPath: '',
     };
     (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
+  }
+
+  protected onDrawingContextMenu(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   protected undoHeadDrawing(): void {
@@ -671,6 +759,95 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     this.activeDrawingPoints = [];
   }
 
+  protected zoomDrawingIn(): void {
+    this.setDrawingZoomByStep(1);
+  }
+
+  protected zoomDrawingOut(): void {
+    this.setDrawingZoomByStep(-1);
+  }
+
+  protected resetDrawingZoom(): void {
+    this.drawingZoom = DRAWING_ZOOM_LEVELS[0];
+    this.resetDrawingPan();
+  }
+
+  private setDrawingZoomByStep(direction: 1 | -1): void {
+    const currentIndex = DRAWING_ZOOM_LEVELS.findIndex((level) => level === this.drawingZoom);
+    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+    const nextIndex = this.clampNumber(safeIndex + direction, 0, DRAWING_ZOOM_LEVELS.length - 1);
+    this.drawingZoom = DRAWING_ZOOM_LEVELS[nextIndex];
+    if (this.drawingZoom === DRAWING_ZOOM_LEVELS[0]) {
+      this.resetDrawingPan();
+    } else {
+      this.normalizeDrawingPanOffset();
+    }
+  }
+
+  private shouldStartDrawingPan(event: PointerEvent): boolean {
+    return event.pointerType === 'mouse' && event.button === 2 && this.drawingZoom > DRAWING_ZOOM_LEVELS[0];
+  }
+
+  private startDrawingPan(event: PointerEvent): void {
+    this.isDrawingPanning = true;
+    this.drawingPanPointerId = event.pointerId;
+    this.drawingPanLastClientPoint = { x: event.clientX, y: event.clientY };
+    (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  private continueDrawingPan(event: PointerEvent): void {
+    if (this.drawingPanPointerId !== event.pointerId || !this.drawingPanLastClientPoint) {
+      return;
+    }
+
+    const svg = event.currentTarget as SVGSVGElement;
+    const previousPoint = this.clientPointToSvgPoint(svg, this.drawingPanLastClientPoint.x, this.drawingPanLastClientPoint.y);
+    const currentPoint = this.clientPointToSvgPoint(svg, event.clientX, event.clientY);
+    this.drawingPanOffset = {
+      x: this.drawingPanOffset.x - (currentPoint.x - previousPoint.x),
+      y: this.drawingPanOffset.y - (currentPoint.y - previousPoint.y),
+    };
+    this.drawingPanLastClientPoint = { x: event.clientX, y: event.clientY };
+    this.normalizeDrawingPanOffset();
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  private finishDrawingPan(event: PointerEvent): void {
+    (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
+    this.isDrawingPanning = false;
+    this.drawingPanPointerId = null;
+    this.drawingPanLastClientPoint = null;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  private resetDrawingPan(): void {
+    this.isDrawingPanning = false;
+    this.drawingPanPointerId = null;
+    this.drawingPanLastClientPoint = null;
+    this.drawingPanOffset = { x: 0, y: 0 };
+  }
+
+  private normalizeDrawingPanOffset(): void {
+    if (!this.modalState || this.drawingZoom <= DRAWING_ZOOM_LEVELS[0]) {
+      this.drawingPanOffset = { x: 0, y: 0 };
+      return;
+    }
+
+    const region = this.bodyRegionDefinitionFor(this.modalState);
+    const bounds = this.drawingBoundsForRegion(this.modalState.view, region);
+    const focusBounds = region?.bounds ?? bounds;
+    const viewBox = this.zoomDrawingBounds(bounds, bounds, this.drawingZoom, focusBounds, this.drawingPanOffset);
+
+    this.drawingPanOffset = {
+      x: viewBox.x + viewBox.width / 2 - (focusBounds.x + focusBounds.width / 2),
+      y: viewBox.y + viewBox.height / 2 - (focusBounds.y + focusBounds.height / 2),
+    };
+  }
+
   protected deleteSelectedHeadLesion(): void {
     if (!this.modalState?.selectedDrawingLesionId) {
       return;
@@ -703,6 +880,10 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
+    if (event instanceof PointerEvent && event.button !== 0) {
+      return;
+    }
+
     event?.stopPropagation();
     event?.preventDefault();
     this.activeDrawingPoints = [];
@@ -726,6 +907,8 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     }
 
     this.activeDrawingPoints = [];
+    this.drawingZoom = DRAWING_ZOOM_LEVELS[0];
+    this.resetDrawingPan();
     this.modalState = null;
   }
 
@@ -1348,10 +1531,28 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
   private pointerEventToSvgPoint(event: PointerEvent): DrawingPoint {
     const svg = event.currentTarget as SVGSVGElement;
-    const rect = svg.getBoundingClientRect();
+    return this.clientPointToSvgPoint(svg, event.clientX, event.clientY);
+  }
+
+  private clientPointToSvgPoint(svg: SVGSVGElement, clientX: number, clientY: number): DrawingPoint {
     const viewBox = svg.viewBox.baseVal;
-    const xRatio = rect.width > 0 ? (event.clientX - rect.left) / rect.width : 0;
-    const yRatio = rect.height > 0 ? (event.clientY - rect.top) / rect.height : 0;
+    const screenMatrix = svg.getScreenCTM();
+
+    if (screenMatrix) {
+      const point = svg.createSVGPoint();
+      point.x = clientX;
+      point.y = clientY;
+      const svgPoint = point.matrixTransform(screenMatrix.inverse());
+
+      return {
+        x: this.clampNumber(svgPoint.x, viewBox.x, viewBox.x + viewBox.width),
+        y: this.clampNumber(svgPoint.y, viewBox.y, viewBox.y + viewBox.height),
+      };
+    }
+
+    const rect = svg.getBoundingClientRect();
+    const xRatio = rect.width > 0 ? (clientX - rect.left) / rect.width : 0;
+    const yRatio = rect.height > 0 ? (clientY - rect.top) / rect.height : 0;
     const x = viewBox.x + xRatio * viewBox.width;
     const y = viewBox.y + yRatio * viewBox.height;
 
@@ -1412,6 +1613,8 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       draftDrawingPath: '',
     };
     this.activeDrawingPoints = [];
+    this.drawingZoom = DRAWING_ZOOM_LEVELS[0];
+    this.resetDrawingPan();
   }
 
   private zoneById(regionId: string): DermatologyExamZone | null {

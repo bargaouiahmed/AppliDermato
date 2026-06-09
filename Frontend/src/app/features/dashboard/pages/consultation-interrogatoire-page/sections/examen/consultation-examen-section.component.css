@@ -176,10 +176,11 @@
 }
 
 .body-region-path {
-  fill-opacity: 0.28;
-  stroke: rgba(174, 39, 62, 0.95);
-  stroke-width: 3;
+  fill-opacity: 0;
+  stroke: transparent;
+  stroke-width: 0;
   cursor: pointer;
+  pointer-events: all;
   transition: fill-opacity 0.16s ease, stroke 0.16s ease, filter 0.16s ease;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -187,8 +188,8 @@
 
 .body-region-path:hover,
 .body-region-path:focus-visible {
-  fill-opacity: 0.42;
-  stroke: rgba(210, 154, 0, 0.9);
+  fill-opacity: 0;
+  stroke: transparent;
   filter: brightness(1.03);
   outline: none;
 }
@@ -345,6 +346,31 @@
   justify-content: flex-end;
 }
 
+.drawing-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem;
+  border: 1px solid #efd9d0;
+  border-radius: 999px;
+  background: rgba(255, 250, 246, 0.92);
+}
+
+.drawing-zoom-btn {
+  min-width: 2rem;
+  padding-inline: 0.55rem;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.drawing-zoom-label {
+  min-width: 3rem;
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #7f5d52;
+}
+
 .head-drawing-svg {
   width: 100%;
   min-height: 20rem;
@@ -357,6 +383,10 @@
   cursor: crosshair;
   touch-action: none;
   user-select: none;
+}
+
+.head-drawing-svg.is-panning {
+  cursor: grabbing;
 }
 
 .head-drawing-base {
