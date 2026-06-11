@@ -2,12 +2,13 @@ using System.Text.Json;
 using api.Src.ConsultationSpace.ExamSection.Dtos.Requests;
 using api.Src.ConsultationSpace.ExamSection.Dtos.Responses;
 using api.Src.ConsultationSpace.ExamSection.Entities;
+using api.Src.ConsultationSpace.ExamSection.Realtime;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 namespace api.Src.ConsultationSpace.ExamSection.Services;
 
-public class ExamService(AppDbContext db) : IExamService
+public class ExamService(AppDbContext db, IExamRealtimeNotifier examRealtimeNotifier) : IExamService
 {
     private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> DefaultCatalog =
         new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase)
@@ -149,6 +150,7 @@ public class ExamService(AppDbContext db) : IExamService
         }
 
         await db.SaveChangesAsync();
+        await NotifyExamUpdated(consultationId, cabinetIdentityId, payload);
 
         return new ConsultationExamResponse
         {
@@ -423,6 +425,27 @@ public class ExamService(AppDbContext db) : IExamService
         }
 
         return normalized;
+    }
+
+    private async Task NotifyExamUpdated(
+        Guid consultationId,
+        Guid cabinetIdentityId,
+        Dictionary<string, JsonElement> payload)
+    {
+        try
+        {
+            await examRealtimeNotifier.NotifyExamUpdated(new ExamRealtimeEvent
+            {
+                CabinetIdentityId = cabinetIdentityId,
+                ConsultationId = consultationId,
+                Payload = ClonePayload(payload),
+                OccurredAtUtc = DateTime.UtcNow
+            });
+        }
+        catch
+        {
+            // Realtime delivery should not block exam persistence.
+        }
     }
 
     private static object? NormalizeDrawing(JsonElement drawingElement)

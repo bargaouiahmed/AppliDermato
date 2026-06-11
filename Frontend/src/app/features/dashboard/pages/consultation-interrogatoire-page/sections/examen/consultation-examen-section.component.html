@@ -126,6 +126,10 @@
       <div class="derm-card derm-viewer-card">
         <div class="derm-toolbar">
           <span class="toolbar-label">{{ 'consultation.page.exam.bodyMap.view' | translate }}</span>
+          <button type="button" class="ghost-btn phone-mode-btn" (click)="openPhoneMode()">
+            <i class="bi bi-phone"></i>
+            <span>{{ 'consultation.page.exam.phone.launch' | translate }}</span>
+          </button>
         </div>
 
         <div class="bodymap-grid">
@@ -313,6 +317,49 @@
         <i class="bi bi-arrow-right"></i>
       </button>
     </div>
+
+    @if (isPhoneModeQrOpen) {
+      <div class="zone-modal-backdrop" (click)="closePhoneModeQr()"></div>
+      <section class="zone-modal phone-mode-modal" role="dialog" aria-modal="true" aria-labelledby="phone-mode-modal-title">
+        <div class="zone-modal-header">
+          <div>
+            <p class="zone-modal-eyebrow">{{ 'consultation.page.exam.phone.title' | translate }}</p>
+            <h3 id="phone-mode-modal-title">{{ 'consultation.page.exam.phone.scanTitle' | translate }}</h3>
+          </div>
+          <button type="button" class="modal-close" (click)="closePhoneModeQr()">×</button>
+        </div>
+
+        <div class="zone-modal-body phone-mode-modal-body">
+          <p class="phone-mode-copy">{{ 'consultation.page.exam.phone.scanDescription' | translate }}</p>
+
+          <div class="phone-mode-qr-shell">
+            @if (isPhoneModeQrBusy) {
+              <div class="phone-mode-qr-placeholder">{{ 'consultation.page.loading' | translate }}</div>
+            } @else if (phoneModeQrImageUrl) {
+              <img [src]="phoneModeQrImageUrl" [alt]="'consultation.page.exam.phone.scanTitle' | translate" />
+            } @else {
+              <div class="phone-mode-qr-placeholder">{{ 'consultation.page.exam.phone.qrError' | translate }}</div>
+            }
+          </div>
+
+          <div class="phone-mode-link-card">
+            <span>{{ 'consultation.page.exam.phone.linkLabel' | translate }}</span>
+            <code>{{ phoneModeQrUrl }}</code>
+          </div>
+        </div>
+
+        <div class="zone-modal-footer">
+          <div class="footer-actions">
+            <button type="button" class="ghost-btn" (click)="closePhoneModeQr()">
+              {{ 'consultation.page.actions.cancel' | translate }}
+            </button>
+            <button type="button" class="filled-btn" [disabled]="!phoneModeQrUrl" (click)="copyPhoneModeLink()">
+              {{ 'consultation.page.exam.phone.copyLink' | translate }}
+            </button>
+          </div>
+        </div>
+      </section>
+    }
 
     @if (modalState) {
       <div class="zone-modal-backdrop" (click)="closeZoneModal()"></div>

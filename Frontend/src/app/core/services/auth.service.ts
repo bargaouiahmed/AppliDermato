@@ -18,10 +18,15 @@ import { API } from '../config/api.config';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const PHONE_ACCESS_TOKEN_KEY = 'phone_mode_access_token';
+const PHONE_REFRESH_TOKEN_KEY = 'phone_mode_refresh_token';
+const AUTH_STORAGE_MODE_KEY = 'auth_storage_mode';
 /** Access token cookie lives 1 day (refresh middleware handles expiry) */
 const ACCESS_TOKEN_DAYS = 1;
 /** Refresh token cookie lives 7 days (matches backend) */
 const REFRESH_TOKEN_DAYS = 7;
+
+export type AuthStorageMode = 'cookie' | 'localStorage';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -69,26 +74,81 @@ export class AuthService {
     return this.http.get<AuthenticatedAccountResponse>(API.auth.me);
   }
 
-  storeTokens(tokens: TokenResponse): void {
+  setStorageMode(mode: AuthStorageMode): void {
+    try {
+      sessionStorage.setItem(AUTH_STORAGE_MODE_KEY, mode);
+    } catch {
+      // ignore storage failures
+    }
+  }
+
+  clearStorageMode(): void {
+    try {
+      sessionStorage.removeItem(AUTH_STORAGE_MODE_KEY);
+    } catch {
+      // ignore storage failures
+    }
+  }
+
+  getStorageMode(): AuthStorageMode {
+    try {
+      return sessionStorage.getItem(AUTH_STORAGE_MODE_KEY) === 'localStorage'
+        ? 'localStorage'
+        : 'cookie';
+    } catch {
+      return 'cookie';
+    }
+  }
+
+  storeTokens(tokens: TokenResponse, mode: AuthStorageMode = this.getStorageMode()): void {
+    if (mode === 'localStorage') {
+      this.writeLocalStorage(PHONE_ACCESS_TOKEN_KEY, tokens.accessToken);
+      this.writeLocalStorage(PHONE_REFRESH_TOKEN_KEY, tokens.refreshToken);
+      return;
+    }
+
     this.cookie.set(ACCESS_TOKEN_KEY, tokens.accessToken, ACCESS_TOKEN_DAYS);
     this.cookie.set(REFRESH_TOKEN_KEY, tokens.refreshToken, REFRESH_TOKEN_DAYS);
   }
 
-  getAccessToken(): string | null {
-    return this.cookie.get(ACCESS_TOKEN_KEY);
+  getAccessToken(mode: AuthStorageMode = this.getStorageMode()): string | null {
+    return mode === 'localStorage'
+      ? this.readLocalStorage(PHONE_ACCESS_TOKEN_KEY)
+      : this.cookie.get(ACCESS_TOKEN_KEY);
   }
 
-  getRefreshToken(): string | null {
-    return this.cookie.get(REFRESH_TOKEN_KEY);
+  getRefreshToken(mode: AuthStorageMode = this.getStorageMode()): string | null {
+    return mode === 'localStorage'
+      ? this.readLocalStorage(PHONE_REFRESH_TOKEN_KEY)
+      : this.cookie.get(REFRESH_TOKEN_KEY);
   }
 
-  logout(): void {
+  getTokenPair(mode: AuthStorageMode = this.getStorageMode()): TokenResponse | null {
+    const accessToken = this.getAccessToken(mode);
+    const refreshToken = this.getRefreshToken(mode);
+    if (!accessToken || !refreshToken) {
+      return null;
+    }
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  logout(mode: AuthStorageMode = this.getStorageMode()): void {
+    if (mode === 'localStorage') {
+      this.removeLocalStorage(PHONE_ACCESS_TOKEN_KEY);
+      this.removeLocalStorage(PHONE_REFRESH_TOKEN_KEY);
+      return;
+    }
+
     this.cookie.remove(ACCESS_TOKEN_KEY);
     this.cookie.remove(REFRESH_TOKEN_KEY);
   }
 
-  isLoggedIn(): boolean {
-    const token = this.getAccessToken();
+  isLoggedIn(mode: AuthStorageMode = this.getStorageMode()): boolean {
+    const token = this.getAccessToken(mode);
     if (!token) {
       return false;
     }
@@ -96,13 +156,16 @@ export class AuthService {
     return !this.isTokenExpired(token);
   }
 
-  getTokenRole(): string | null {
-    const token = this.getAccessToken();
+  getTokenRole(mode: AuthStorageMode = this.getStorageMode()): string | null {
+    return this.getTokenRoleFromToken(this.getAccessToken(mode));
+  }
+
+  getTokenRoleFromToken(token: string | null | undefined): string | null {
     if (!token) {
       return null;
     }
 
-    const payload = this.decodeJwtPayload(token);
+    const payload = this.getJwtPayload(token);
     if (!payload) {
       return null;
     }
@@ -118,8 +181,26 @@ export class AuthService {
     return this.normalizeRole(roleClaim);
   }
 
-  hasAnyRole(roles: string[]): boolean {
-    const tokenRole = this.getTokenRole();
+  getTokenProfileId(mode: AuthStorageMode = this.getStorageMode()): string | null {
+    return this.getTokenProfileIdFromToken(this.getAccessToken(mode));
+  }
+
+  getTokenProfileIdFromToken(token: string | null | undefined): string | null {
+    const payload = this.getJwtPayload(token);
+    const profileId = payload?.['profile_id'];
+    return typeof profileId === 'string' && profileId.trim() ? profileId.trim() : null;
+  }
+
+  getJwtPayload(token: string | null | undefined): Record<string, unknown> | null {
+    if (!token) {
+      return null;
+    }
+
+    return this.decodeJwtPayload(token);
+  }
+
+  hasAnyRole(roles: string[], mode: AuthStorageMode = this.getStorageMode()): boolean {
+    const tokenRole = this.getTokenRole(mode);
     if (!tokenRole) {
       return false;
     }
@@ -128,9 +209,17 @@ export class AuthService {
     return normalizedAllowed.includes(tokenRole);
   }
 
-  requiresAutoPasswordChange(): boolean {
-    const tokenRole = this.getTokenRole();
+  requiresAutoPasswordChange(mode: AuthStorageMode = this.getStorageMode()): boolean {
+    const tokenRole = this.getTokenRole(mode);
     return tokenRole ? tokenRole.endsWith('_auto_pass_unchanged') : false;
+  }
+
+  isTokenExpired(token: string | null | undefined): boolean {
+    if (!token) {
+      return true;
+    }
+
+    return this.isJwtTokenExpired(token);
   }
 
   private decodeJwtPayload(token: string): Record<string, unknown> | null {
@@ -149,7 +238,7 @@ export class AuthService {
     }
   }
 
-  private isTokenExpired(token: string): boolean {
+  private isJwtTokenExpired(token: string): boolean {
     const payload = this.decodeJwtPayload(token);
     if (!payload) {
       return true;
@@ -180,6 +269,30 @@ export class AuthService {
     }
 
     return normalized;
+  }
+
+  private readLocalStorage(key: string): string | null {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  private writeLocalStorage(key: string, value: string): void {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // ignore storage failures
+    }
+  }
+
+  private removeLocalStorage(key: string): void {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore storage failures
+    }
   }
 
   private mapLoginResponse(response: LoginOptionsApiResponse): LoginResponse {

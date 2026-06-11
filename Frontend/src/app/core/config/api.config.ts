@@ -224,5 +224,6 @@ export const API = {
     suggestionHub: `${BASE}/hubs/suggestions`,
     techAssistanceHub: `${BASE}/hubs/tech-assistance`,
     consultationAiHub: `${BASE}/hubs/consultation-ai`,
+    examHub: `${BASE}/hubs/exam`,
   },
 } as const;

@@ -8,6 +8,7 @@ using api.Src.Configuration;
 using api.Src.ConsultationSpace.ConduiteSection.Realtime;
 using api.Src.ConsultationSpace.ConduiteSection.Services;
 using api.Src.ConsultationSpace.DocumentsSection.Services;
+using api.Src.ConsultationSpace.ExamSection.Realtime;
 using api.Src.ConsultationSpace.ExamSection.Services;
 using api.Src.ConsultationSpace.InterrogationSection.Services;
 using api.Src.Messaging.Realtime;
@@ -92,6 +93,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     (path.StartsWithSegments(WaitingRoomHub.HubPath) ||
                      path.StartsWithSegments(InternalMessagingHub.HubPath) ||
                      path.StartsWithSegments(ConsultationAiHub.HubPath) ||
+                     path.StartsWithSegments(ExamRealtimeHub.HubPath) ||
                      path.StartsWithSegments(SuggestionHub.HubPath) ||
                      path.StartsWithSegments(TechAssistanceHub.HubPath)))
                 {
@@ -128,6 +130,7 @@ builder.Services.AddScoped<SuggestionService>();
 builder.Services.AddScoped<TechAssistanceService>();
 builder.Services.AddSingleton<IWaitingRoomNotifier, WaitingRoomNotifier>();
 builder.Services.AddSingleton<IConsultationAiNotifier, ConsultationAiNotifier>();
+builder.Services.AddSingleton<IExamRealtimeNotifier, ExamRealtimeNotifier>();
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
@@ -223,6 +226,7 @@ app.MapControllers().RequireCors("ConfiguredCors");
 app.MapHub<WaitingRoomHub>(WaitingRoomHub.HubPath).RequireCors("ConfiguredCors");
 app.MapHub<InternalMessagingHub>(InternalMessagingHub.HubPath).RequireCors("ConfiguredCors");
 app.MapHub<ConsultationAiHub>(ConsultationAiHub.HubPath).RequireCors("ConfiguredCors");
+app.MapHub<ExamRealtimeHub>(ExamRealtimeHub.HubPath).RequireCors("ConfiguredCors");
 app.MapHub<SuggestionHub>(SuggestionHub.HubPath).RequireCors("ConfiguredCors");
 app.MapHub<TechAssistanceHub>(TechAssistanceHub.HubPath).RequireCors("ConfiguredCors");
 using (var scope = app.Services.CreateScope())

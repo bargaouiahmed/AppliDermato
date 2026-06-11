@@ -100,8 +100,16 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.8rem;
+}
+
+.phone-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
 }
 
 .bodymap-grid {
@@ -319,6 +327,72 @@
   padding: 1rem 1.1rem;
   display: grid;
   gap: 1rem;
+}
+
+.phone-mode-modal {
+  width: min(30rem, calc(100vw - 1.5rem));
+}
+
+.phone-mode-modal-body {
+  justify-items: center;
+  text-align: center;
+}
+
+.phone-mode-copy {
+  margin: 0;
+  color: #5a6b64;
+  line-height: 1.55;
+}
+
+.phone-mode-qr-shell {
+  display: grid;
+  place-items: center;
+  width: min(100%, 21rem);
+  padding: 1rem;
+  border: 1px solid #efd9d0;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #fffefa 0%, #fff5ef 100%);
+}
+
+.phone-mode-qr-shell img {
+  width: min(100%, 18rem);
+  border-radius: 0.75rem;
+  background: #ffffff;
+}
+
+.phone-mode-qr-placeholder {
+  min-height: 18rem;
+  display: grid;
+  place-items: center;
+  color: #6f7f79;
+  font-weight: 600;
+}
+
+.phone-mode-link-card {
+  width: 100%;
+  display: grid;
+  gap: 0.45rem;
+  text-align: left;
+}
+
+.phone-mode-link-card span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #5f514c;
+}
+
+.phone-mode-link-card code {
+  display: block;
+  max-width: 100%;
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.9rem;
+  border: 1px solid #efd9d0;
+  background: #fffefa;
+  color: #684a3f;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  word-break: break-all;
+  white-space: pre-wrap;
 }
 
 .modal-field {

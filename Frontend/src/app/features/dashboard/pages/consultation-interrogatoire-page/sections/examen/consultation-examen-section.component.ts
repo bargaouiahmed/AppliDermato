@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   ElementRef,
@@ -14,7 +15,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Observable, Subject, catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap } from 'rxjs';
+import * as QRCode from 'qrcode';
 import {
   BodyGender,
   BodyView,
@@ -30,7 +33,12 @@ import {
 import { ConsultationExplorationDocumentResponse } from '../../../../../../core/models/documents.models';
 import { PatientConsultation } from '../../../../../../core/models/patient.models';
 import { DocumentsService } from '../../../../../../core/services/documents.service';
+import {
+  ConsultationExamRealtimeEvent,
+  ExamRealtimeService,
+} from '../../../../../../core/services/exam-realtime.service';
 import { ExamService } from '../../../../../../core/services/exam.service';
+import { ExamPhoneModeSessionService } from '../../../../../../core/services/exam-phone-mode-session.service';
 import { I18nService } from '../../../../../../core/services/i18n.service';
 import { PatientService } from '../../../../../../core/services/patient.service';
 import { ToastService } from '../../../../../../core/services/toast.service';
@@ -46,6 +54,7 @@ import {
   BodyRegionBounds,
   BodyRegionDefinition,
 } from './consultation-examen-body-regions';
+import { buildExamRegionId, formatExamRegionLabel } from './consultation-exam-body-map.utils';
 
 type RegionSegment = 'common' | BodyPartSide;
 type RegionKeyPart = string;
@@ -109,11 +118,15 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   @ViewChild('timelineScroller') private timelineScroller?: ElementRef<HTMLDivElement>;
 
   private readonly examService = inject(ExamService);
+  private readonly examRealtime = inject(ExamRealtimeService);
+  private readonly phoneModeSession = inject(ExamPhoneModeSessionService);
   private readonly patientService = inject(PatientService);
   private readonly documentsService = inject(DocumentsService);
   private readonly i18n = inject(I18nService);
+  private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   protected isLoading = false;
   protected loadError = '';
@@ -126,6 +139,10 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   protected historyTotalCount = 0;
   protected isHistoryExamLoading = false;
   protected isApplyingHistoricalPayload = false;
+  protected isPhoneModeQrOpen = false;
+  protected phoneModeQrUrl = '';
+  protected phoneModeQrImageUrl = '';
+  protected isPhoneModeQrBusy = false;
   protected selectedHistoryConsultationId: string | null = null;
   protected previewSourceDate: string | null = null;
   protected isPreviewingHistory = false;
@@ -150,6 +167,14 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   private drawingPanOffset: DrawingPoint = { x: 0, y: 0 };
   private drawingPanPointerId: number | null = null;
   private drawingPanLastClientPoint: DrawingPoint | null = null;
+  private pendingRealtimePayload: ConsultationExamPayload | null = null;
+  private isDestroyed = false;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.isDestroyed = true;
+    });
+  }
 
   protected get historyTotalPages(): number {
     return Math.max(1, Math.ceil(this.historyTotalCount / this.historyPageSize));
@@ -364,6 +389,13 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
+    void this.examRealtime.connect();
+    this.examRealtime.updates$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        this.handleRealtimeUpdate(event);
+      });
+
     this.autosaveTrigger
       .pipe(
         debounceTime(550),
@@ -453,71 +485,11 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     segment: RegionSegment,
     pathIndex: number,
   ): string {
-    const safeView = view === 'back' ? 'back' : 'front';
-    return `${safeView}|${slug ?? 'unknown'}|${segment}|${pathIndex}`;
+    return buildExamRegionId(view, slug, segment, pathIndex);
   }
 
   protected regionLabel(regionId: string): string {
-    const [viewValue, slugValue, segmentValue, pathIndexValue] = regionId.split('|');
-    const view: BodyView = viewValue === 'back' ? 'back' : 'front';
-    const segment: RegionSegment =
-      segmentValue === 'left' || segmentValue === 'right' ? segmentValue : 'common';
-    const slug: RegionKeyPart = (this.normalizeText(slugValue) || 'unknown') as RegionKeyPart;
-    const pathIndex = Number(pathIndexValue);
-    const suffixParts: string[] = [];
-
-    const baseLabel = this.translateBodyMapPart(slug, view, segment);
-    const viewLabel = this.translateBodyMapView(view);
-    if (viewLabel) {
-      suffixParts.push(viewLabel);
-    }
-
-    if (segment !== 'common') {
-      suffixParts.push(this.translateBodyMapSide(segment));
-    }
-
-    if (Number.isFinite(pathIndex) && pathIndex > 0) {
-      suffixParts.push(String(pathIndex + 1));
-    }
-
-    return suffixParts.length > 0 ? `${baseLabel} (${suffixParts.join(' ')})` : baseLabel;
-  }
-
-  private translateBodyMapView(view: BodyView): string {
-    const key = view === 'front'
-      ? 'consultation.page.exam.bodyMap.front'
-      : 'consultation.page.exam.bodyMap.back';
-    const translated = this.i18n.t(key);
-    if (translated !== key) {
-      return translated;
-    }
-
-    return this.toTitleCase(view);
-  }
-
-  private translateBodyMapPart(slug: RegionKeyPart, view: BodyView, segment: RegionSegment): string {
-    const safeSlug = slug || 'unknown';
-    const key = `consultation.page.exam.bodyMap.parts.${safeSlug}`;
-    const translated = this.i18n.t(key);
-    if (translated !== key) {
-      return translated;
-    }
-
-    return this.toTitleCase(String(safeSlug).replace(/-/g, ' '));
-  }
-
-  private translateBodyMapSide(segment: RegionSegment): string {
-    if (segment === 'common') {
-      return '';
-    }
-
-    const key = `consultation.page.exam.bodyMap.side.${segment}`;
-    const translated = this.i18n.t(key);
-    if (translated !== key) {
-      return translated;
-    }
-
-    return this.toTitleCase(segment);
+    return formatExamRegionLabel(regionId, (key) => this.i18n.t(key));
   }
 
   protected pathFill(regionId: string): string {
@@ -538,6 +510,67 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
 
   protected onRegionClick(regionId: string): void {
     this.openZoneModal(regionId);
+  }
+
+  protected openPhoneMode(): void {
+    const consultationId = this.consultationId?.trim() ?? '';
+    if (!consultationId) {
+      return;
+    }
+
+    if (this.phoneModeSession.isMobileDevice()) {
+      void this.router.navigate(['/consultations', consultationId, 'phone-mode']);
+      return;
+    }
+
+    this.isPhoneModeQrOpen = true;
+    this.isPhoneModeQrBusy = true;
+    this.phoneModeQrImageUrl = '';
+    this.renderNow();
+
+    try {
+      const launchUrl = this.phoneModeSession.buildLaunchUrl(consultationId);
+      this.phoneModeQrUrl = launchUrl;
+
+      void QRCode.toDataURL(launchUrl, {
+        errorCorrectionLevel: 'M',
+        margin: 1,
+        width: 320,
+      })
+        .then((imageUrl: string) => {
+          this.phoneModeQrImageUrl = imageUrl;
+          this.renderNow();
+        })
+        .catch(() => {
+          this.toastService.error(this.i18n.t('consultation.page.exam.phone.qrError'));
+          this.renderNow();
+        })
+        .finally(() => {
+          this.isPhoneModeQrBusy = false;
+          this.renderNow();
+        });
+    } catch {
+      this.isPhoneModeQrBusy = false;
+      this.toastService.error(this.i18n.t('consultation.page.exam.phone.qrError'));
+    }
+  }
+
+  protected closePhoneModeQr(): void {
+    this.isPhoneModeQrOpen = false;
+    this.phoneModeQrImageUrl = '';
+  }
+
+  protected async copyPhoneModeLink(): Promise<void> {
+    if (!this.phoneModeQrUrl) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(this.phoneModeQrUrl);
+      this.toastService.success(this.i18n.t('consultation.page.exam.phone.copySuccess'));
+    } catch {
+      this.toastService.error(this.i18n.t('consultation.page.exam.phone.copyError'));
+    }
   }
 
   protected onRegionKeydown(event: KeyboardEvent, regionId: string): void {
@@ -910,6 +943,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     this.drawingZoom = DRAWING_ZOOM_LEVELS[0];
     this.resetDrawingPan();
     this.modalState = null;
+    this.flushPendingRealtimePayload();
   }
 
   protected saveZoneModal(): void {
@@ -1007,6 +1041,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
           this.emitPayloadChange();
           this.isSavingZone = false;
           this.modalState = null;
+          this.flushPendingRealtimePayload();
           this.toastService.success(this.i18n.t('consultation.page.toast.saved'));
         },
         error: () => {
@@ -1113,6 +1148,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
           this.emitPayloadChange();
           this.isSavingZone = false;
           this.modalState = null;
+          this.flushPendingRealtimePayload();
           this.toastService.success(this.i18n.t('consultation.page.toast.saved'));
         },
         error: () => {
@@ -1335,6 +1371,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
           this.isHydratingFromBackend = false;
           this.emitPayloadChange();
           this.isLoading = false;
+          this.flushPendingRealtimePayload();
           queueMicrotask(() => {
             this.scrollToActiveTimelineItem(false);
             this.updateTimelineScrollProgress();
@@ -1927,8 +1964,81 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     this.clearHistoryPreview();
   }
 
-  private toTitleCase(value: string): string {
-    return value.replace(/\b\w/g, (character) => character.toUpperCase());
+  private handleRealtimeUpdate(event: ConsultationExamRealtimeEvent): void {
+    const currentConsultationId = this.consultationId?.trim().toLowerCase() ?? '';
+    const eventConsultationId = event.consultationId?.trim().toLowerCase() ?? '';
+    if (!currentConsultationId || currentConsultationId !== eventConsultationId) {
+      return;
+    }
+
+    const normalizedPayload = this.normalizePayload(event.payload, this.patientSex ?? undefined);
+
+    if (this.isPreviewingHistory || this.isApplyingHistoricalPayload) {
+      this.persistedCurrentPayload = cloneConsultationExamPayload(normalizedPayload);
+      return;
+    }
+
+    if (this.isSavingZone || this.isLoading) {
+      this.pendingRealtimePayload = normalizedPayload;
+      return;
+    }
+
+    this.applyRealtimePayload(normalizedPayload, !!this.modalState);
+  }
+
+  private flushPendingRealtimePayload(): void {
+    if (!this.pendingRealtimePayload || this.modalState || this.isSavingZone || this.isLoading) {
+      return;
+    }
+
+    const nextPayload = cloneConsultationExamPayload(this.pendingRealtimePayload);
+    this.pendingRealtimePayload = null;
+    this.applyRealtimePayload(nextPayload);
+  }
+
+  private applyRealtimePayload(payload: ConsultationExamPayload, syncModalState = false): void {
+    this.isHydratingFromBackend = true;
+    this.payload = cloneConsultationExamPayload(payload);
+    this.persistedCurrentPayload = cloneConsultationExamPayload(payload);
+    this.isHydratingFromBackend = false;
+
+    if (syncModalState) {
+      this.syncModalStateWithRealtimePayload(payload);
+    }
+
+    this.emitPayloadChange();
+    this.renderNow();
+  }
+
+  private syncModalStateWithRealtimePayload(payload: ConsultationExamPayload): void {
+    if (!this.modalState) {
+      return;
+    }
+
+    const realtimeZone = payload.bodyMap.zones?.[this.modalState.regionId];
+    const realtimeDrawing = this.normalizeDrawing(realtimeZone?.drawing);
+    const realtimeLesionsById = new Map(
+      (realtimeDrawing?.lesions ?? []).map((lesion) => [lesion.id, lesion] as const),
+    );
+
+    this.modalState = {
+      ...this.modalState,
+      existingImage:
+        this.modalState.nextFile || this.modalState.removeExistingImage
+          ? this.modalState.existingImage
+          : this.normalizeImage(realtimeZone?.image),
+      drawingLesions: this.modalState.drawingLesions.map((lesion) => {
+        if (lesion.nextFile || lesion.removeExistingImage) {
+          return lesion;
+        }
+
+        const realtimeLesion = realtimeLesionsById.get(lesion.id);
+        return {
+          ...lesion,
+          existingImage: this.normalizeImage(realtimeLesion?.image),
+        };
+      }),
+    };
   }
 
   private baseRegionColor(regionId: string): string {
@@ -1942,5 +2052,13 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     const saturation = 48 + (hash % 10);
     const lightness = 58 + (hash % 8);
     return `hsl(${hue} ${saturation}% ${lightness}%)`;
+  }
+
+  private renderNow(): void {
+    if (this.isDestroyed) {
+      return;
+    }
+
+    this.cdr.detectChanges();
   }
 }

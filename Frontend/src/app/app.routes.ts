@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { authGuardDoctor } from './core/guards/auth-guard-doctor.guard';
 import { authGuardAdmin } from './core/guards/auth-guard-admin.guard';
 import { authGuardAutoPassword } from './core/guards/auth-guard-auto-password.guard';
+import { phoneModeExitGuard } from './core/guards/phone-mode-exit.guard';
 
 export const routes: Routes = [
   {
@@ -11,6 +12,14 @@ export const routes: Routes = [
       import('./features/auth/pages/self-checkin-page/self-checkin-page').then(
         (m) => m.SelfCheckinPage,
       ),
+  },
+  {
+    path: 'consultations/:consultationId/phone-mode',
+    canDeactivate: [phoneModeExitGuard],
+    loadComponent: () =>
+      import(
+        './features/dashboard/pages/consultation-interrogatoire-page/consultation-exam-phone-page'
+      ).then((m) => m.ConsultationExamPhonePage),
   },
   {
     path: 'consultations/:consultationId/print/conclusion',

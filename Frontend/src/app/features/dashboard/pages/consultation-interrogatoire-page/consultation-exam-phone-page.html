@@ -1,0 +1,154 @@
+<div class="phone-mode-page">
+  @if (isLoading) {
+    <div class="phone-state-card">{{ 'consultation.page.loading' | translate }}</div>
+  } @else if (loadError) {
+    <div class="phone-state-card error">{{ loadError | translate }}</div>
+  } @else {
+    <header class="phone-header">
+      <div class="phone-header-copy">
+        <p class="phone-eyebrow">{{ 'consultation.page.exam.phone.title' | translate }}</p>
+        <h1>{{ patientDisplayName }}</h1>
+        <p>{{ 'consultation.page.exam.phone.subtitle' | translate }}</p>
+      </div>
+
+      @if (canReturnToExam) {
+        <button type="button" class="header-link-btn" (click)="returnToExam()">
+          {{ 'consultation.page.exam.phone.returnToExam' | translate }}
+        </button>
+      }
+    </header>
+
+    <section class="phone-summary-card">
+      <div class="summary-stat">
+        <span>{{ 'consultation.page.exam.phone.zoneCount' | translate }}</span>
+        <strong>{{ documentedZones.length }}</strong>
+      </div>
+      <div class="summary-stat">
+        <span>{{ 'consultation.page.exam.phone.lesionCount' | translate }}</span>
+        <strong>{{ totalLesionCount }}</strong>
+      </div>
+      <div class="summary-stat">
+        <span>{{ 'consultation.page.exam.phone.imageCount' | translate }}</span>
+        <strong>{{ totalImageCount }}</strong>
+      </div>
+    </section>
+
+    @if (documentedZones.length === 0) {
+      <section class="phone-empty-card">
+        <h2>{{ 'consultation.page.exam.phone.emptyTitle' | translate }}</h2>
+        <p>{{ 'consultation.page.exam.phone.emptyDescription' | translate }}</p>
+      </section>
+    } @else {
+      <section class="zone-list-shell">
+        @for (group of zoneGroups; track group.view) {
+          <div class="zone-group-card">
+            <div class="zone-group-header">
+              <h2>{{ group.titleKey | translate }}</h2>
+              <span>{{ group.zones.length }}</span>
+            </div>
+
+            <div class="zone-card-list">
+              @for (summary of group.zones; track summary.zone.regionId) {
+                <button
+                  type="button"
+                  class="zone-card"
+                  [class.is-active]="summary.zone.regionId === activeZoneId"
+                  (click)="selectZone(summary.zone.regionId)"
+                >
+                  <div class="zone-card-copy">
+                    <strong>{{ summary.label }}</strong>
+                    <span>{{ summary.zone.description || ('consultation.page.exam.phone.noDescription' | translate) }}</span>
+                  </div>
+
+                  <div class="zone-card-meta">
+                    <span>{{ summary.lesionCount }} {{ 'consultation.page.exam.phone.lesionCountShort' | translate }}</span>
+                    <span>{{ summary.imageCount }} {{ 'consultation.page.exam.phone.imageCountShort' | translate }}</span>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </section>
+
+      @if (activeZone) {
+        <section class="detail-card">
+          <div class="detail-header">
+            <div>
+              <p class="phone-eyebrow">{{ 'consultation.page.exam.phone.detailTitle' | translate }}</p>
+              <h2>{{ activeSelectionTitle }}</h2>
+            </div>
+            <span class="detail-badge">{{ activeSummary?.imageCount ?? 0 }} {{ 'consultation.page.exam.phone.imageCountShort' | translate }}</span>
+          </div>
+
+          @if (hasDrawingLesions) {
+            <div class="sublesion-strip">
+              @for (lesion of activeDrawingLesions; track lesion.id; let index = $index) {
+                <button
+                  type="button"
+                  class="sublesion-chip"
+                  [class.is-active]="lesion.id === activeDrawingLesionId"
+                  (click)="selectDrawingLesion(lesion.id)"
+                >
+                  <strong>{{ getLesionBadgeLabel(lesion, index) }}</strong>
+                  <span>{{ lesion.image?.fileUrl ? ('consultation.page.exam.phone.photoAttached' | translate) : ('consultation.page.exam.phone.noPhoto' | translate) }}</span>
+                </button>
+              }
+            </div>
+          }
+
+          <div class="detail-copy-card">
+            <span>{{ 'consultation.page.exam.bodyMap.lesionDescription' | translate }}</span>
+            <p>{{ activeSelectionDescription || ('consultation.page.exam.phone.noDescription' | translate) }}</p>
+          </div>
+
+          <div class="photo-actions">
+            <label class="action-pill action-pill-primary">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                capture="environment"
+                (change)="onPhotoSelected($event)"
+              />
+              <i class="bi bi-camera-fill"></i>
+              <span>{{ 'consultation.page.exam.phone.takePhoto' | translate }}</span>
+            </label>
+
+            <label class="action-pill">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                (change)="onPhotoSelected($event)"
+              />
+              <i class="bi bi-upload"></i>
+              <span>{{ 'consultation.page.exam.phone.uploadPhoto' | translate }}</span>
+            </label>
+
+            @if (activeSelectionImage) {
+              <button type="button" class="action-pill action-pill-danger" [disabled]="isSavingPhoto" (click)="removeCurrentPhoto()">
+                <i class="bi bi-trash3"></i>
+                <span>{{ 'consultation.page.exam.phone.removePhoto' | translate }}</span>
+              </button>
+            }
+          </div>
+
+          @if (isSavingPhoto) {
+            <div class="photo-state-card">{{ 'consultation.page.loading' | translate }}</div>
+          }
+
+          @if (activeSelectionImage) {
+            <div class="image-preview-card phone-preview-card">
+              <img [src]="resolveImageUrl(activeSelectionImage)" [alt]="activeSelectionTitle" />
+              <div class="image-preview-meta">
+                <span>{{ activeSelectionImage.originalFileName || ('consultation.page.exam.bodyMap.currentImage' | translate) }}</span>
+                <small>{{ 'consultation.page.exam.phone.photoAttached' | translate }}</small>
+              </div>
+            </div>
+          } @else {
+            <div class="photo-state-card muted">{{ 'consultation.page.exam.phone.noPhotoYet' | translate }}</div>
+          }
+        </section>
+      }
+    }
+  }
+</div>
