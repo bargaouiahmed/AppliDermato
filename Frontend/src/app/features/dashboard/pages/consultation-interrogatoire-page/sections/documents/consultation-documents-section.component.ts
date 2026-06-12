@@ -262,7 +262,7 @@ export class ConsultationDocumentsSectionComponent {
       return;
     }
 
-    this.previewImageUrl = this.documentsService.resolveAssetUrl(document.fileUrl);
+    this.previewImageUrl = this.resolveImageUrl(document);
     this.previewImageName = document.originalFileName;
   }
 
@@ -293,7 +293,7 @@ export class ConsultationDocumentsSectionComponent {
   }
 
   protected resolveImageUrl(document: ConsultationExplorationDocumentResponse): string {
-    return this.documentsService.resolveAssetUrl(document.fileUrl);
+    return this.documentsService.resolveAssetUrl(document.fileUrl, this.buildDocumentCacheBuster(document));
   }
 
   private loadDocuments(): void {
@@ -432,5 +432,13 @@ export class ConsultationDocumentsSectionComponent {
     }
 
     return 'en-US';
+  }
+
+  private buildDocumentCacheBuster(document: ConsultationExplorationDocumentResponse): string {
+    return [
+      document.id?.trim() ?? '',
+      document.createdAt?.trim() ?? '',
+      String(document.fileSizeBytes ?? ''),
+    ].join(':');
   }
 }

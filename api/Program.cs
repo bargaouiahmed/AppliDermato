@@ -219,7 +219,17 @@ app.Use(async (context, next) =>
 });
 
 app.UseCors("ConfiguredCors");
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        var path = context.Context.Request.Path.Value ?? string.Empty;
+        if (path.StartsWith("/exploration-documents/", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+        }
+    }
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers().RequireCors("ConfiguredCors");

@@ -40,15 +40,21 @@ export class DocumentsService {
     return this.http.delete<void>(API.documents.deleteExplorationDocument(consultationId, documentId));
   }
 
-  resolveAssetUrl(relativeOrAbsoluteUrl: string): string {
+  resolveAssetUrl(relativeOrAbsoluteUrl: string, cacheBuster?: string | number | null): string {
     if (!relativeOrAbsoluteUrl) {
       return '';
     }
 
-    if (/^https?:\/\//i.test(relativeOrAbsoluteUrl)) {
-      return relativeOrAbsoluteUrl;
+    const assetUrl = /^https?:\/\//i.test(relativeOrAbsoluteUrl)
+      ? relativeOrAbsoluteUrl
+      : `${environment.apiUrl}${relativeOrAbsoluteUrl.startsWith('/') ? relativeOrAbsoluteUrl : `/${relativeOrAbsoluteUrl}`}`;
+
+    const normalizedCacheBuster = `${cacheBuster ?? ''}`.trim();
+    if (!normalizedCacheBuster) {
+      return assetUrl;
     }
 
-    return `${environment.apiUrl}${relativeOrAbsoluteUrl.startsWith('/') ? relativeOrAbsoluteUrl : `/${relativeOrAbsoluteUrl}`}`;
+    const separator = assetUrl.includes('?') ? '&' : '?';
+    return `${assetUrl}${separator}v=${encodeURIComponent(normalizedCacheBuster)}`;
   }
 }

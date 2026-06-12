@@ -315,7 +315,9 @@ export class ConsultationExamPhonePage implements OnInit, PhoneModeExitAware {
   }
 
   protected resolveImageUrl(image: DermatologyExamImage | null | undefined): string {
-    return image?.fileUrl ? this.documentsService.resolveAssetUrl(image.fileUrl) : '';
+    return image?.fileUrl
+      ? this.documentsService.resolveAssetUrl(image.fileUrl, this.buildImageCacheBuster(image))
+      : '';
   }
 
   protected returnToExam(): void {
@@ -566,6 +568,18 @@ export class ConsultationExamPhonePage implements OnInit, PhoneModeExitAware {
       fileSizeBytes: documentResponse.fileSizeBytes,
       createdAt: documentResponse.createdAt,
     };
+  }
+
+  private buildImageCacheBuster(image: DermatologyExamImage | null | undefined): string {
+    if (!image) {
+      return '';
+    }
+
+    return [
+      image.documentId?.trim() ?? '',
+      image.createdAt?.trim() ?? '',
+      String(image.fileSizeBytes ?? ''),
+    ].join(':');
   }
 
   private hasZoneData(zone: DermatologyExamZone | null | undefined): boolean {

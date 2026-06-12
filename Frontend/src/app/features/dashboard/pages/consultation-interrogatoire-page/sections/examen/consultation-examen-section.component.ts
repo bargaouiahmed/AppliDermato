@@ -1342,7 +1342,9 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected resolveImageUrl(image: DermatologyExamImage | null | undefined): string {
-    return image?.fileUrl ? this.documentsService.resolveAssetUrl(image.fileUrl) : '';
+    return image?.fileUrl
+      ? this.documentsService.resolveAssetUrl(image.fileUrl, this.buildImageCacheBuster(image))
+      : '';
   }
 
   protected goToConduite(): void {
@@ -1703,6 +1705,18 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       fileSizeBytes: documentResponse.fileSizeBytes,
       createdAt: documentResponse.createdAt,
     };
+  }
+
+  private buildImageCacheBuster(image: DermatologyExamImage | null | undefined): string {
+    if (!image) {
+      return '';
+    }
+
+    return [
+      image.documentId?.trim() ?? '',
+      image.createdAt?.trim() ?? '',
+      String(image.fileSizeBytes ?? ''),
+    ].join(':');
   }
 
   private toDrawingLesionState(lesion: DermatologyExamDrawingLesion): ZoneDrawingLesionState {
