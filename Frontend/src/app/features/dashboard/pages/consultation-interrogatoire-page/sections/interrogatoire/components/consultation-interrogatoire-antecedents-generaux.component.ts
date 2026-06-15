@@ -254,6 +254,8 @@ const DIABETE_TYPES: readonly string[] = ['Type 1', 'Type 2'];
 const REMOVED_ANTECEDENT_TEMPLATE_KEY = 'traitement-general-en-cours';
 const REMOVED_ANTECEDENT_LABEL = 'Traitement general en cours';
 const MEDICAL_ANTECEDENT_TEMPLATE_KEY_PREFIX = 'medical-antecedent-';
+const FUNCTIONAL_SIGN_TEMPLATE_KEY_PREFIX = 'functional-sign-';
+const DERMATOLOGIC_ANTECEDENT_TEMPLATE_KEY_PREFIX = 'dermatologic-antecedent-';
 
 const KNOWN_ANTECEDENT_I18N_FALLBACKS: ReadonlyArray<{ aliases: readonly string[]; i18nKey: string }> = [
   {
@@ -1856,6 +1858,10 @@ export class ConsultationInterrogatoireAntecedentsGenerauxComponent {
         continue;
       }
 
+      if (this.isManagedOutsideGeneralAntecedents(item.templateKey)) {
+        continue;
+      }
+
       const normalized = this.normalizeValue(label);
       if (existing.has(normalized)) {
         continue;
@@ -1909,6 +1915,12 @@ export class ConsultationInterrogatoireAntecedentsGenerauxComponent {
     }
 
     return this.normalizeValue(value) === this.normalizeValue(REMOVED_ANTECEDENT_LABEL);
+  }
+
+  private isManagedOutsideGeneralAntecedents(templateKey?: string | null): boolean {
+    const normalized = this.normalizeTemplateKey(templateKey);
+    return normalized.startsWith(FUNCTIONAL_SIGN_TEMPLATE_KEY_PREFIX)
+      || normalized.startsWith(DERMATOLOGIC_ANTECEDENT_TEMPLATE_KEY_PREFIX);
   }
 
   private parseBoolean(value: unknown): boolean {

@@ -50,7 +50,6 @@ export class ConsultationConclusionSectionComponent implements OnChanges, OnDest
   @Input() patient: Patient | null = null;
   @Input() consultationDate = '';
   @Input() motifs: string[] = [];
-  @Input() histoireMaladie = '';
   @Input() diagnostics: string[] = [];
   @Input() anomalies: UpdateInterrogatoireAnomalyRequest[] = [];
   @Input() ongoingTreatments: UpdateOngoingTreatmentMedicineRequest[] = [];
@@ -336,7 +335,6 @@ export class ConsultationConclusionSectionComponent implements OnChanges, OnDest
       patient: this.patient,
       consultationDate: this.consultationDate,
       motifs: this.motifs,
-      histoireMaladie: this.histoireMaladie,
       diagnostics: this.diagnostics,
       anomalies: this.anomalies,
       ongoingTreatments: this.ongoingTreatments,

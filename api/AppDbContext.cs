@@ -315,10 +315,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasConversion<string>()
             .HasMaxLength(32);
 
+            h.Property(h => h.Category).HasMaxLength(64);
+            h.Property(h => h.CategoryNormalized).HasMaxLength(64);
             h.Property(h => h.Label).HasMaxLength(120);
             h.Property(h => h.LabelNormalized).HasMaxLength(120);
 
-            h.HasIndex(h => new { h.CabinetIdentityId, h.Section, h.LabelNormalized }).IsUnique();
+            h.HasIndex(h => new { h.CabinetIdentityId, h.Section, h.CategoryNormalized, h.LabelNormalized }).IsUnique();
             h.HasIndex(h => new { h.CabinetIdentityId, h.Section });
         });
 
@@ -329,10 +331,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HasMaxLength(32);
 
             c.Property(c => c.TemplateKey).HasMaxLength(140);
+            c.Property(c => c.Category).HasMaxLength(64);
+            c.Property(c => c.CategoryNormalized).HasMaxLength(64);
             c.Property(c => c.Label).HasMaxLength(140);
             c.Property(c => c.LabelNormalized).HasMaxLength(140);
 
-            c.HasIndex(c => new { c.CabinetIdentityId, c.Section, c.LabelNormalized }).IsUnique();
+            c.HasIndex(c => new { c.CabinetIdentityId, c.Section, c.CategoryNormalized, c.LabelNormalized }).IsUnique();
             c.HasIndex(c => new { c.CabinetIdentityId, c.Section });
         });
 

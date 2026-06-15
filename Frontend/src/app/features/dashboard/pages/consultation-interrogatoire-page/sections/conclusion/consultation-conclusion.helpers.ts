@@ -45,13 +45,6 @@ export interface ConclusionGeneralSummary {
   metrics: ConclusionMetric[];
 }
 
-export interface ConclusionStoryBlock {
-  title: string;
-  text: string;
-  isEmpty: boolean;
-  emptyText: string;
-}
-
 export interface ConclusionTreatmentRow {
   medicine: string;
   therapeuticClass: string;
@@ -72,7 +65,6 @@ export interface ConsultationConclusionViewModel {
   patientFields: ConclusionField[];
   motifsLabel: string;
   motifs: string[];
-  story: ConclusionStoryBlock;
   historyTitle: string;
   historyGroups: ConclusionGroup[];
   generalSummary: ConclusionGeneralSummary;
@@ -91,7 +83,6 @@ export interface BuildConsultationConclusionViewModelArgs {
   patient: Patient | null;
   consultationDate: string;
   motifs: string[];
-  histoireMaladie: string;
   diagnostics: string[];
   anomalies: UpdateInterrogatoireAnomalyRequest[];
   ongoingTreatments: UpdateOngoingTreatmentMedicineRequest[];
@@ -102,7 +93,6 @@ export interface BuildConsultationConclusionViewModelArgs {
 }
 
 interface EmptyLabels {
-  story: string;
   ongoingTreatments: string;
   unassigned: string;
 }
@@ -120,7 +110,7 @@ export function buildConsultationConclusionViewModel(
     actions: [],
   };
 
-  const historyGroups = buildHistoryGroups(args.anomalies ?? [], emptyLabels.unassigned);
+  const historyGroups = buildHistoryGroups(args.anomalies ?? [], emptyLabels.unassigned, translate);
   const generalSummary = buildGeneralSummary(examPayload, translate, emptyLabels.unassigned);
   const clinicalGroups = buildClinicalGroups(examPayload, translate, emptyLabels.unassigned);
   const carePlanGroups = buildCarePlanGroups(conduite, args.diagnostics ?? [], translate, emptyLabels.unassigned);
@@ -135,20 +125,13 @@ export function buildConsultationConclusionViewModel(
     + countByTone(clinicalGroups.flatMap((group) => group.badges), 'unassigned')
     + countByTone(carePlanGroups.flatMap((group) => group.badges), 'unassigned')
     + (generalSummary.statusTone === 'unassigned' ? 1 : 0)
-    + (ongoingTreatments.length === 0 ? 1 : 0)
-    + (!normalizeText(args.histoireMaladie) ? 1 : 0);
+    + (ongoingTreatments.length === 0 ? 1 : 0);
 
   return {
     title: translate('consultation.page.conclusion.title'),
     patientFields: buildPatientFields(args.patient, args.consultationDate, args.motifs ?? [], args.locale, translate),
     motifsLabel: translate('consultation.page.conclusion.labels.motifs'),
     motifs: normalizeDistinctStrings(args.motifs ?? []),
-    story: {
-      title: translate('consultation.page.conclusion.labels.histoireMaladie'),
-      text: normalizeText(args.histoireMaladie),
-      isEmpty: !normalizeText(args.histoireMaladie),
-      emptyText: emptyLabels.story,
-    },
     historyTitle: translate('consultation.page.conclusion.labels.interrogatoire'),
     historyGroups,
     generalSummary,
@@ -183,14 +166,12 @@ export function buildConsultationConclusionViewModel(
 function createEmptyLabels(locale: string, fallback: string): EmptyLabels {
   if (!locale.toLowerCase().startsWith('fr')) {
     return {
-      story: fallback,
       ongoingTreatments: fallback,
       unassigned: fallback,
     };
   }
 
   return {
-    story: 'Non mentionnee',
     ongoingTreatments: 'Non mentionnes',
     unassigned: 'Non mentionne',
   };
@@ -219,15 +200,18 @@ function buildPatientFields(
 function buildHistoryGroups(
   anomalies: UpdateInterrogatoireAnomalyRequest[],
   emptyBadgeLabel: string,
+  translate: (key: string) => string,
 ): ConclusionGroup[] {
-  const generalAntecedents = anomalies.filter((item) => item.section === 'medical' && !isFunctionalSignAnomaly(item));
-  const functionalSigns = anomalies.filter((item) => item.section === 'medical' && isFunctionalSignAnomaly(item));
+  const dermatologicAntecedents = anomalies.filter((item) => isDermatologicAntecedentAnomaly(item));
+  const generalAntecedents = anomalies.filter(
+    (item) => item.section === 'medical' && !isFunctionalSignAnomaly(item) && !isDermatologicAntecedentAnomaly(item),
+  );
   const familyAntecedents = anomalies.filter((item) => item.section === 'family');
 
   return [
-    buildHistoryGroup('Medical history', generalAntecedents, emptyBadgeLabel),
-    buildHistoryGroup('Family history', familyAntecedents, emptyBadgeLabel),
-    buildHistoryGroup('Functional signs', functionalSigns, emptyBadgeLabel),
+    buildHistoryGroup(translate('consultation.page.conclusion.groups.medicalHistory'), generalAntecedents, emptyBadgeLabel),
+    buildHistoryGroup(translate('consultation.page.conclusion.groups.dermatologicAntecedents'), dermatologicAntecedents, emptyBadgeLabel),
+    buildHistoryGroup(translate('consultation.page.conclusion.groups.familyHistory'), familyAntecedents, emptyBadgeLabel),
   ];
 }
 
@@ -715,4 +699,15 @@ function normalizeExamPayloadForConclusion(
 function isFunctionalSignAnomaly(item: UpdateInterrogatoireAnomalyRequest): boolean {
   const templateKey = normalizeText(item.templateKey).toLowerCase();
   return templateKey.startsWith('functional-sign-');
+}
+
+function isDermatologicAntecedentAnomaly(item: UpdateInterrogatoireAnomalyRequest): boolean {
+  const templateKey = normalizeText(item.templateKey).toLowerCase();
+  if (templateKey.startsWith('dermatologic-antecedent-')) {
+    return true;
+  }
+
+  const payload = asRecord(item.payload);
+  const category = normalizeText(payload['category']).toLowerCase();
+  return category === 'laser' || category === 'surgical' || category === 'general';
 }

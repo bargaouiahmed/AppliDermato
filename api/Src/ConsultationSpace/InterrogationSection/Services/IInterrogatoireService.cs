@@ -11,7 +11,7 @@ public interface IInterrogatoireService
     Task<ConsultationInterrogatoireResponse> GetConsultationInterrogatoire(Guid consultationId, Guid cabinetIdentityId);
     Task<List<InterrogatoireAnomalyCatalogItemResponse>> GetAnomalyCatalog(Guid cabinetIdentityId, string? section);
     Task<InterrogatoireAnomalyCatalogItemResponse> AddCustomAnomalyToCatalog(Guid cabinetIdentityId, UpsertAnomalyCatalogCustomRequest request);
-    Task HideCustomAnomalyFromCatalog(Guid cabinetIdentityId, string section, string label);
+    Task HideCustomAnomalyFromCatalog(Guid cabinetIdentityId, string section, string label, string? category = null);
     Task<List<TreatmentCatalogItemResponse>> GetTreatmentMedicineCatalog(Guid cabinetIdentityId);
     Task<List<TreatmentCatalogItemResponse>> GetTherapeuticClassCatalog(Guid cabinetIdentityId);
     Task<List<TreatmentCatalogItemResponse>> GetTreatmentCategoryCatalog(Guid cabinetIdentityId);

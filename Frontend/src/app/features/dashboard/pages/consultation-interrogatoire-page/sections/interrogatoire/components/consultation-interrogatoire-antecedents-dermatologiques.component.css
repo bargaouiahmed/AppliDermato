@@ -1,0 +1,111 @@
+:host ::ng-deep .dermatologic-antecedent-select .ng-dropdown-panel .ng-optgroup {
+  background: #f5f8f3 !important;
+  color: #175042 !important;
+  cursor: default !important;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  padding: 0.45rem 0.62rem !important;
+  text-transform: uppercase;
+}
+
+.dermatologic-category-pill,
+.dermatologic-chip-category {
+  border: 1px solid #cfd7ce;
+  border-radius: 999px;
+  color: #175042;
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.1;
+  padding: 0.18rem 0.42rem;
+}
+
+.dermatologic-chip-category {
+  background: #f5f8f3;
+}
+
+.dermatologic-add-panel {
+  padding: 0.55rem 0.65rem;
+}
+
+.dermatologic-add-title {
+  color: #173f36;
+  display: block;
+  font-size: 0.92rem;
+  margin-bottom: 0.45rem;
+}
+
+.dermatologic-add-actions,
+.dermatologic-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.dermatologic-add-btn,
+.dermatologic-modal-btn {
+  background: #eef4ea;
+  border: 1px solid #cfd7ce;
+  border-radius: 0.28rem;
+  color: #173f36;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 0.38rem 0.6rem;
+}
+
+.dermatologic-add-btn:hover,
+.dermatologic-add-btn:focus-visible,
+.dermatologic-modal-btn.active,
+.dermatologic-modal-btn:hover,
+.dermatologic-modal-btn:focus-visible {
+  background: #93ae88;
+  border-color: #93ae88;
+  color: #fff;
+  outline: none;
+}
+
+.dermatologic-modal-backdrop {
+  background: rgba(18, 24, 34, 0.24);
+  border: 0;
+  inset: 0;
+  position: fixed;
+  z-index: 6100;
+}
+
+.dermatologic-category-modal {
+  background: #fff;
+  border: 1px solid #d6dce4;
+  border-radius: 0.35rem;
+  box-shadow: 0 18px 40px rgba(18, 24, 34, 0.2);
+  left: 50%;
+  max-width: min(440px, calc(100vw - 2rem));
+  padding: 1rem;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  z-index: 6110;
+}
+
+.dermatologic-category-modal h4 {
+  color: #175042;
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+}
+
+.dermatologic-category-modal p {
+  color: #121822;
+  font-size: 0.98rem;
+  margin: 0 0 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .dermatologic-category-pill {
+    display: none;
+  }
+}

@@ -63,7 +63,20 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
   protected medicineOptions: OptionItem[] = [];
   protected therapeuticClassOptions: OptionItem[] = [];
   protected categoryOptions: OptionItem[] = [];
-  protected durationOptions: string[] = ['05 jours', '07 jours', '10 jours', '02 semaines', '03 semaines', '01 mois'];
+  protected durationOptions: string[] = [
+    '03 jours',
+    '05 jours',
+    '07 jours',
+    '10 jours',
+    '14 jours',
+    '02 semaines',
+    '04 semaines',
+    '06 semaines',
+    '08 semaines',
+    '12 semaines',
+    '01 mois',
+    '03 mois',
+  ];
   protected activeView: 'tec' | 'ordonnances' = 'tec';
   protected ordonnanceHistory: InterrogatoireOrdonnanceHistoryResponse[] = [];
   protected selectedOrdonnanceConsultationId = '';
@@ -77,19 +90,37 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
   private readonly uncategorizedMedicineKeys = new Set<string>();
 
   protected posologyOptions: OptionItem[] = [
-    { value: '1 gtt x 3 jours', label: 'consultation.page.interrogatoire.treatments.posology.1x3' },
-    { value: '1 gtt x 5 jours', label: 'consultation.page.interrogatoire.treatments.posology.1x5' },
-    { value: '1 gtt x 7 jours', label: 'consultation.page.interrogatoire.treatments.posology.1x7' },
-    { value: '2 gtt x 5 jours', label: 'consultation.page.interrogatoire.treatments.posology.2x5' },
-    { value: '2 gtt x 7 jours', label: 'consultation.page.interrogatoire.treatments.posology.2x7' },
-    { value: '1 cp * 1/j', label: '1 cp * 1/j' },
-    { value: '1 cp * 2/j', label: '1 cp * 2/j' },
-    { value: '1 cp * 3/j', label: '1 cp * 3/j' },
-    { value: '5 ml * 3/j', label: '5 ml * 3/j' },
-    { value: 'Au besoin (PRN)', label: 'Au besoin (PRN)' },
+    { value: 'Application 1 fois/j', label: 'consultation.catalog.defaults.posology.application1ParJour' },
+    { value: 'Application 2 fois/j', label: 'consultation.catalog.defaults.posology.application2ParJour' },
+    { value: 'Application 3 fois/j', label: 'consultation.catalog.defaults.posology.application3ParJour' },
+    { value: 'Application fine couche le soir', label: 'consultation.catalog.defaults.posology.applicationFineCoucheLeSoir' },
+    { value: 'Application sur lésions uniquement', label: 'consultation.catalog.defaults.posology.applicationSurLesionsUniquement' },
+    { value: 'Application corps entier 8-12h, renouveler J7', label: 'consultation.catalog.defaults.posology.applicationCorpsEntier812hRenouvelerJ7' },
+    { value: 'Application cuir chevelu 10 min puis rincer', label: 'consultation.catalog.defaults.posology.applicationCuirChevelu10MinPuisRincer' },
+    { value: 'Shampooing 2-3 fois/semaine', label: 'consultation.catalog.defaults.posology.shampooing2a3FoisSemaine' },
+    { value: '1 application 5 fois/j', label: 'consultation.catalog.defaults.posology.application5FoisParJour' },
+    { value: '1 comprimé/j', label: 'consultation.catalog.defaults.posology.comprime1ParJour' },
+    { value: '1 comprimé x 2/j', label: 'consultation.catalog.defaults.posology.comprime1x2ParJour' },
+    { value: '1 comprimé 5 fois/j', label: 'consultation.catalog.defaults.posology.comprime1CinqFoisParJour' },
+    { value: '1 gélule/j', label: 'consultation.catalog.defaults.posology.gelule1ParJour' },
+    { value: '1 capsule/j', label: 'consultation.catalog.defaults.posology.capsule1ParJour' },
+    { value: 'Selon poids/protocole dermatologue', label: 'consultation.catalog.defaults.posology.selonPoidsProtocoleDermatologue' },
+    { value: 'Au besoin (PRN)', label: 'consultation.catalog.defaults.posology.auBesoinPrn' },
   ];
-  private readonly posologyGtKeywords = ['gtt', 'goutte'];
-  private readonly posologyCpKeywords = ['cp'];
+  private readonly topicalPosologyKeywords = ['application'];
+  private readonly topicalTwiceDailyPosologyKeywords = ['2 fois'];
+  private readonly topicalThreeTimesDailyPosologyKeywords = ['3 fois'];
+  private readonly topicalEveningPosologyKeywords = ['fine couche'];
+  private readonly topicalLesionOnlyPosologyKeywords = ['lesions uniquement'];
+  private readonly shampooPosologyKeywords = ['shampooing'];
+  private readonly tabletOnceDailyPosologyKeywords = ['comprime/j'];
+  private readonly capsuleOnceDailyPosologyKeywords = ['capsule/j'];
+  private readonly geluleOnceDailyPosologyKeywords = ['gelule/j'];
+  private readonly protocolPosologyKeywords = ['protocole'];
+  private readonly scabicidePosologyKeywords = ['corps entier', 'renouveler'];
+  private readonly pediculicidePosologyKeywords = ['cuir chevelu'];
+  private readonly antiviralTopicalPosologyKeywords = ['5 fois'];
+  private readonly antiviralOralPosologyKeywords = ['comprime 5 fois'];
   private readonly posologyOptionsCache = new Map<string, OptionItem[]>();
 
   private readonly i18n = inject(I18nService);
@@ -154,7 +185,7 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
         medicine: '',
         therapeuticClass: '',
         category: '',
-        posology: this.defaultPosologyForClass(''),
+        posology: this.defaultPosologyForRow(),
         duration: this.durationOptions[0] ?? '',
         date: new Date(),
         categoryItems: [],
@@ -231,6 +262,7 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
       therapeuticClass: inferred.therapeuticClass,
       category: inferred.category,
     });
+    this.refreshRowDefaultPosology(rowId);
 
     if (medicine) {
       this.registerLinks(inferred.therapeuticClass, inferred.category, medicine);
@@ -279,6 +311,7 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
       this.updateRow(rowId, { medicine: '' });
     }
 
+    this.refreshRowDefaultPosology(rowId);
     this.emitTreatments();
   }
 
@@ -316,6 +349,7 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
       this.updateRow(rowId, { medicine: '' });
     }
 
+    this.refreshRowDefaultPosology(rowId);
     this.emitTreatments();
   }
 
@@ -324,7 +358,7 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
       return;
     }
 
-    const posology = this.extractLabel(value) || this.defaultPosologyForClass(this.findRow(rowId)?.therapeuticClass);
+    const posology = this.extractLabel(value) || this.defaultPosologyForRow(this.findRow(rowId));
     this.ensurePosologyOption(posology);
     this.updateRow(rowId, { posology });
     this.emitTreatments();
@@ -513,28 +547,28 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
   }
 
   protected posologyOptionsForRow(row: TreatmentRow): OptionItem[] {
-    const cacheKey = this.buildPosologyOptionsCacheKey(row.therapeuticClass, row.posology);
+    const cacheKey = this.buildPosologyOptionsCacheKey(row, row.posology);
     const cached = this.posologyOptionsCache.get(cacheKey);
     if (cached) {
       return cached;
     }
 
-    const isCollyre = this.normalizeKey(row.therapeuticClass) === 'collyre';
-    const gtOptions: OptionItem[] = [];
-    const cpOptions: OptionItem[] = [];
+    const preferredKeywords = this.resolvePreferredPosologyKeywords(row);
+    const preferredOptions: OptionItem[] = [];
+    const fallbackOptions: OptionItem[] = [];
 
     for (const option of this.posologyOptions) {
       const key = this.normalizeKey(option.value);
-      if (this.posologyGtKeywords.some((item) => key.includes(item))) {
-        gtOptions.push(option);
-      } else if (this.posologyCpKeywords.some((item) => key.includes(item))) {
-        cpOptions.push(option);
+      if (preferredKeywords.some((item) => key.includes(item))) {
+        preferredOptions.push(option);
+      } else {
+        fallbackOptions.push(option);
       }
     }
 
-    const ordered = isCollyre
-      ? (gtOptions.length > 0 ? gtOptions : this.posologyOptions)
-      : (cpOptions.length > 0 ? cpOptions : this.posologyOptions);
+    const ordered = preferredOptions.length > 0
+      ? [...preferredOptions, ...fallbackOptions]
+      : this.posologyOptions;
 
     const result = row.posology && !ordered.some((item) => this.normalizeKey(item.value) === this.normalizeKey(row.posology))
       ? [...ordered, { value: row.posology, label: row.posology }]
@@ -683,7 +717,11 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
       medicine: this.normalizeLabel(item.medicine),
       therapeuticClass: this.normalizeLabel(item.therapeuticClass),
       category: this.normalizeLabel(item.therapeuticClass) ? this.normalizeLabel(item.category) : '',
-      posology: this.normalizeLabel(item.posology) || this.defaultPosologyForClass(item.therapeuticClass),
+      posology: this.normalizeLabel(item.posology) || this.defaultPosologyForRow({
+        medicine: item.medicine,
+        therapeuticClass: item.therapeuticClass,
+        category: item.category,
+      }),
       duration: this.normalizeLabel(item.duration) || (this.durationOptions[0] ?? ''),
       date: this.parseTreatmentDate(item.date),
       categoryItems: [],
@@ -732,7 +770,11 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
           medicine: normalized.medicine,
           therapeuticClass,
           category: therapeuticClass ? normalized.category : '',
-          posology: normalized.posology || this.defaultPosologyForClass(therapeuticClass),
+          posology: normalized.posology || this.defaultPosologyForRow({
+            medicine: normalized.medicine,
+            therapeuticClass,
+            category: normalized.category,
+          }),
           duration: normalized.duration || (this.durationOptions[0] ?? ''),
           date: normalized.date || this.toDateInputValue(row.date),
         };
@@ -771,7 +813,6 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
         next: ({ medicines, therapeuticClasses, categories, relations }) => {
           this.medicineOptions = this.mergeOptions(this.medicineOptions, medicines);
           this.therapeuticClassOptions = this.mergeOptions(this.therapeuticClassOptions, therapeuticClasses);
-          this.therapeuticClassOptions = this.mergeOptions(this.therapeuticClassOptions, [{ id: '', label: 'Collyre' }]);
           this.categoryOptions = this.mergeOptions(this.categoryOptions, categories);
           this.applyCatalogRelations(relations);
           this.scheduleRefreshRowOptions();
@@ -1130,23 +1171,129 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
     this.posologyOptionsCache.clear();
   }
 
-  private buildPosologyOptionsCacheKey(therapeuticClassRaw: unknown, selectedPosologyRaw: unknown): string {
-    const therapeuticClassKey = this.normalizeKey(this.normalizeLabel(therapeuticClassRaw));
-    const selectedPosologyKey = this.normalizeKey(this.normalizeLabel(selectedPosologyRaw));
-    const catalogKey = this.posologyOptions.map((item) => this.normalizeKey(item.value)).join('|');
-    return `${therapeuticClassKey}::${selectedPosologyKey}::${catalogKey}`;
+  private refreshRowDefaultPosology(rowId: string): void {
+    const row = this.findRow(rowId);
+    if (!row || !this.shouldRefreshRowDefaultPosology(row.posology)) {
+      return;
+    }
+
+    const posology = this.defaultPosologyForRow(row);
+    if (posology && this.normalizeKey(posology) !== this.normalizeKey(row.posology)) {
+      this.updateRow(rowId, { posology });
+    }
   }
 
-  private defaultPosologyForClass(therapeuticClassRaw: unknown): string {
-    const isCollyre = this.normalizeKey(this.normalizeLabel(therapeuticClassRaw)) === 'collyre';
-    const filtered = this.posologyOptions.filter((option) => {
-      const key = this.normalizeKey(option.value);
-      return isCollyre
-        ? this.posologyGtKeywords.some((item) => key.includes(item))
-        : this.posologyCpKeywords.some((item) => key.includes(item));
-    });
+  private shouldRefreshRowDefaultPosology(posologyRaw: unknown): boolean {
+    const posologyKey = this.normalizeKey(this.normalizeLabel(posologyRaw));
+    if (!posologyKey) {
+      return true;
+    }
 
-    return filtered[0]?.value ?? this.posologyOptions[0]?.value ?? '';
+    return this.posologyOptions.some((item) => this.normalizeKey(item.value) === posologyKey)
+      || !!findKnownDefaultTreatmentValueTranslationKey(this.normalizeLabel(posologyRaw));
+  }
+
+  private buildPosologyOptionsCacheKey(row: TreatmentRow, selectedPosologyRaw: unknown): string {
+    const therapeuticClassKey = this.normalizeKey(this.normalizeLabel(row.therapeuticClass));
+    const categoryKey = this.normalizeKey(this.normalizeLabel(row.category));
+    const medicineKey = this.normalizeKey(this.normalizeLabel(row.medicine));
+    const selectedPosologyKey = this.normalizeKey(this.normalizeLabel(selectedPosologyRaw));
+    const catalogKey = this.posologyOptions.map((item) => this.normalizeKey(item.value)).join('|');
+    return `${therapeuticClassKey}::${categoryKey}::${medicineKey}::${selectedPosologyKey}::${catalogKey}`;
+  }
+
+  private defaultPosologyForRow(row?: Partial<TreatmentRow> | null): string {
+    const preferredKeywords = row
+      ? this.resolvePreferredPosologyKeywords({
+        rowId: '',
+        medicine: this.normalizeLabel(row.medicine),
+        therapeuticClass: this.normalizeLabel(row.therapeuticClass),
+        category: this.normalizeLabel(row.category),
+        posology: '',
+        duration: '',
+        date: new Date(),
+        categoryItems: [],
+        medicineItems: [],
+      })
+      : this.topicalPosologyKeywords;
+
+    return this.findFirstPosologyByKeywords(preferredKeywords)?.value ?? this.posologyOptions[0]?.value ?? '';
+  }
+
+  private resolvePreferredPosologyKeywords(row: TreatmentRow): string[] {
+    const therapeuticClassKey = this.normalizeKey(row.therapeuticClass);
+    const categoryKey = this.normalizeKey(row.category);
+    const medicineKey = this.normalizeKey(row.medicine);
+    const combinedKey = `${therapeuticClassKey} ${categoryKey} ${medicineKey}`;
+
+    if (categoryKey.includes('pediculicide') || medicineKey.includes('1% lotion')) {
+      return this.pediculicidePosologyKeywords;
+    }
+
+    if (categoryKey.includes('scabicide') || medicineKey.includes('permetrine 5')) {
+      return this.scabicidePosologyKeywords;
+    }
+
+    if (medicineKey.includes('aciclovir') && medicineKey.includes('creme')) {
+      return this.antiviralTopicalPosologyKeywords;
+    }
+
+    if (medicineKey.includes('aciclovir') && medicineKey.includes('comprime')) {
+      return this.antiviralOralPosologyKeywords;
+    }
+
+    if (medicineKey.includes('shampooing') || categoryKey.includes('shampooing')) {
+      return this.shampooPosologyKeywords;
+    }
+
+    if (medicineKey.includes('isotretinoine')) {
+      return this.protocolPosologyKeywords;
+    }
+
+    if (medicineKey.includes('adapalene') || categoryKey.includes('retinoide')) {
+      return this.topicalEveningPosologyKeywords;
+    }
+
+    if (medicineKey.includes('acide salicylique') || medicineKey.includes('chlorhexidine')) {
+      return this.topicalLesionOnlyPosologyKeywords;
+    }
+
+    if (medicineKey.includes('clotrimazole') || medicineKey.includes('calcipotriol')) {
+      return this.topicalTwiceDailyPosologyKeywords;
+    }
+
+    if (medicineKey.includes('acide fusidique') || medicineKey.includes('mupirocine')) {
+      return this.topicalThreeTimesDailyPosologyKeywords;
+    }
+
+    if (medicineKey.includes('gelule')) {
+      return this.geluleOnceDailyPosologyKeywords;
+    }
+
+    if (medicineKey.includes('capsule')) {
+      return this.capsuleOnceDailyPosologyKeywords;
+    }
+
+    if (medicineKey.includes('comprime')) {
+      return this.tabletOnceDailyPosologyKeywords;
+    }
+
+    if (
+      combinedKey.includes('systemique') ||
+      combinedKey.includes('oral') ||
+      therapeuticClassKey.includes('antihistaminique')
+    ) {
+      return this.tabletOnceDailyPosologyKeywords;
+    }
+
+    return this.topicalPosologyKeywords;
+  }
+
+  private findFirstPosologyByKeywords(keywords: readonly string[]): OptionItem | null {
+    return this.posologyOptions.find((option) => {
+      const key = this.normalizeKey(option.value);
+      return keywords.some((item) => key.includes(item));
+    }) ?? null;
   }
 
   private extractLabel(raw: unknown): string {
@@ -1191,7 +1338,10 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
   }
 
   private normalizeKey(value: string): string {
-    return this.normalizeLabel(value).toLowerCase();
+    return this.normalizeLabel(value)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
   }
 
   private parseDateInput(value: unknown): Date | null {
@@ -1267,7 +1417,7 @@ export class ConsultationInterrogatoireTraitementEnCoursComponent implements OnI
       medicine: '',
       therapeuticClass: '',
       category: '',
-      posology: this.defaultPosologyForClass(''),
+      posology: this.defaultPosologyForRow(),
       duration: this.durationOptions[0] ?? '',
       date: new Date(),
       categoryItems: [],

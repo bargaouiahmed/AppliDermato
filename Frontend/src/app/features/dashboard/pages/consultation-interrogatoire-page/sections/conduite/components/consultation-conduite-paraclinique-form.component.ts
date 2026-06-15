@@ -83,14 +83,18 @@ const buildAllBilanType = (types: BilanTypeDefinition[]): BilanTypeDefinition =>
 });
 
 const CHIRURGIE_SUGGESTIONS: string[] = [
-  'Avis chirurgical digestif',
-  'Appendicectomie (orientation)',
-  'Cholécystectomie (orientation)',
-  'Hernie inguinale (évaluation chirurgicale)',
+  'Biopsie cutanée punch',
+  'Biopsie-exérèse lésion pigmentée',
+  'Exérèse naevus suspect',
   'Exérèse lésion cutanée bénigne',
-  'Drainage abcès cutané',
-  'Suture plaie simple',
-  'Ablation lipome superficiel',
+  'Exérèse kyste épidermique',
+  'Exérèse lipome superficiel',
+  'Incision-drainage abcès cutané',
+  'Curetage-électrocoagulation verrue/kératose',
+  'Cryothérapie verrues/kératoses actiniques',
+  'Chirurgie ongle incarné',
+  'Parage et suture plaie cutanée simple',
+  'Reprise cicatrice hypertrophique/chéloïde',
 ];
 
 const IMAGERIE_SUGGESTIONS: string[] = [

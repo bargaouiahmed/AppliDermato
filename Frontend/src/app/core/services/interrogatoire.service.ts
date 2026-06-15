@@ -58,9 +58,10 @@ export class InterrogatoireService {
   hideCustomAnomalyFromCatalog(
     section: 'medical' | 'family' | 'surgical',
     label: string,
+    category?: string | null,
   ): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(
-      API.interrogatoire.hideCustomAnomalyFromCatalog(section, label),
+      API.interrogatoire.hideCustomAnomalyFromCatalog(section, label, category),
     );
   }
 
@@ -68,6 +69,7 @@ export class InterrogatoireService {
     section: 'medical' | 'family' | 'surgical',
     label: string,
     templateKey?: string | null,
+    category?: string | null,
   ): Observable<InterrogatoireAnomalyCatalogItem> {
     return this.http.post<InterrogatoireAnomalyCatalogItem>(
       API.interrogatoire.addCustomAnomalyToCatalog,
@@ -75,6 +77,7 @@ export class InterrogatoireService {
         section,
         label,
         templateKey: templateKey ?? null,
+        category: category ?? null,
       },
     );
   }

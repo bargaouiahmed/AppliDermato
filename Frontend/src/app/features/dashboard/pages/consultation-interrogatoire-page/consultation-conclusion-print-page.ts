@@ -156,7 +156,6 @@ export class ConsultationConclusionPrintPage implements OnInit, AfterViewChecked
       patient: this.patientData,
       consultationDate: this.consultation.consultationDate,
       motifs: Array.isArray(this.consultation.motifs) ? this.consultation.motifs : [],
-      histoireMaladie: this.consultation.histoireMaladie,
       diagnostics: Array.isArray(this.consultation.diagnostics) ? this.consultation.diagnostics : [],
       anomalies: this.mapResponseAnomaliesToUpdate(
         Array.isArray(this.consultation.anomalies) ? this.consultation.anomalies : [],

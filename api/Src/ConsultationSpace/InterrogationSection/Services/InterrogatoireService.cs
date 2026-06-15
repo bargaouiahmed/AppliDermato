@@ -30,6 +30,48 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         new() { Section = "medical", IsCustom = false, TemplateKey = "notion-vaccination-recente", Label = "Notion de vaccination récente" },
         new() { Section = "medical", IsCustom = false, TemplateKey = "notion-anesthesie-recente", Label = "Notion d'anesthésie récente" },
         new() { Section = "medical", IsCustom = false, TemplateKey = "cas-particulier-nourrisson-enfant", Label = "Cas particulier : nourrisson/enfant" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-epilation", Label = "Epilation laser" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-vasculaire", Label = "Laser vasculaire" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-pigmentaire", Label = "Laser pigmentaire" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-detatouage", Label = "Detatouage laser" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-co2-fractionne", Label = "Laser CO2 fractionne" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-erbium", Label = "Laser Erbium resurfacing" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-cicatrices-acne", Label = "Laser cicatrices d acne" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-angiome", Label = "Laser angiome" },
+        new() { Section = "medical", IsCustom = false, Category = "laser", TemplateKey = "dermatologic-antecedent-laser-complication-post-laser", Label = "Complication post-laser" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-biopsie-cutanee", Label = "Biopsie cutanee" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-exerese-naevus", Label = "Exerese de naevus" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-exerese-kyste-lipome", Label = "Exerese de kyste ou lipome" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-exerese-carcinome-basocellulaire", Label = "Exerese de carcinome basocellulaire" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-exerese-carcinome-epidermoide", Label = "Exerese de carcinome epidermoide" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-exerese-melanome", Label = "Exerese de melanome" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-greffe-lambeau-cutane", Label = "Greffe ou lambeau cutane" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-cicatrice-hypertrophique-cheloide", Label = "Cicatrice hypertrophique ou cheloide" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-incision-drainage-abces", Label = "Incision drainage d abces" },
+        new() { Section = "surgical", IsCustom = false, Category = "surgical", TemplateKey = "dermatologic-antecedent-surgical-chirurgie-esthetique-cutanee", Label = "Chirurgie esthetique cutanee" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-dermatite-atopique-eczema", Label = "Dermatite atopique eczema" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-psoriasis", Label = "Psoriasis" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-acne", Label = "Acne" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-rosacee", Label = "Rosacee" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-urticaire-chronique", Label = "Urticaire chronique" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-vitiligo", Label = "Vitiligo" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-melasma", Label = "Melasma" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-dermatite-seborrheique", Label = "Dermatite seborrheique" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-lupus-cutane", Label = "Lupus cutane" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-lichen-plan", Label = "Lichen plan" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-hidradenite-suppuree", Label = "Hidradenite suppuree" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-alopecie", Label = "Alopecie" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-herpes-recidivant", Label = "Herpes recidivant" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-zona", Label = "Zona" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-verrues-hpv", Label = "Verrues HPV" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-molluscum-contagiosum", Label = "Molluscum contagiosum" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-impetigo", Label = "Impetigo" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-folliculite", Label = "Folliculite" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-mycose-cutanee-dermatophytie", Label = "Mycose cutanee dermatophytie" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-candidose-cutanee", Label = "Candidose cutanee" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-gale", Label = "Gale" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-pediculose", Label = "Pediculose" },
+        new() { Section = "medical", IsCustom = false, Category = "general", TemplateKey = "dermatologic-antecedent-general-cancer-cutane-personnel", Label = "Cancer cutane personnel" },
         new() { Section = "family", IsCustom = false, TemplateKey = "family-hypertension-arterielle", Label = "Hypertension artérielle familiale" },
         new() { Section = "family", IsCustom = false, TemplateKey = "family-diabete", Label = "Diabète familial" },
         new() { Section = "family", IsCustom = false, TemplateKey = "family-dyslipidemie", Label = "Dyslipidémie familiale" },
@@ -497,12 +539,13 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
             .Select(item => new
             {
                 Section = item.Section.ToString().ToLowerInvariant(),
+                item.CategoryNormalized,
                 item.LabelNormalized,
             })
             .ToListAsync();
 
         var hiddenKeys = hiddenCatalogItems
-            .Select(item => BuildCatalogKey(item.Section, item.LabelNormalized))
+            .Select(item => BuildCatalogKey(item.Section, item.LabelNormalized, item.CategoryNormalized))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var anomalies = await db.InterrogatoireAnomalies
@@ -537,6 +580,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                 Section = item.Section.ToString().ToLowerInvariant(),
                 IsCustom = item.IsCustom,
                 TemplateKey = item.TemplateKey,
+                Category = item.Category,
                 Label = item.Label,
             })
             .ToListAsync();
@@ -551,7 +595,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                 continue;
             }
 
-            var key = BuildCatalogKey(item.Section, item.Label);
+            var key = BuildCatalogKey(item.Section, item.Label, item.Category);
             if (hiddenKeys.Contains(key))
             {
                 continue;
@@ -564,6 +608,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                     Section = item.Section,
                     IsCustom = item.IsCustom,
                     TemplateKey = item.TemplateKey,
+                    Category = item.Category,
                     Label = item.Label,
                 });
             }
@@ -582,10 +627,11 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                 Section = item.Section.ToString().ToLowerInvariant(),
                 IsCustom = item.IsCustom,
                 TemplateKey = item.TemplateKey,
+                Category = PickPayloadCategory(item.Payload, item.TemplateKey),
                 Label = label,
             };
 
-            var key = BuildCatalogKey(response.Section, response.Label);
+            var key = BuildCatalogKey(response.Section, response.Label, response.Category);
             if (hiddenKeys.Contains(key))
             {
                 continue;
@@ -599,7 +645,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
 
         foreach (var item in customCatalogItems)
         {
-            var key = BuildCatalogKey(item.Section, item.Label);
+            var key = BuildCatalogKey(item.Section, item.Label, item.Category);
             if (hiddenKeys.Contains(key))
             {
                 continue;
@@ -630,11 +676,13 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         var normalizedLabel = NormalizeCatalogLabel(label);
         var sectionValue = parsedSection.ToString().ToLowerInvariant();
         var templateKey = string.IsNullOrWhiteSpace(request.TemplateKey) ? null : request.TemplateKey.Trim();
+        var category = NormalizeCatalogCategoryValue(request.Category);
+        var normalizedCategory = NormalizeCatalogLabel(category);
 
         var isDefaultCatalogItem = DefaultCatalog.Any(item =>
             !item.IsCustom &&
             item.Section == sectionValue &&
-            BuildCatalogKey(item.Section, item.Label) == BuildCatalogKey(sectionValue, normalizedLabel));
+            BuildCatalogKey(item.Section, item.Label, item.Category) == BuildCatalogKey(sectionValue, normalizedLabel, normalizedCategory));
 
         if (isDefaultCatalogItem)
         {
@@ -643,6 +691,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                 Section = sectionValue,
                 IsCustom = false,
                 TemplateKey = templateKey,
+                Category = category,
                 Label = label,
             };
         }
@@ -650,6 +699,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         var existing = await db.InterrogatoireAnomalyCatalogCustoms.FirstOrDefaultAsync(item =>
             item.CabinetIdentityId == cabinetIdentityId &&
             item.Section == parsedSection &&
+            item.CategoryNormalized == normalizedCategory &&
             item.LabelNormalized == normalizedLabel);
 
         if (existing is null)
@@ -661,6 +711,8 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                 Section = parsedSection,
                 IsCustom = true,
                 TemplateKey = templateKey,
+                Category = category,
+                CategoryNormalized = normalizedCategory,
                 Label = label,
                 LabelNormalized = normalizedLabel,
             });
@@ -677,6 +729,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
             existing = await db.InterrogatoireAnomalyCatalogCustoms.FirstOrDefaultAsync(item =>
                 item.CabinetIdentityId == cabinetIdentityId &&
                 item.Section == parsedSection &&
+                item.CategoryNormalized == normalizedCategory &&
                 item.LabelNormalized == normalizedLabel);
         }
 
@@ -685,11 +738,12 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
             Section = sectionValue,
             IsCustom = true,
             TemplateKey = existing?.TemplateKey ?? templateKey,
+            Category = existing?.Category ?? category,
             Label = existing?.Label ?? label,
         };
     }
 
-    public async Task HideCustomAnomalyFromCatalog(Guid cabinetIdentityId, string section, string label)
+    public async Task HideCustomAnomalyFromCatalog(Guid cabinetIdentityId, string section, string label, string? category = null)
     {
         var parsedSection = NormalizeSection(section)
             ?? throw new InvalidOperationException($"Unsupported anomaly section '{section}'.");
@@ -702,12 +756,14 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         var originalLabel = label.Trim();
         var normalizedLabel = NormalizeCatalogLabel(originalLabel);
         var sectionValue = parsedSection.ToString().ToLowerInvariant();
-        var key = BuildCatalogKey(sectionValue, normalizedLabel);
+        var categoryValue = NormalizeCatalogCategoryValue(category);
+        var normalizedCategory = NormalizeCatalogLabel(categoryValue);
+        var key = BuildCatalogKey(sectionValue, normalizedLabel, normalizedCategory);
 
         var isDefaultCatalogItem = DefaultCatalog.Any(item =>
             !item.IsCustom &&
             item.Section == sectionValue &&
-            BuildCatalogKey(item.Section, item.Label) == key);
+            BuildCatalogKey(item.Section, item.Label, item.Category) == key);
 
         if (isDefaultCatalogItem)
         {
@@ -717,6 +773,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         var exists = await db.InterrogatoireAnomalyCatalogHiddens.AnyAsync(item =>
             item.CabinetIdentityId == cabinetIdentityId &&
             item.Section == parsedSection &&
+            item.CategoryNormalized == normalizedCategory &&
             item.LabelNormalized == normalizedLabel);
 
         if (exists)
@@ -729,6 +786,8 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
             Id = Guid.NewGuid(),
             CabinetIdentityId = cabinetIdentityId,
             Section = parsedSection,
+            Category = categoryValue,
+            CategoryNormalized = normalizedCategory,
             Label = originalLabel,
             LabelNormalized = normalizedLabel,
         });
@@ -1131,7 +1190,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
                 .ToListAsync(),
             StringComparer.Ordinal);
 
-        var hasChanges = false;
+        var hasChanges = await RemoveDeprecatedTreatmentCatalogDefaults(cabinetIdentityId);
 
         foreach (var relation in GeneralPracticeCatalogDefaults.TreatmentCatalogRelations)
         {
@@ -1227,7 +1286,7 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         var desiredCategories = BuildDesiredTreatmentLabels(relation => relation.Category);
         var desiredMedicines = BuildDesiredTreatmentLabels(relation => relation.Medicine);
 
-        var hasChanges = false;
+        var hasChanges = await RemoveDeprecatedTreatmentCatalogDefaults(cabinetIdentityId);
         hasChanges |= await RefreshTreatmentLabelCatalog(
             db.TherapeuticClassCatalogItems,
             cabinetIdentityId,
@@ -1427,6 +1486,98 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         return hasChanges;
     }
 
+    private async Task<bool> RemoveDeprecatedTreatmentCatalogDefaults(Guid cabinetIdentityId)
+    {
+        var desiredClassKeys = BuildDesiredTreatmentLabels(relation => relation.TherapeuticClass)
+            .Keys
+            .ToHashSet(StringComparer.Ordinal);
+        var desiredCategoryKeys = BuildDesiredTreatmentLabels(relation => relation.Category)
+            .Keys
+            .ToHashSet(StringComparer.Ordinal);
+        var desiredMedicineKeys = BuildDesiredTreatmentLabels(relation => relation.Medicine)
+            .Keys
+            .ToHashSet(StringComparer.Ordinal);
+
+        var deprecatedClassKeys = BuildDeprecatedTreatmentLabels(relation => relation.TherapeuticClass)
+            .Keys
+            .Where(key => !desiredClassKeys.Contains(key))
+            .ToHashSet(StringComparer.Ordinal);
+        var deprecatedCategoryKeys = BuildDeprecatedTreatmentLabels(relation => relation.Category)
+            .Keys
+            .Where(key => !desiredCategoryKeys.Contains(key))
+            .ToHashSet(StringComparer.Ordinal);
+        var deprecatedMedicineKeys = BuildDeprecatedTreatmentLabels(relation => relation.Medicine)
+            .Keys
+            .Where(key => !desiredMedicineKeys.Contains(key))
+            .ToHashSet(StringComparer.Ordinal);
+        var deprecatedRelationKeys = GeneralPracticeCatalogDefaults.DeprecatedTreatmentCatalogRelations
+            .Select(relation => new TreatmentCatalogRelationSeedValues(
+                NormalizeTreatmentField(relation.TherapeuticClass),
+                NormalizeTreatmentField(relation.Category),
+                NormalizeTreatmentField(relation.Medicine)))
+            .Select(relation => BuildTreatmentCatalogRelationKey(
+                relation.TherapeuticClass,
+                relation.Category,
+                relation.Medicine))
+            .ToHashSet(StringComparer.Ordinal);
+
+        var hasChanges = false;
+
+        if (deprecatedRelationKeys.Count > 0)
+        {
+            var relationRows = await db.TreatmentCatalogRelationItems
+                .Where(item => item.CabinetIdentityId == cabinetIdentityId)
+                .ToListAsync();
+
+            foreach (var row in relationRows.Where(row => IsTreatmentCatalogRelationMatchAny(row, deprecatedRelationKeys)))
+            {
+                db.TreatmentCatalogRelationItems.Remove(row);
+                hasChanges = true;
+            }
+        }
+
+        if (deprecatedClassKeys.Count > 0)
+        {
+            var classRows = await db.TherapeuticClassCatalogItems
+                .Where(item => item.CabinetIdentityId == cabinetIdentityId)
+                .ToListAsync();
+
+            foreach (var row in classRows.Where(row => IsCatalogLabelMatchAny(row.Label, row.LabelNormalized, deprecatedClassKeys)))
+            {
+                db.TherapeuticClassCatalogItems.Remove(row);
+                hasChanges = true;
+            }
+        }
+
+        if (deprecatedCategoryKeys.Count > 0)
+        {
+            var categoryRows = await db.TreatmentCategoryCatalogItems
+                .Where(item => item.CabinetIdentityId == cabinetIdentityId)
+                .ToListAsync();
+
+            foreach (var row in categoryRows.Where(row => IsCatalogLabelMatchAny(row.Label, row.LabelNormalized, deprecatedCategoryKeys)))
+            {
+                db.TreatmentCategoryCatalogItems.Remove(row);
+                hasChanges = true;
+            }
+        }
+
+        if (deprecatedMedicineKeys.Count > 0)
+        {
+            var medicineRows = await db.TreatmentMedicineCatalogItems
+                .Where(item => item.CabinetIdentityId == cabinetIdentityId)
+                .ToListAsync();
+
+            foreach (var row in medicineRows.Where(row => IsCatalogLabelMatchAny(row.Label, row.LabelNormalized, deprecatedMedicineKeys)))
+            {
+                db.TreatmentMedicineCatalogItems.Remove(row);
+                hasChanges = true;
+            }
+        }
+
+        return hasChanges;
+    }
+
     private async Task<bool> RefreshTreatmentCatalogRelations(Guid cabinetIdentityId)
     {
         var desiredRelations = GeneralPracticeCatalogDefaults.TreatmentCatalogRelations
@@ -1527,9 +1678,22 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
     private static Dictionary<string, string> BuildDesiredTreatmentLabels(
         Func<GeneralPracticeCatalogDefaults.TreatmentCatalogRelationSeed, string> selector)
     {
+        return BuildTreatmentLabels(GeneralPracticeCatalogDefaults.TreatmentCatalogRelations, selector);
+    }
+
+    private static Dictionary<string, string> BuildDeprecatedTreatmentLabels(
+        Func<GeneralPracticeCatalogDefaults.TreatmentCatalogRelationSeed, string> selector)
+    {
+        return BuildTreatmentLabels(GeneralPracticeCatalogDefaults.DeprecatedTreatmentCatalogRelations, selector);
+    }
+
+    private static Dictionary<string, string> BuildTreatmentLabels(
+        IEnumerable<GeneralPracticeCatalogDefaults.TreatmentCatalogRelationSeed> relations,
+        Func<GeneralPracticeCatalogDefaults.TreatmentCatalogRelationSeed, string> selector)
+    {
         var labels = new Dictionary<string, string>(StringComparer.Ordinal);
 
-        foreach (var relation in GeneralPracticeCatalogDefaults.TreatmentCatalogRelations)
+        foreach (var relation in relations)
         {
             var label = NormalizeTreatmentField(selector(relation));
             var normalized = NormalizeCatalogLabel(label);
@@ -1550,6 +1714,12 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
             string.Equals(NormalizeCatalogLabel(labelNormalized), desiredKey, StringComparison.Ordinal);
     }
 
+    private static bool IsCatalogLabelMatchAny(string label, string labelNormalized, IReadOnlySet<string> desiredKeys)
+    {
+        return desiredKeys.Contains(NormalizeCatalogLabel(label)) ||
+            desiredKeys.Contains(NormalizeCatalogLabel(labelNormalized));
+    }
+
     private static bool IsTreatmentCatalogRelationMatch(TreatmentCatalogRelationItem row, string desiredKey)
     {
         var labelKey = BuildTreatmentCatalogRelationKey(row.TherapeuticClass, row.Category, row.Medicine);
@@ -1564,6 +1734,22 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
             row.MedicineNormalized);
 
         return string.Equals(normalizedKey, desiredKey, StringComparison.Ordinal);
+    }
+
+    private static bool IsTreatmentCatalogRelationMatchAny(TreatmentCatalogRelationItem row, IReadOnlySet<string> desiredKeys)
+    {
+        var labelKey = BuildTreatmentCatalogRelationKey(row.TherapeuticClass, row.Category, row.Medicine);
+        if (desiredKeys.Contains(labelKey))
+        {
+            return true;
+        }
+
+        var normalizedKey = BuildTreatmentCatalogRelationKey(
+            row.TherapeuticClassNormalized,
+            row.CategoryNormalized,
+            row.MedicineNormalized);
+
+        return desiredKeys.Contains(normalizedKey);
     }
 
     private static bool AssignIfChanged(string current, string next, Action<string> assign)
@@ -1956,11 +2142,66 @@ public class InterrogatoireService(AppDbContext db, IWaitingRoomNotifier waiting
         return string.IsNullOrWhiteSpace(templateKey) ? string.Empty : templateKey.Trim();
     }
 
-    private static string BuildCatalogKey(string section, string label)
+    private static string PickPayloadCategory(Dictionary<string, JsonElement> payload, string? templateKey)
+    {
+        foreach (var key in new[] { "category", "categoryKey", "typeCategory" })
+        {
+            if (payload.TryGetValue(key, out var categoryEl) && categoryEl.ValueKind == JsonValueKind.String)
+            {
+                var value = NormalizeCatalogCategoryValue(categoryEl.GetString());
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    return value;
+                }
+            }
+        }
+
+        var normalizedTemplateKey = templateKey?.Trim().ToLowerInvariant() ?? string.Empty;
+        if (normalizedTemplateKey.StartsWith("dermatologic-antecedent-laser-", StringComparison.Ordinal))
+        {
+            return "laser";
+        }
+
+        if (normalizedTemplateKey.StartsWith("dermatologic-antecedent-surgical-", StringComparison.Ordinal))
+        {
+            return "surgical";
+        }
+
+        if (normalizedTemplateKey.StartsWith("dermatologic-antecedent-general-", StringComparison.Ordinal))
+        {
+            return "general";
+        }
+
+        return string.Empty;
+    }
+
+    private static string BuildCatalogKey(string section, string label, string? category = null)
     {
         var normalizedSection = section.Trim().ToLowerInvariant();
+        var normalizedCategory = NormalizeCatalogLabel(category ?? string.Empty);
         var normalizedLabel = NormalizeCatalogLabel(label);
-        return $"{normalizedSection}::{normalizedLabel}";
+        return $"{normalizedSection}::{normalizedCategory}::{normalizedLabel}";
+    }
+
+    private static string NormalizeCatalogCategoryValue(string? category)
+    {
+        var normalized = NormalizeCatalogLabel(category ?? string.Empty);
+        return normalized switch
+        {
+            "laser" => "laser",
+            "traitement laser" => "laser",
+            "antecedents de traitement par laser" => "laser",
+            "surgical" => "surgical",
+            "surgery" => "surgical",
+            "chirurgical" => "surgical",
+            "chirurgicaux" => "surgical",
+            "chirurgie" => "surgical",
+            "general" => "general",
+            "generaux" => "general",
+            "dermatologiques generaux" => "general",
+            "antecedents dermatologiques generaux" => "general",
+            _ => normalized,
+        };
     }
 
     private static string NormalizeCatalogLabel(string label)

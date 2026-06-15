@@ -108,7 +108,6 @@ export class ConsultationInterrogatoirePage implements OnInit {
   private runningSinceMs: number | null = null;
   private runningBaseSeconds = 0;
   private lastPersistedSeconds = 0;
-  protected histoireMaladie = '';
   private readonly autosaveTrigger = new Subject<string>();
   private pendingInterrogatoireAnomalies: UpdateInterrogatoireAnomalyRequest[] = [];
   private pendingOngoingTreatments: UpdateOngoingTreatmentMedicineRequest[] = [];
@@ -492,11 +491,6 @@ export class ConsultationInterrogatoirePage implements OnInit {
     this.queueConsultationAutosave();
   }
 
-  protected onHistoireMaladieChange(value: string): void {
-    this.histoireMaladie = this.normalizeHistoireMaladie(value);
-    this.queueConsultationAutosave();
-  }
-
   protected onDiagnosticsChange(diagnostics: string[]): void {
     this.pendingDiagnostics = this.normalizeDiagnostics(diagnostics);
     this.queueConsultationAutosave();
@@ -656,7 +650,6 @@ export class ConsultationInterrogatoirePage implements OnInit {
     this.runningSinceMs = null;
     this.runningBaseSeconds = 0;
     this.lastPersistedSeconds = 0;
-    this.histoireMaladie = '';
     this.pendingInterrogatoireAnomalies = [];
     this.pendingOngoingTreatments = [];
     this.pendingDiagnostics = [];
@@ -676,8 +669,8 @@ export class ConsultationInterrogatoirePage implements OnInit {
           this.getMotifList();
           this.syncDurationFromBackend(consultation.duration);
           this.isTimerPaused = consultation.isTimerPaused || consultation.isDone;
-          this.histoireMaladie = this.normalizeHistoireMaladie(consultation.histoireMaladie);
-          this.pendingInterrogatoireAnomalies = this.mapResponseAnomaliesToUpdate(consultation.anomalies ?? []);
+          this.pendingInterrogatoireAnomalies = this.mapResponseAnomaliesToUpdate(consultation.anomalies ?? [])
+            .filter((item) => !this.isFunctionalSignAnomaly(item));
           this.pendingOngoingTreatments = this.mapResponseTreatmentsToUpdate(consultation.ongoingTreatments ?? []);
           this.pendingDiagnostics = this.normalizeDiagnostics(consultation.diagnostics ?? []);
           this.syncRuntimeClock();
@@ -881,7 +874,7 @@ export class ConsultationInterrogatoirePage implements OnInit {
 
     return {
       motifs,
-      histoireMaladie: this.normalizeHistoireMaladie(this.histoireMaladie),
+      histoireMaladie: '',
       diagnostics: this.normalizeDiagnostics(this.pendingDiagnostics),
       anomalies: this.pendingInterrogatoireAnomalies.map((item, sortOrder) => ({
         section: item.section,
@@ -952,12 +945,8 @@ export class ConsultationInterrogatoirePage implements OnInit {
     return JSON.parse(JSON.stringify(source)) as ConsultationExamPayload;
   }
 
-  private normalizeHistoireMaladie(value: unknown): string {
-    if (typeof value !== 'string') {
-      return '';
-    }
-
-    return value.replace(/\r\n/g, '\n').trim();
+  private isFunctionalSignAnomaly(item: UpdateInterrogatoireAnomalyRequest): boolean {
+    return (item.templateKey ?? '').trim().toLowerCase().startsWith('functional-sign-');
   }
 
   private normalizeDiagnostics(values: string[] | null | undefined): string[] {

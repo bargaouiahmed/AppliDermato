@@ -567,11 +567,14 @@ export const en: Record<string, string> = {
   'consultation.page.conclusion.sidebar.toggleExpand': 'Expand sidebar',
   'consultation.page.conclusion.sidebar.toggleCollapse': 'Collapse sidebar',
   'consultation.page.conclusion.labels.motifs': 'Motifs',
-  'consultation.page.conclusion.labels.histoireMaladie': 'History of current illness',
   'consultation.page.conclusion.labels.interrogatoire': 'Medical history',
   'consultation.page.conclusion.labels.medicalHistory': 'General history',
   'consultation.page.conclusion.labels.familyHistory': 'Family history',
   'consultation.page.conclusion.labels.surgicalHistory': 'Surgical history',
+  'consultation.page.conclusion.groups.medicalHistory': 'General history',
+  'consultation.page.conclusion.groups.dermatologicAntecedents':
+    'Dermatologic history',
+  'consultation.page.conclusion.groups.familyHistory': 'Family history',
   'consultation.page.conclusion.labels.examenGeneral': 'General exam',
   'consultation.page.conclusion.labels.examenClinique': 'Clinical exam',
   'consultation.page.conclusion.labels.diagnostics': 'Diagnoses',
@@ -887,6 +890,30 @@ export const en: Record<string, string> = {
   'consultation.catalog.defaults.posology.sachetDoseUnique': '1 sachet single dose',
   'consultation.catalog.defaults.posology.bouffee1a2SiBesoin': '1-2 puffs if needed',
   'consultation.catalog.defaults.posology.cp1ParJourLeMatin': '1 tablet/day in the morning',
+  'consultation.catalog.defaults.posology.application1ParJour': 'Apply once daily',
+  'consultation.catalog.defaults.posology.application2ParJour': 'Apply twice daily',
+  'consultation.catalog.defaults.posology.application3ParJour': 'Apply 3 times/day',
+  'consultation.catalog.defaults.posology.applicationFineCoucheLeSoir':
+    'Apply a thin layer in the evening',
+  'consultation.catalog.defaults.posology.applicationSurLesionsUniquement':
+    'Apply to lesions only',
+  'consultation.catalog.defaults.posology.applicationCorpsEntier812hRenouvelerJ7':
+    'Apply to whole body for 8-12h, repeat day 7',
+  'consultation.catalog.defaults.posology.applicationCuirChevelu10MinPuisRincer':
+    'Apply to scalp for 10 min, then rinse',
+  'consultation.catalog.defaults.posology.shampooing2a3FoisSemaine':
+    'Shampoo 2-3 times/week',
+  'consultation.catalog.defaults.posology.application5FoisParJour': '1 application 5 times/day',
+  'consultation.catalog.defaults.posology.comprime1ParJour': '1 tablet/day',
+  'consultation.catalog.defaults.posology.comprime1x2ParJour': '1 tablet x 2/day',
+  'consultation.catalog.defaults.posology.comprime1CinqFoisParJour': '1 tablet 5 times/day',
+  'consultation.catalog.defaults.posology.cp1ParJour': '1 tablet/day',
+  'consultation.catalog.defaults.posology.gelule1ParJour': '1 capsule/day',
+  'consultation.catalog.defaults.posology.capsule1ParJour': '1 capsule/day',
+  'consultation.catalog.defaults.posology.selonPoidsProtocoleDermatologue':
+    'By weight / dermatologist protocol',
+  'consultation.catalog.defaults.posology.selonProtocoleDermatologue':
+    'According to dermatologist protocol',
   'consultation.catalog.defaults.duration.jours05': '05 days',
   'consultation.catalog.defaults.duration.jours07': '07 days',
   'consultation.catalog.defaults.duration.jours10': '10 days',
@@ -896,6 +923,12 @@ export const en: Record<string, string> = {
   'consultation.catalog.defaults.duration.jours06': '06 days',
   'consultation.catalog.defaults.duration.jours03': '03 days',
   'consultation.catalog.defaults.duration.jour01': '01 day',
+  'consultation.catalog.defaults.duration.jours14': '14 days',
+  'consultation.catalog.defaults.duration.semaines04': '04 weeks',
+  'consultation.catalog.defaults.duration.semaines06': '06 weeks',
+  'consultation.catalog.defaults.duration.semaines08': '08 weeks',
+  'consultation.catalog.defaults.duration.semaines12': '12 weeks',
+  'consultation.catalog.defaults.duration.mois03': '03 months',
   'consultation.catalog.defaults.text.boireAbondammentTerminerAntibiotique':
     'Drink plenty of fluids, complete the antibiotic course, and consult if symptoms worsen.',
   'consultation.catalog.defaults.text.eviterAutomedicationAntibiotique':
@@ -1024,6 +1057,112 @@ export const en: Record<string, string> = {
     'School delay',
   'consultation.page.interrogatoire.antecedents.casParticulier.options.comportementMalvoyance':
     'Low-vision behavior',
+  'consultation.page.interrogatoire.dermatologicAntecedents.title':
+    'Dermatologic history',
+  'consultation.page.interrogatoire.dermatologicAntecedents.empty':
+    'No dermatologic history selected yet.',
+  'consultation.page.interrogatoire.dermatologicAntecedents.addAs':
+    'Add under',
+  'consultation.page.interrogatoire.dermatologicAntecedents.modal.title':
+    'Choose category',
+  'consultation.page.interrogatoire.dermatologicAntecedents.fields.category':
+    'Category',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categories.laser':
+    'Laser treatment history',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categories.surgical':
+    'Surgical history',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categories.general':
+    'General dermatologic history',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categoryButtons.laser':
+    'Laser',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categoryButtons.surgical':
+    'Surgical',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categoryButtons.general':
+    'General',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserEpilation':
+    'Laser hair removal',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserVasculaire':
+    'Vascular laser',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserPigmentaire':
+    'Pigment laser',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserDetatouage':
+    'Laser tattoo removal',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserCo2Fractionne':
+    'Fractional CO2 laser',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserErbium':
+    'Erbium laser / resurfacing',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserCicatricesAcne':
+    'Acne scar laser',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserAngiome':
+    'Angioma laser',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.complicationPostLaser':
+    'Post-laser complication',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.biopsieCutanee':
+    'Skin biopsy',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseNaevus':
+    'Nevus excision',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseKysteLipome':
+    'Cyst or lipoma excision',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseCarcinomeBasocellulaire':
+    'Basal cell carcinoma excision',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseCarcinomeEpidermoide':
+    'Squamous cell carcinoma excision',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseMelanome':
+    'Melanoma excision',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.greffeLambeauCutane':
+    'Skin graft or flap',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.cicatriceHypertrophiqueCheloide':
+    'Hypertrophic or keloid scar',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.incisionDrainageAbces':
+    'Abscess incision and drainage',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.chirurgieEsthetiqueCutanee':
+    'Cosmetic skin surgery',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.dermatiteAtopiqueEczema':
+    'Atopic dermatitis / eczema',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.psoriasis':
+    'Psoriasis',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.acne':
+    'Acne',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.rosacee':
+    'Rosacea',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.urticaireChronique':
+    'Chronic urticaria',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.vitiligo':
+    'Vitiligo',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.melasma':
+    'Melasma',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.dermatiteSeborrheique':
+    'Seborrheic dermatitis',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.lupusCutane':
+    'Cutaneous lupus',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.lichenPlan':
+    'Lichen planus',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.hidradeniteSuppuree':
+    'Hidradenitis suppurativa',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.alopecie':
+    'Alopecia',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.herpesRecidivant':
+    'Recurrent herpes',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.zona':
+    'Shingles',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.verruesHpv':
+    'HPV warts',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.molluscumContagiosum':
+    'Molluscum contagiosum',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.impetigo':
+    'Impetigo',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.folliculite':
+    'Folliculitis',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.mycoseCutaneeDermatophytie':
+    'Cutaneous mycosis / dermatophytosis',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.candidoseCutanee':
+    'Cutaneous candidiasis',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.gale':
+    'Scabies',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.pediculose':
+    'Pediculosis',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.cancerCutanePersonnel':
+    'Personal history of skin cancer',
   'consultation.page.interrogatoire.functionalSigns.title': 'Functional signs',
   'consultation.page.interrogatoire.functionalSigns.subtitle':
     'Select patient-reported functional signs and add short details when needed.',
@@ -1098,9 +1237,6 @@ export const en: Record<string, string> = {
     'Family breast or ovarian cancer',
   'consultation.page.interrogatoire.familyAntecedents.items.cancerProstateFamilial':
     'Family prostate cancer',
-  'consultation.page.interrogatoire.histoireMaladie.title': 'History of current illness',
-  'consultation.page.interrogatoire.histoireMaladie.placeholder':
-    'Free text for the doctor to describe the History of current illness...',
   'consultation.page.interrogatoire.treatments.title': 'Ongoing treatment',
   'consultation.page.interrogatoire.treatments.prescribedOrdonnances': 'Prescribed prescriptions',
   'consultation.page.interrogatoire.treatments.line': 'Treatment line',

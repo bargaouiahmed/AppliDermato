@@ -221,6 +221,74 @@ const KNOWN_DEFAULT_TREATMENT_VALUE_TRANSLATIONS: readonly KnownDefaultTreatment
     aliases: ['1 cp/j le matin'],
   },
   {
+    i18nKey: 'consultation.catalog.defaults.posology.application1ParJour',
+    aliases: ['Application 1 fois/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.application2ParJour',
+    aliases: ['Application 2 fois/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.application3ParJour',
+    aliases: ['Application 3 fois/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.applicationFineCoucheLeSoir',
+    aliases: ['Application fine couche le soir'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.applicationSurLesionsUniquement',
+    aliases: ['Application sur lésions uniquement'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.applicationCorpsEntier812hRenouvelerJ7',
+    aliases: ['Application corps entier 8-12h, renouveler J7'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.applicationCuirChevelu10MinPuisRincer',
+    aliases: ['Application cuir chevelu 10 min puis rincer'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.shampooing2a3FoisSemaine',
+    aliases: ['Shampooing 2-3 fois/semaine'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.application5FoisParJour',
+    aliases: ['1 application 5 fois/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.comprime1ParJour',
+    aliases: ['1 comprimé/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.comprime1x2ParJour',
+    aliases: ['1 comprimé x 2/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.comprime1CinqFoisParJour',
+    aliases: ['1 comprimé 5 fois/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.cp1ParJour',
+    aliases: ['1 cp/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.gelule1ParJour',
+    aliases: ['1 gélule/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.capsule1ParJour',
+    aliases: ['1 capsule/j'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.selonPoidsProtocoleDermatologue',
+    aliases: ['Selon poids/protocole dermatologue'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.posology.selonProtocoleDermatologue',
+    aliases: ['Selon protocole dermatologue'],
+  },
+  {
     i18nKey: 'consultation.catalog.defaults.duration.jours05',
     aliases: ['05 jours'],
   },
@@ -255,6 +323,30 @@ const KNOWN_DEFAULT_TREATMENT_VALUE_TRANSLATIONS: readonly KnownDefaultTreatment
   {
     i18nKey: 'consultation.catalog.defaults.duration.jour01',
     aliases: ['01 jour'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.duration.jours14',
+    aliases: ['14 jours'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.duration.semaines04',
+    aliases: ['04 semaines'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.duration.semaines06',
+    aliases: ['06 semaines'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.duration.semaines08',
+    aliases: ['08 semaines'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.duration.semaines12',
+    aliases: ['12 semaines'],
+  },
+  {
+    i18nKey: 'consultation.catalog.defaults.duration.mois03',
+    aliases: ['03 mois'],
   },
   {
     i18nKey: 'consultation.catalog.defaults.text.boireAbondammentTerminerAntibiotique',

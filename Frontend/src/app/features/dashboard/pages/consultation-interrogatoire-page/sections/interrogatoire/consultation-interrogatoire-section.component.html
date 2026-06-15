@@ -12,14 +12,11 @@
   ></app-consultation-interrogatoire-antecedents-familiaux>
 
 
-  <app-consultation-interrogatoire-signes-fonctionnels
-    [anomalies]="functionalSignsSectionAnomalies"
-    (anomaliesChange)="onFunctionalSignsAnomaliesChange($event)"
-  ></app-consultation-interrogatoire-signes-fonctionnels>
-   <app-consultation-interrogatoire-histoire-maladie
-    [histoireMaladie]="histoireMaladie"
-    (histoireMaladieChange)="onHistoireMaladieChange($event)"
-  ></app-consultation-interrogatoire-histoire-maladie>
+  <app-consultation-interrogatoire-antecedents-dermatologiques
+    [anomalies]="dermatologicSectionAnomalies"
+    (anomaliesChange)="onDermatologicAnomaliesChange($event)"
+  ></app-consultation-interrogatoire-antecedents-dermatologiques>
+
   <app-consultation-interrogatoire-traitement-en-cours
     [consultationId]="consultationId"
     [treatments]="ongoingTreatments"

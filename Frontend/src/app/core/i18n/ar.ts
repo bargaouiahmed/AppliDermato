@@ -546,11 +546,14 @@ export const ar: Record<string, string> = {
   'consultation.page.conclusion.actions.print': 'طباعة الخلاصة',
   'consultation.page.conclusion.actions.retryPrint': 'إعادة الطباعة',
   'consultation.page.conclusion.labels.motifs': 'الدوافع',
-  'consultation.page.conclusion.labels.histoireMaladie': 'قصة المرض',
   'consultation.page.conclusion.labels.interrogatoire': 'الاستجواب',
   'consultation.page.conclusion.labels.medicalHistory': 'السوابق المرضية',
   'consultation.page.conclusion.labels.familyHistory': 'السوابق العائلية',
   'consultation.page.conclusion.labels.surgicalHistory': 'السوابق الجراحية',
+  'consultation.page.conclusion.groups.medicalHistory': 'السوابق العامة',
+  'consultation.page.conclusion.groups.dermatologicAntecedents':
+    'السوابق الجلدية',
+  'consultation.page.conclusion.groups.familyHistory': 'السوابق العائلية',
   'consultation.page.conclusion.labels.examenGeneral': 'الفحص العام',
   'consultation.page.conclusion.labels.examenClinique': 'الفحص السريري',
   'consultation.page.conclusion.labels.diagnostics': 'التشخيصات',
@@ -865,6 +868,30 @@ export const ar: Record<string, string> = {
   'consultation.catalog.defaults.posology.sachetDoseUnique': 'كيس واحد جرعة وحيدة',
   'consultation.catalog.defaults.posology.bouffee1a2SiBesoin': '1-2 بخة عند الحاجة',
   'consultation.catalog.defaults.posology.cp1ParJourLeMatin': '1 قرص/اليوم صباحا',
+  'consultation.catalog.defaults.posology.application1ParJour': 'تطبيق مرة واحدة/اليوم',
+  'consultation.catalog.defaults.posology.application2ParJour': 'تطبيق مرتين/اليوم',
+  'consultation.catalog.defaults.posology.application3ParJour': 'تطبيق 3 مرات/اليوم',
+  'consultation.catalog.defaults.posology.applicationFineCoucheLeSoir':
+    'تطبيق طبقة رقيقة مساء',
+  'consultation.catalog.defaults.posology.applicationSurLesionsUniquement':
+    'تطبيق على الآفات فقط',
+  'consultation.catalog.defaults.posology.applicationCorpsEntier812hRenouvelerJ7':
+    'تطبيق على كامل الجسم 8-12 ساعة، يعاد يوم 7',
+  'consultation.catalog.defaults.posology.applicationCuirChevelu10MinPuisRincer':
+    'تطبيق على فروة الرأس 10 دقائق ثم الشطف',
+  'consultation.catalog.defaults.posology.shampooing2a3FoisSemaine':
+    'شامبو 2-3 مرات/الأسبوع',
+  'consultation.catalog.defaults.posology.application5FoisParJour': 'تطبيق واحد 5 مرات/اليوم',
+  'consultation.catalog.defaults.posology.comprime1ParJour': '1 قرص/اليوم',
+  'consultation.catalog.defaults.posology.comprime1x2ParJour': '1 قرص x 2/اليوم',
+  'consultation.catalog.defaults.posology.comprime1CinqFoisParJour': '1 قرص 5 مرات/اليوم',
+  'consultation.catalog.defaults.posology.cp1ParJour': '1 قرص/اليوم',
+  'consultation.catalog.defaults.posology.gelule1ParJour': '1 كبسولة/اليوم',
+  'consultation.catalog.defaults.posology.capsule1ParJour': '1 كبسولة/اليوم',
+  'consultation.catalog.defaults.posology.selonPoidsProtocoleDermatologue':
+    'حسب الوزن/بروتوكول طبيب الجلدية',
+  'consultation.catalog.defaults.posology.selonProtocoleDermatologue':
+    'حسب بروتوكول طبيب الجلدية',
   'consultation.catalog.defaults.duration.jours05': '05 أيام',
   'consultation.catalog.defaults.duration.jours07': '07 أيام',
   'consultation.catalog.defaults.duration.jours10': '10 أيام',
@@ -874,6 +901,12 @@ export const ar: Record<string, string> = {
   'consultation.catalog.defaults.duration.jours06': '06 أيام',
   'consultation.catalog.defaults.duration.jours03': '03 أيام',
   'consultation.catalog.defaults.duration.jour01': '01 يوم',
+  'consultation.catalog.defaults.duration.jours14': '14 يوم',
+  'consultation.catalog.defaults.duration.semaines04': '04 أسابيع',
+  'consultation.catalog.defaults.duration.semaines06': '06 أسابيع',
+  'consultation.catalog.defaults.duration.semaines08': '08 أسابيع',
+  'consultation.catalog.defaults.duration.semaines12': '12 أسبوعا',
+  'consultation.catalog.defaults.duration.mois03': '03 أشهر',
   'consultation.catalog.defaults.text.boireAbondammentTerminerAntibiotique':
     'اشرب سوائل بكثرة، أكمل المضاد الحيوي، وراجع الطبيب عند التدهور.',
   'consultation.catalog.defaults.text.eviterAutomedicationAntibiotique':
@@ -1001,6 +1034,112 @@ export const ar: Record<string, string> = {
     'تأخر دراسي',
   'consultation.page.interrogatoire.antecedents.casParticulier.options.comportementMalvoyance':
     'سلوك ضعف البصر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.title':
+    'السوابق الجلدية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.empty':
+    'لم يتم اختيار أي سابق جلدي بعد.',
+  'consultation.page.interrogatoire.dermatologicAntecedents.addAs':
+    'إضافة ضمن',
+  'consultation.page.interrogatoire.dermatologicAntecedents.modal.title':
+    'اختر الفئة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.fields.category':
+    'الفئة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categories.laser':
+    'سوابق العلاج بالليزر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categories.surgical':
+    'سوابق جراحية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categories.general':
+    'سوابق جلدية عامة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categoryButtons.laser':
+    'ليزر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categoryButtons.surgical':
+    'جراحية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.categoryButtons.general':
+    'عامة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserEpilation':
+    'إزالة الشعر بالليزر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserVasculaire':
+    'ليزر وعائي',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserPigmentaire':
+    'ليزر تصبغات',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserDetatouage':
+    'إزالة الوشم بالليزر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserCo2Fractionne':
+    'ليزر CO2 مجزأ',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserErbium':
+    'ليزر إربيوم / تقشير',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserCicatricesAcne':
+    'ليزر ندبات حب الشباب',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.laserAngiome':
+    'ليزر ورم وعائي',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.complicationPostLaser':
+    'اختلاط بعد الليزر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.biopsieCutanee':
+    'خزعة جلدية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseNaevus':
+    'استئصال شامة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseKysteLipome':
+    'استئصال كيسة أو ورم شحمي',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseCarcinomeBasocellulaire':
+    'استئصال سرطان خلايا قاعدية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseCarcinomeEpidermoide':
+    'استئصال سرطان خلايا حرشفية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.exereseMelanome':
+    'استئصال ميلانوما',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.greffeLambeauCutane':
+    'طعم أو شريحة جلدية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.cicatriceHypertrophiqueCheloide':
+    'ندبة ضخمية أو جدرة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.incisionDrainageAbces':
+    'شق وتصريف خراج',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.chirurgieEsthetiqueCutanee':
+    'جراحة جلدية تجميلية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.dermatiteAtopiqueEczema':
+    'التهاب جلد تأتبي / أكزيما',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.psoriasis':
+    'صدفية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.acne':
+    'حب الشباب',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.rosacee':
+    'وردية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.urticaireChronique':
+    'شرى مزمن',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.vitiligo':
+    'بهاق',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.melasma':
+    'كلف',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.dermatiteSeborrheique':
+    'التهاب الجلد الدهني',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.lupusCutane':
+    'ذئبة جلدية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.lichenPlan':
+    'حزاز مسطح',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.hidradeniteSuppuree':
+    'التهاب الغدد العرقية القيحي',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.alopecie':
+    'ثعلبة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.herpesRecidivant':
+    'هربس متكرر',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.zona':
+    'حزام ناري',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.verruesHpv':
+    'ثآليل HPV',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.molluscumContagiosum':
+    'مليساء معدية',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.impetigo':
+    'قوباء',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.folliculite':
+    'التهاب الجريبات',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.mycoseCutaneeDermatophytie':
+    'فطار جلدي / سعفة',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.candidoseCutanee':
+    'داء المبيضات الجلدي',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.gale':
+    'جرب',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.pediculose':
+    'قمل',
+  'consultation.page.interrogatoire.dermatologicAntecedents.items.cancerCutanePersonnel':
+    'سابق شخصي لسرطان الجلد',
   'consultation.page.interrogatoire.functionalSigns.title': 'الاعراض الوظيفية',
   'consultation.page.interrogatoire.functionalSigns.subtitle':
     'اختر الأعراض الوظيفية التي يذكرها المريض وأضف تفاصيل قصيرة عند الحاجة.',
@@ -1080,9 +1219,6 @@ export const ar: Record<string, string> = {
     'سرطان ثدي أو مبيض عائلي',
   'consultation.page.interrogatoire.familyAntecedents.items.cancerProstateFamilial':
     'سرطان بروستات عائلي',
-  'consultation.page.interrogatoire.histoireMaladie.title': 'قصة المرض',
-  'consultation.page.interrogatoire.histoireMaladie.placeholder':
-    'نص حر للطبيب لوصف قصة المرض...',
   'consultation.page.interrogatoire.treatments.title': 'العلاج الجاري',
   'consultation.page.interrogatoire.treatments.prescribedOrdonnances': 'الوصفات الموصوفة',
   'consultation.page.interrogatoire.treatments.line': 'سطر علاج',

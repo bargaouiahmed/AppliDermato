@@ -176,7 +176,6 @@ export class ConsultationDetailModal implements OnChanges {
       patient,
       consultationDate: interrogation.consultationDate,
       motifs: [...(interrogation.motifs ?? [])],
-      histoireMaladie: interrogation.histoireMaladie ?? '',
       diagnostics: [...(interrogation.diagnostics ?? [])],
       anomalies: (interrogation.anomalies ?? []).map((anomaly, index) => ({
         section: anomaly.section,
@@ -209,7 +208,6 @@ export class ConsultationDetailModal implements OnChanges {
       patient: data.patient,
       consultationDate: data.consultationDate,
       motifs: [...(data.motifs ?? [])],
-      histoireMaladie: '',
       diagnostics: [...(data.diagnostics ?? [])],
       anomalies: [] as UpdateInterrogatoireAnomalyRequest[],
       ongoingTreatments: [] as UpdateOngoingTreatmentMedicineRequest[],

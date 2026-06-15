@@ -118,8 +118,10 @@ export const API = {
         section ? `?section=${encodeURIComponent(section)}` : ''
       }`,
     addCustomAnomalyToCatalog: `${BASE}/api/v0/interrogatoire/consultations/anomalies/catalog/custom`,
-    hideCustomAnomalyFromCatalog: (section: string, label: string) =>
-      `${BASE}/api/v0/interrogatoire/consultations/anomalies/catalog/custom?section=${encodeURIComponent(section)}&label=${encodeURIComponent(label)}`,
+    hideCustomAnomalyFromCatalog: (section: string, label: string, category?: string | null) =>
+      `${BASE}/api/v0/interrogatoire/consultations/anomalies/catalog/custom?section=${encodeURIComponent(section)}&label=${encodeURIComponent(label)}${
+        category ? `&category=${encodeURIComponent(category)}` : ''
+      }`,
     getTreatmentMedicineCatalog: `${BASE}/api/v0/interrogatoire/consultations/treatments/catalog/medicines`,
     addTreatmentMedicineCatalogItem: `${BASE}/api/v0/interrogatoire/consultations/treatments/catalog/medicines`,
     getTherapeuticClassCatalog: `${BASE}/api/v0/interrogatoire/consultations/treatments/catalog/therapeutic-classes`,

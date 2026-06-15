@@ -36,7 +36,6 @@ import {
 type LoadedHistoryBundle = {
   consultationDate: string;
   motifs: string[];
-  histoireMaladie: string;
   diagnostics: string[];
   anomalies: UpdateInterrogatoireAnomalyRequest[];
   ongoingTreatments: UpdateOngoingTreatmentMedicineRequest[];
@@ -276,7 +275,6 @@ export class ConsultationConclusionHistorySidebarComponent implements OnChanges 
     return {
       consultationDate: interrogation.consultationDate,
       motifs: [...(interrogation.motifs ?? [])],
-      histoireMaladie: interrogation.histoireMaladie ?? '',
       diagnostics: [...(interrogation.diagnostics ?? [])],
       anomalies: (interrogation.anomalies ?? []).map((anomaly, index) => ({
         section: anomaly.section,
@@ -312,7 +310,6 @@ export class ConsultationConclusionHistorySidebarComponent implements OnChanges 
       patient: this.patient,
       consultationDate: this.selectedHistoryBundle.consultationDate,
       motifs: this.selectedHistoryBundle.motifs,
-      histoireMaladie: this.selectedHistoryBundle.histoireMaladie,
       diagnostics: this.selectedHistoryBundle.diagnostics,
       anomalies: this.selectedHistoryBundle.anomalies,
       ongoingTreatments: this.selectedHistoryBundle.ongoingTreatments,

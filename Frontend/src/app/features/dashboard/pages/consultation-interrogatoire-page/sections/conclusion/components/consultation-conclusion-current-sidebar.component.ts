@@ -42,7 +42,6 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
   @Input() patient: Patient | null = null;
   @Input() consultationDate = '';
   @Input() motifs: string[] = [];
-  @Input() histoireMaladie = '';
   @Input() diagnostics: string[] = [];
   @Input() anomalies: UpdateInterrogatoireAnomalyRequest[] = [];
   @Input() ongoingTreatments: UpdateOngoingTreatmentMedicineRequest[] = [];
@@ -181,7 +180,6 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
       patient: this.patient,
       consultationDate: this.consultationDate,
       motifs: this.motifs,
-      histoireMaladie: this.histoireMaladie,
       diagnostics: this.diagnostics,
       anomalies: this.anomalies,
       ongoingTreatments: this.ongoingTreatments,

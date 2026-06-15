@@ -7,8 +7,7 @@ import {
 import { TranslatePipe } from '../../../../../../shared/pipes/translate.pipe';
 import { ConsultationInterrogatoireAntecedentsGenerauxComponent } from './components/consultation-interrogatoire-antecedents-generaux.component';
 import { ConsultationInterrogatoireAntecedentsFamiliauxComponent } from './components/consultation-interrogatoire-antecedents-familiaux.component';
-import { ConsultationInterrogatoireHistoireMaladieComponent } from './components/consultation-interrogatoire-histoire-maladie.component';
-import { ConsultationInterrogatoireSignesFonctionnelsComponent } from './components/consultation-interrogatoire-signes-fonctionnels.component';
+import { ConsultationInterrogatoireAntecedentsDermatologiquesComponent } from './components/consultation-interrogatoire-antecedents-dermatologiques.component';
 import { ConsultationInterrogatoireTraitementEnCoursComponent } from './components/consultation-interrogatoire-traitement-en-cours.component';
 
 @Component({
@@ -17,9 +16,8 @@ import { ConsultationInterrogatoireTraitementEnCoursComponent } from './componen
   imports: [
     CommonModule,
     ConsultationInterrogatoireAntecedentsGenerauxComponent,
-    ConsultationInterrogatoireSignesFonctionnelsComponent,
+    ConsultationInterrogatoireAntecedentsDermatologiquesComponent,
     ConsultationInterrogatoireAntecedentsFamiliauxComponent,
-    ConsultationInterrogatoireHistoireMaladieComponent,
     ConsultationInterrogatoireTraitementEnCoursComponent,
     TranslatePipe,
   ],
@@ -31,16 +29,14 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
   @Input() motifs: string[] = [];
   @Input() selectedMotif: string | null = null;
   @Input() anomalies: UpdateInterrogatoireAnomalyRequest[] = [];
-  @Input() histoireMaladie = '';
   @Input() ongoingTreatments: UpdateOngoingTreatmentMedicineRequest[] = [];
   @Input() canAccessExam = false;
   @Output() anomaliesChange = new EventEmitter<UpdateInterrogatoireAnomalyRequest[]>();
-  @Output() histoireMaladieChange = new EventEmitter<string>();
   @Output() ongoingTreatmentsChange = new EventEmitter<UpdateOngoingTreatmentMedicineRequest[]>();
   @Output() navigateToExam = new EventEmitter<void>();
 
   private medicalAnomalies: UpdateInterrogatoireAnomalyRequest[] = [];
-  private functionalSignsAnomalies: UpdateInterrogatoireAnomalyRequest[] = [];
+  private dermatologicAnomalies: UpdateInterrogatoireAnomalyRequest[] = [];
   private familyAnomalies: UpdateInterrogatoireAnomalyRequest[] = [];
   private passthroughAnomalies: UpdateInterrogatoireAnomalyRequest[] = [];
 
@@ -48,8 +44,8 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
     return this.medicalAnomalies;
   }
 
-  protected get functionalSignsSectionAnomalies(): UpdateInterrogatoireAnomalyRequest[] {
-    return this.functionalSignsAnomalies;
+  protected get dermatologicSectionAnomalies(): UpdateInterrogatoireAnomalyRequest[] {
+    return this.dermatologicAnomalies;
   }
 
   protected get familySectionAnomalies(): UpdateInterrogatoireAnomalyRequest[] {
@@ -67,8 +63,8 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
     this.emitCombinedAnomalies();
   }
 
-  protected onFunctionalSignsAnomaliesChange(anomalies: UpdateInterrogatoireAnomalyRequest[]): void {
-    this.functionalSignsAnomalies = this.normalizeAnomaliesForSection(anomalies, 'medical');
+  protected onDermatologicAnomaliesChange(anomalies: UpdateInterrogatoireAnomalyRequest[]): void {
+    this.dermatologicAnomalies = this.normalizeManagedAnomalies(anomalies);
     this.emitCombinedAnomalies();
   }
 
@@ -79,10 +75,6 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
 
   protected onOngoingTreatmentsChange(treatments: UpdateOngoingTreatmentMedicineRequest[]): void {
     this.ongoingTreatmentsChange.emit(treatments ?? []);
-  }
-
-  protected onHistoireMaladieChange(value: string): void {
-    this.histoireMaladieChange.emit(value ?? '');
   }
 
   protected goToExam(): void {
@@ -97,22 +89,19 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
     const incoming = [...(this.anomalies ?? [])];
     this.medicalAnomalies = this.normalizeAnomaliesForSection(
       incoming.filter(
-        (item) => item.section === 'medical' && !this.isFunctionalSignAnomaly(item),
+        (item) => item.section === 'medical' && !this.isFunctionalSignAnomaly(item) && !this.isDermatologicAnomaly(item),
       ),
       'medical',
     );
-    this.functionalSignsAnomalies = this.normalizeAnomaliesForSection(
-      incoming.filter(
-        (item) => item.section === 'medical' && this.isFunctionalSignAnomaly(item),
-      ),
-      'medical',
+    this.dermatologicAnomalies = this.normalizeManagedAnomalies(
+      incoming.filter((item) => this.isDermatologicAnomaly(item)),
     );
     this.familyAnomalies = this.normalizeAnomaliesForSection(
       incoming.filter((item) => item.section === 'family'),
       'family',
     );
     this.passthroughAnomalies = incoming
-      .filter((item) => item.section !== 'medical' && item.section !== 'family')
+      .filter((item) => item.section !== 'medical' && item.section !== 'family' && !this.isDermatologicAnomaly(item))
       .map((item, index) => ({
         ...item,
         sortOrder: index,
@@ -131,10 +120,20 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
     }));
   }
 
+  private normalizeManagedAnomalies(
+    anomalies: UpdateInterrogatoireAnomalyRequest[] | null | undefined,
+  ): UpdateInterrogatoireAnomalyRequest[] {
+    return [...(anomalies ?? [])].map((item, index) => ({
+      ...item,
+      sortOrder: index,
+      payload: item.payload ?? {},
+    }));
+  }
+
   private emitCombinedAnomalies(): void {
     const combined = [
       ...this.medicalAnomalies,
-      ...this.functionalSignsAnomalies,
+      ...this.dermatologicAnomalies,
       ...this.familyAnomalies,
       ...this.passthroughAnomalies,
     ].map((item, index) => ({
@@ -148,5 +147,16 @@ export class ConsultationInterrogatoireSectionComponent implements OnChanges {
   private isFunctionalSignAnomaly(item: UpdateInterrogatoireAnomalyRequest): boolean {
     const templateKey = (item.templateKey ?? '').trim().toLowerCase();
     return templateKey.startsWith('functional-sign-');
+  }
+
+  private isDermatologicAnomaly(item: UpdateInterrogatoireAnomalyRequest): boolean {
+    const templateKey = (item.templateKey ?? '').trim().toLowerCase();
+    if (templateKey.startsWith('dermatologic-antecedent-')) {
+      return true;
+    }
+
+    const payload = (item.payload ?? {}) as Record<string, unknown>;
+    const category = typeof payload['category'] === 'string' ? payload['category'].trim().toLowerCase() : '';
+    return category === 'laser' || category === 'surgical' || category === 'general';
   }
 }

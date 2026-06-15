@@ -73,12 +73,15 @@ public class InterrogatoireController(IInterrogatoireService interrogatoireServi
     }
 
     [HttpDelete("anomalies/catalog/custom")]
-    public async Task<ActionResult> HideCustomAnomalyFromCatalog([FromQuery] string section, [FromQuery] string label)
+    public async Task<ActionResult> HideCustomAnomalyFromCatalog(
+        [FromQuery] string section,
+        [FromQuery] string label,
+        [FromQuery] string? category = null)
     {
         try
         {
             var cabinetIdentityId = User.GetCabinetIdentityId();
-            await interrogatoireService.HideCustomAnomalyFromCatalog(cabinetIdentityId, section, label);
+            await interrogatoireService.HideCustomAnomalyFromCatalog(cabinetIdentityId, section, label, category);
             return Ok(new { Message = "Custom anomaly hidden from catalog." });
         }
         catch (Exception ex)

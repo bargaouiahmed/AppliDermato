@@ -53,16 +53,6 @@
         </div>
 
         <article class="entry-block">
-          <h3>{{ vm.story.title }}</h3>
-
-          @if (vm.story.isEmpty) {
-            <div class="empty-story">{{ vm.story.emptyText }}</div>
-          } @else {
-            <p class="story-text">{{ vm.story.text }}</p>
-          }
-        </article>
-
-        <article class="entry-block">
           <h3>{{ vm.ongoingTreatmentsTitle }}</h3>
 
           @if (vm.ongoingTreatments.length > 0) {

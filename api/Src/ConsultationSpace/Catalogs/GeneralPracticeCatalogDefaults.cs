@@ -24,6 +24,33 @@ public static class GeneralPracticeCatalogDefaults
 
     public static IReadOnlyList<TreatmentCatalogRelationSeed> TreatmentCatalogRelations { get; } =
     [
+        new("Dermocorticoïdes topiques", "Faible puissance", "Hydrocortisone 1% crème"),
+        new("Dermocorticoïdes topiques", "Puissance modérée", "Bétaméthasone valérate 0,1% crème"),
+        new("Dermocorticoïdes topiques", "Très forte puissance", "Clobétasol propionate 0,05% crème"),
+        new("Antifongiques dermatologiques", "Imidazolés topiques", "Clotrimazole 1% crème"),
+        new("Antifongiques dermatologiques", "Allylamines topiques", "Terbinafine 1% crème"),
+        new("Antifongiques dermatologiques", "Shampooings antifongiques", "Sulfure de sélénium 2,5% shampooing"),
+        new("Antifongiques dermatologiques", "Antifongiques systémiques", "Terbinafine 250 mg comprimé"),
+        new("Anti-infectieux cutanés", "Antibiotiques topiques", "Acide fusidique 2% crème"),
+        new("Anti-infectieux cutanés", "Antibiotiques topiques", "Mupirocine 2% pommade"),
+        new("Anti-infectieux cutanés", "Antiseptiques cutanés", "Chlorhexidine solution aqueuse"),
+        new("Traitements de l'acné", "Kératolytiques", "Peroxyde de benzoyle 5% gel"),
+        new("Traitements de l'acné", "Rétinoïdes topiques", "Adapalène 0,1% gel"),
+        new("Traitements de l'acné", "Antibiotiques oraux", "Doxycycline 100 mg gélule"),
+        new("Traitements de l'acné", "Rétinoïdes oraux", "Isotrétinoïne 10 mg capsule"),
+        new("Kératolytiques et émollients", "Hydratants kératolytiques", "Urée 10% crème"),
+        new("Kératolytiques et émollients", "Kératolytiques", "Acide salicylique 5% pommade"),
+        new("Ectoparasiticides", "Scabicides", "Perméthrine 5% crème"),
+        new("Ectoparasiticides", "Pédiculicides", "Perméthrine 1% lotion"),
+        new("Antihistaminiques", "Antihistaminiques H1", "Cétirizine 10 mg comprimé"),
+        new("Antiviraux dermatologiques", "Anti-herpétiques", "Aciclovir 5% crème"),
+        new("Antiviraux dermatologiques", "Anti-herpétiques", "Aciclovir 200 mg comprimé"),
+        new("Psoriasis", "Analogues de vitamine D", "Calcipotriol 50 mcg/g pommade"),
+        new("Photoprotection", "Écrans solaires", "Écran solaire large spectre SPF 50+"),
+    ];
+
+    public static IReadOnlyList<TreatmentCatalogRelationSeed> DeprecatedTreatmentCatalogRelations { get; } =
+    [
         new("Antibiotiques bêta-lactamines", "Pénicillines", "Amoxicilline 1 g (Clamoxyl)"),
         new("Antalgiques et antipyrétiques", "Paracétamol", "Paracétamol 1 g (Doliprane)"),
         new("Anti-inflammatoires non stéroïdiens", "AINS", "Ibuprofène 400 mg (Brufen)"),
@@ -34,7 +61,7 @@ public static class GeneralPracticeCatalogDefaults
         new("Gastro-entérologie", "Antidiarrhéiques", "Racécadotril 100 mg (Tiorfan)"),
         new("Gastro-entérologie", "Antispasmodiques", "Phloroglucinol 80 mg (Spasfon)"),
         new("Urologie", "Antibiotiques urinaires", "Fosfomycine trométamol 3 g (Monuril)"),
-        new("Urologie", "Antibiotiques urinaires", "Nitrofurantoine 100 mg"),
+        new("Urologie", "Antibiotiques urinaires", "Nitrofurantoïne 100 mg"),
         new("Pneumologie", "Bronchodilatateurs", "Salbutamol inhalateur 100 mcg"),
         new("Pneumologie", "Corticoïdes oraux", "Prednisone 20 mg"),
         new("Collyre", "Larmes artificielles", "Théalose"),

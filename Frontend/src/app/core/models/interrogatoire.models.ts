@@ -67,6 +67,7 @@ export interface InterrogatoireAnomalyCatalogItem {
   section: InterrogatoireSection;
   isCustom: boolean;
   templateKey: string | null;
+  category?: string | null;
   label: string;
 }
 
