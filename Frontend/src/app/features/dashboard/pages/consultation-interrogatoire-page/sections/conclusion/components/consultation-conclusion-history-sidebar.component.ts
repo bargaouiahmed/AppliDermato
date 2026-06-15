@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   Input,
@@ -7,6 +8,10 @@ import {
   SimpleChanges,
   effect,
   inject,
+  Renderer2,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -23,12 +28,14 @@ import {
 } from '../../../../../../../core/models/interrogatoire.models';
 import { Patient, PatientConsultation } from '../../../../../../../core/models/patient.models';
 import { ConduiteService } from '../../../../../../../core/services/conduite.service';
+import { DocumentsService } from '../../../../../../../core/services/documents.service';
 import { ExamService } from '../../../../../../../core/services/exam.service';
 import { I18nService } from '../../../../../../../core/services/i18n.service';
 import { InterrogatoireService } from '../../../../../../../core/services/interrogatoire.service';
 import { PatientService } from '../../../../../../../core/services/patient.service';
 import { ConsultationConclusionReportComponent } from '../consultation-conclusion-report.component';
 import {
+  ConclusionBadge,
   ConsultationConclusionViewModel,
   buildConsultationConclusionViewModel,
 } from '../consultation-conclusion.helpers';
@@ -50,7 +57,7 @@ type LoadedHistoryBundle = {
   templateUrl: './consultation-conclusion-history-sidebar.component.html',
   styleUrl: './consultation-conclusion-history-sidebar.component.css',
 })
-export class ConsultationConclusionHistorySidebarComponent implements OnChanges {
+export class ConsultationConclusionHistorySidebarComponent implements OnChanges, AfterViewInit {
   @Input() consultationId: string | null = null;
   @Input() patientId: string | null = null;
   @Input() patient: Patient | null = null;
@@ -64,8 +71,17 @@ export class ConsultationConclusionHistorySidebarComponent implements OnChanges 
   private readonly conduiteService = inject(ConduiteService);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly documentsService = inject(DocumentsService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly renderer = inject(Renderer2);
+  private readonly document = inject(DOCUMENT);
+
+  @ViewChild('imageModalContainer', { read: ElementRef }) imageModalContainer?: ElementRef;
 
   protected isCollapsed = false;
+  protected imageModalOpen = false;
+  protected imageModalUrl = '';
+  protected imageModalTitle = '';
   protected isHistoryLoading = false;
   protected historyLoadError = '';
   protected previousConsultations: PatientConsultation[] = [];
@@ -83,7 +99,7 @@ export class ConsultationConclusionHistorySidebarComponent implements OnChanges 
   constructor() {
     effect(() => {
       this.i18n.lang();
-      this.rebuildSelectedHistoryViewModel();
+      setTimeout(() => this.rebuildSelectedHistoryViewModel(), 0);
     });
   }
 
@@ -165,6 +181,36 @@ export class ConsultationConclusionHistorySidebarComponent implements OnChanges 
     }
 
     this.loadHistoryPreview(consultation);
+  }
+
+  protected onHistoryBadgeClick(badge: ConclusionBadge): void {
+    if (badge.imageUrl) {
+      this.imageModalUrl = this.documentsService.resolveAssetUrl(badge.imageUrl);
+      this.imageModalTitle = badge.label;
+      this.imageModalOpen = true;
+      this.cdr.detectChanges();
+      this.moveModalToBody();
+    }
+  }
+
+  protected closeImageModal(): void {
+    this.imageModalOpen = false;
+    this.imageModalUrl = '';
+    this.imageModalTitle = '';
+  }
+
+  ngAfterViewInit(): void {
+    // Modal will be moved to body when opened
+  }
+
+  private moveModalToBody(): void {
+    // Wait for the modal to render
+    setTimeout(() => {
+      if (this.imageModalContainer) {
+        const modalElement = this.imageModalContainer.nativeElement;
+        this.renderer.appendChild(this.document.body, modalElement);
+      }
+    }, 0);
   }
 
   private loadHistoryPage(patientId: string, pageNumber: number): void {
@@ -252,7 +298,9 @@ export class ConsultationConclusionHistorySidebarComponent implements OnChanges 
           this.selectedHistoryBundle = bundle;
           this.isPreviewLoading = false;
           this.previewLoadError = '';
-          this.rebuildSelectedHistoryViewModel();
+          
+          // Use setTimeout to defer view model rebuild to next tick
+          setTimeout(() => this.rebuildSelectedHistoryViewModel(), 0);
         },
         error: () => {
           if (this.selectedHistoryConsultationId !== consultation.id) {

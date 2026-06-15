@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   Input,
@@ -7,6 +8,10 @@ import {
   SimpleChanges,
   effect,
   inject,
+  Renderer2,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -21,10 +26,12 @@ import {
 } from '../../../../../../../core/models/interrogatoire.models';
 import { Patient } from '../../../../../../../core/models/patient.models';
 import { ConduiteService } from '../../../../../../../core/services/conduite.service';
+import { DocumentsService } from '../../../../../../../core/services/documents.service';
 import { ExamService } from '../../../../../../../core/services/exam.service';
 import { I18nService } from '../../../../../../../core/services/i18n.service';
 import { TranslatePipe } from '../../../../../../../shared/pipes/translate.pipe';
 import {
+  ConclusionBadge,
   ConsultationConclusionViewModel,
   buildConsultationConclusionViewModel,
 } from '../consultation-conclusion.helpers';
@@ -37,7 +44,7 @@ import { ConsultationConclusionReportComponent } from '../consultation-conclusio
   templateUrl: './consultation-conclusion-current-sidebar.component.html',
   styleUrl: './consultation-conclusion-current-sidebar.component.css',
 })
-export class ConsultationConclusionCurrentSidebarComponent implements OnChanges {
+export class ConsultationConclusionCurrentSidebarComponent implements OnChanges, AfterViewInit {
   @Input() consultationId: string | null = null;
   @Input() patient: Patient | null = null;
   @Input() consultationDate = '';
@@ -53,13 +60,22 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
 
   private readonly examService = inject(ExamService);
   private readonly conduiteService = inject(ConduiteService);
+  private readonly documentsService = inject(DocumentsService);
   private readonly i18n = inject(I18nService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly renderer = inject(Renderer2);
+  private readonly document = inject(DOCUMENT);
+
+  @ViewChild('imageModalContainer', { read: ElementRef }) imageModalContainer?: ElementRef;
 
   protected isCollapsed = false;
   protected isLoading = false;
   protected loadError = '';
   protected viewModel: ConsultationConclusionViewModel | null = null;
+  protected imageModalOpen = false;
+  protected imageModalUrl = '';
+  protected imageModalTitle = '';
 
   private examPayload: ConsultationExamPayload = createDefaultConsultationExamPayload();
   private conduite: ConsultationConduiteResponse = {
@@ -71,7 +87,7 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
   constructor() {
     effect(() => {
       this.i18n.lang();
-      this.rebuildViewModel();
+      setTimeout(() => this.rebuildViewModel(), 0);
     });
   }
 
@@ -114,6 +130,36 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
     this.isCollapsed = !this.isCollapsed;
   }
 
+  protected onBadgeClick(badge: ConclusionBadge): void {
+    if (badge.imageUrl) {
+      this.imageModalUrl = this.documentsService.resolveAssetUrl(badge.imageUrl);
+      this.imageModalTitle = badge.label;
+      this.imageModalOpen = true;
+      this.cdr.detectChanges();
+      this.moveModalToBody();
+    }
+  }
+
+  protected closeImageModal(): void {
+    this.imageModalOpen = false;
+    this.imageModalUrl = '';
+    this.imageModalTitle = '';
+  }
+
+  ngAfterViewInit(): void {
+    // Modal will be moved to body when opened
+  }
+
+  private moveModalToBody(): void {
+    // Wait for the modal to render
+    setTimeout(() => {
+      if (this.imageModalContainer) {
+        const modalElement = this.imageModalContainer.nativeElement;
+        this.renderer.appendChild(this.document.body, modalElement);
+      }
+    }, 0);
+  }
+
   private loadRemoteState(consultationId: string): void {
     this.isLoading = true;
     this.loadError = '';
@@ -153,7 +199,9 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
               };
           this.isLoading = false;
           this.loadError = '';
-          this.rebuildViewModel();
+          
+          // Use setTimeout to defer view model rebuild to next tick
+          setTimeout(() => this.rebuildViewModel(), 0);
         },
         error: () => {
           this.isLoading = false;
@@ -164,7 +212,8 @@ export class ConsultationConclusionCurrentSidebarComponent implements OnChanges 
             additionalInformation: '',
             actions: [],
           };
-          this.rebuildViewModel();
+          
+          setTimeout(() => this.rebuildViewModel(), 0);
         },
       });
   }

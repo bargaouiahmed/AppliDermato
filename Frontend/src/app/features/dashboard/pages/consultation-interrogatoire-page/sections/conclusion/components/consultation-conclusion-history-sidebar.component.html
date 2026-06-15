@@ -106,6 +106,7 @@
                     <app-consultation-conclusion-report
                       [viewModel]="selectedHistoryViewModel"
                       [displayMode]="'compact'"
+                      (badgeClick)="onHistoryBadgeClick($event)"
                     />
                   }
                 </div>
@@ -133,3 +134,20 @@
     </div>
   }
 </aside>
+
+<!-- Image modal OUTSIDE sidebar to span full screen -->
+@if (imageModalOpen) {
+  <div #imageModalContainer class="image-modal-backdrop" (click)="closeImageModal()">
+    <div class="image-modal-content" (click)="$event.stopPropagation()">
+      <button 
+        type="button" 
+        class="image-modal-close"
+        [attr.aria-label]="'consultation.page.actions.close' | translate"
+        (click)="closeImageModal()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <img [src]="imageModalUrl" [alt]="imageModalTitle" />
+    </div>
+  </div>
+}

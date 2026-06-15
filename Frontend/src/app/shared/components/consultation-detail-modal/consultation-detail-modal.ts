@@ -10,6 +10,7 @@ import {
   SimpleChanges,
   ViewChild,
   inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
@@ -29,9 +30,11 @@ import { ExamService } from '../../../core/services/exam.service';
 import { TranslatePipe } from '../../pipes/translate.pipe';
 import { I18nService } from '../../../core/services/i18n.service';
 import { InterrogatoireService } from '../../../core/services/interrogatoire.service';
+import { DocumentsService } from '../../../core/services/documents.service';
 import {
   ConsultationConclusionViewModel,
   buildConsultationConclusionViewModel,
+  ConclusionBadge,
 } from '../../../features/dashboard/pages/consultation-interrogatoire-page/sections/conclusion/consultation-conclusion.helpers';
 import { ConsultationConclusionReportComponent } from '../../../features/dashboard/pages/consultation-interrogatoire-page/sections/conclusion/consultation-conclusion-report.component';
 
@@ -57,6 +60,8 @@ export class ConsultationDetailModal implements OnChanges {
   private readonly examService = inject(ExamService);
   private readonly conduiteService = inject(ConduiteService);
   private readonly i18n = inject(I18nService);
+  private readonly documentsService = inject(DocumentsService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @Input() isOpen = false;
   @Input() data: ConsultationDetailModalData | null = null;
@@ -68,6 +73,10 @@ export class ConsultationDetailModal implements OnChanges {
   protected isLoading = false;
   protected loadError = '';
   protected viewModel: ConsultationConclusionViewModel | null = null;
+
+  // Image modal state
+  protected isImageModalOpen = false;
+  protected selectedImageUrl: string | null = null;
 
   private activeRequestId = 0;
 
@@ -106,6 +115,22 @@ export class ConsultationDetailModal implements OnChanges {
       this.router.createUrlTree(['/consultations', this.data.consultationId, 'print', 'conclusion']),
     );
     window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  protected onBadgeClick(badge: ConclusionBadge): void {
+    if (badge.imageUrl) {
+      // Resolve the image URL to absolute path
+      this.selectedImageUrl = this.documentsService.resolveAssetUrl(badge.imageUrl);
+      this.isImageModalOpen = true;
+      console.log('Badge clicked:', badge.label, 'Image URL:', this.selectedImageUrl);
+    } else {
+      console.log('Badge clicked but no image:', badge.label);
+    }
+  }
+
+  protected closeImageModal(): void {
+    this.isImageModalOpen = false;
+    this.selectedImageUrl = null;
   }
 
   private loadPreview(data: ConsultationDetailModalData): void {
@@ -153,6 +178,7 @@ export class ConsultationDetailModal implements OnChanges {
         );
         this.isLoading = false;
         this.loadError = '';
+        this.cdr.detectChanges();
       },
       error: () => {
         if (requestId !== this.activeRequestId || !this.isOpen) {
@@ -162,6 +188,7 @@ export class ConsultationDetailModal implements OnChanges {
         this.isLoading = false;
         this.loadError = 'consultation.page.conclusion.loadError';
         this.viewModel = this.buildFallbackViewModel(data);
+        this.cdr.detectChanges();
       },
     });
   }

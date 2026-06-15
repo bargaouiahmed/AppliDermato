@@ -99,29 +99,6 @@
 
       <div class="content-stack">
         <article class="entry-block">
-          <div class="row-heading">
-            <h3>{{ vm.generalSummary.title }}</h3>
-            <span
-              class="status-badge"
-              [class.tone-normal]="vm.generalSummary.statusTone === 'normal'"
-              [class.tone-abnormal]="vm.generalSummary.statusTone === 'abnormal'"
-              [class.tone-unassigned]="vm.generalSummary.statusTone === 'unassigned'"
-            >
-              {{ vm.generalSummary.statusLabel }}
-            </span>
-          </div>
-
-          <div class="metric-grid">
-            @for (metric of vm.generalSummary.metrics; track metric.label) {
-              <div class="metric-item">
-                <span class="metric-label">{{ metric.label }}</span>
-                <strong class="metric-value metric-value-card">{{ metric.value }}</strong>
-              </div>
-            }
-          </div>
-        </article>
-
-        <article class="entry-block">
           <h3>{{ vm.clinicalTitle }}</h3>
 
           <div class="rows-block">
@@ -136,10 +113,26 @@
                       [class.tone-normal]="badge.tone === 'normal'"
                       [class.tone-abnormal]="badge.tone === 'abnormal'"
                       [class.tone-unassigned]="badge.tone === 'unassigned'"
+                      [class.clickable]="hasClickAction(badge)"
+                      [class.is-lesion]="badge.lesionId"
+                      [attr.role]="hasClickAction(badge) ? 'button' : null"
+                      [attr.tabindex]="hasClickAction(badge) ? 0 : null"
+                      (click)="onBadgeClick(badge, $event)"
+                      (keydown.enter)="onBadgeClick(badge, $event)"
+                      (keydown.space)="onBadgeClick(badge, $event)"
                     >
-                      <span>{{ badge.label }}</span>
+                      <span class="badge-label-wrapper">
+                        @if (badge.lesionId) {
+                          <span class="lesion-tag">{{ badge.label }}</span>
+                        } @else {
+                          <span>{{ badge.label }}</span>
+                        }
+                      </span>
                       @if (badge.meta) {
                         <small>{{ badge.meta }}</small>
+                      }
+                      @if (badge.imageUrl) {
+                        <span class="has-image-indicator" [attr.aria-label]="'consultation.page.exam.bodyMap.photoAttached' | translate">📷</span>
                       }
                     </span>
                   }

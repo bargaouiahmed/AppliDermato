@@ -6,7 +6,11 @@
       <div class="inline-warning">{{ loadError | translate }}</div>
     }
 
-    <app-consultation-conclusion-report #reportHost [viewModel]="viewModel" />
+    <app-consultation-conclusion-report 
+      #reportHost 
+      [viewModel]="viewModel"
+      (badgeClick)="onBadgeClick($event)"
+    />
 
     <div class="conclusion-actions no-print">
       <button type="button" class="print-btn" [disabled]="isDownloadingPdf" (click)="printCurrentView()">
@@ -16,4 +20,25 @@
   </div>
 } @else {
   <div class="state-card">{{ 'consultation.page.conclusion.loadError' | translate }}</div>
+}
+
+@if (imageModalOpen) {
+  <div class="image-modal-backdrop" (click)="closeImageModal()">
+    <div class="image-modal-content" (click)="$event.stopPropagation()">
+      <div class="image-modal-header">
+        <h3>{{ imageModalTitle }}</h3>
+        <button 
+          type="button" 
+          class="image-modal-close"
+          [attr.aria-label]="'consultation.page.actions.close' | translate"
+          (click)="closeImageModal()"
+        >
+          &times;
+        </button>
+      </div>
+      <div class="image-modal-body">
+        <img [src]="imageModalUrl" [alt]="imageModalTitle" />
+      </div>
+    </div>
+  </div>
 }

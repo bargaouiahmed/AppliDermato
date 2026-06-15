@@ -26,11 +26,13 @@ import {
 } from '../../../../../../core/models/interrogatoire.models';
 import { Patient } from '../../../../../../core/models/patient.models';
 import { ConduiteService } from '../../../../../../core/services/conduite.service';
+import { DocumentsService } from '../../../../../../core/services/documents.service';
 import { ExamService } from '../../../../../../core/services/exam.service';
 import { I18nService } from '../../../../../../core/services/i18n.service';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { TranslatePipe } from '../../../../../../shared/pipes/translate.pipe';
 import {
+  ConclusionBadge,
   ConsultationConclusionViewModel,
   buildConsultationConclusionViewModel,
 } from './consultation-conclusion.helpers';
@@ -62,6 +64,7 @@ export class ConsultationConclusionSectionComponent implements OnChanges, OnDest
 
   private readonly examService = inject(ExamService);
   private readonly conduiteService = inject(ConduiteService);
+  private readonly documentsService = inject(DocumentsService);
   private readonly i18n = inject(I18nService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -70,6 +73,9 @@ export class ConsultationConclusionSectionComponent implements OnChanges, OnDest
   protected isDownloadingPdf = false;
   protected loadError = '';
   protected viewModel: ConsultationConclusionViewModel | null = null;
+  protected imageModalOpen = false;
+  protected imageModalUrl = '';
+  protected imageModalTitle = '';
 
   private activeCaptureTarget: HTMLElement | null = null;
   private captureCleanupTimer: number | null = null;
@@ -159,6 +165,20 @@ export class ConsultationConclusionSectionComponent implements OnChanges, OnDest
       this.cleanupCaptureMode();
       this.isDownloadingPdf = false;
     }
+  }
+
+  protected onBadgeClick(badge: ConclusionBadge): void {
+    if (badge.imageUrl) {
+      this.imageModalUrl = this.documentsService.resolveAssetUrl(badge.imageUrl);
+      this.imageModalTitle = badge.label;
+      this.imageModalOpen = true;
+    }
+  }
+
+  protected closeImageModal(): void {
+    this.imageModalOpen = false;
+    this.imageModalUrl = '';
+    this.imageModalTitle = '';
   }
 
   private resolveCaptureTarget(): HTMLElement | null {

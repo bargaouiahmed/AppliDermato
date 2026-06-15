@@ -19,7 +19,10 @@
         }
 
         @if (viewModel) {
-          <app-consultation-conclusion-report [viewModel]="viewModel" [displayMode]="'compact'" />
+          <app-consultation-conclusion-report 
+            [viewModel]="viewModel" 
+            [displayMode]="'compact'" 
+            (badgeClick)="onBadgeClick($event)" />
         } @else {
           <div class="modal-state">
             {{ (isLoading ? 'consultation.page.loading' : 'consultation.page.conclusion.loadError') | translate }}
@@ -35,4 +38,16 @@
       </div>
     </div>
   </div>
+
+  <!-- Image modal -->
+  @if (isImageModalOpen && selectedImageUrl) {
+    <div class="image-modal-backdrop" (click)="closeImageModal()">
+      <div class="image-modal-content" (click)="$event.stopPropagation()">
+        <button class="image-modal-close" (click)="closeImageModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        <img [src]="selectedImageUrl" alt="Lesion image" />
+      </div>
+    </div>
+  }
 }

@@ -20,6 +20,9 @@ export interface ConclusionBadge {
   label: string;
   tone: ConclusionTone;
   meta?: string;
+  imageUrl?: string;
+  zoneId?: string;
+  lesionId?: string;
 }
 
 export interface ConclusionField {
@@ -312,14 +315,44 @@ function buildZoneBadges(
     return [createUnassignedBadge(emptyBadgeLabel)];
   }
 
-  return zones.map((zone) => ({
-    label: normalizeText(zone.label) || normalizeText(zone.regionId),
-    tone: 'abnormal',
-    meta: joinMeta(
-      normalizeText(zone.description),
-      zone.image?.fileUrl ? translate('consultation.page.exam.bodyMap.photoAttached') : '',
-    ),
-  }));
+  const badges: ConclusionBadge[] = [];
+
+  for (const zone of zones) {
+    const lesions = zone.drawing?.lesions ?? [];
+    
+    if (lesions.length > 0) {
+      // If zone has lesions, show each lesion as a separate badge
+      for (let i = 0; i < lesions.length; i++) {
+        const lesion = lesions[i];
+        const lesionLabel = `${normalizeText(zone.label) || normalizeText(zone.regionId)} #${i + 1}`;
+        badges.push({
+          label: lesionLabel,
+          tone: 'abnormal',
+          meta: joinMeta(
+            normalizeText(lesion.description),
+            lesion.image?.fileUrl ? translate('consultation.page.exam.bodyMap.photoAttached') : '',
+          ),
+          imageUrl: lesion.image?.fileUrl ?? undefined,
+          zoneId: zone.regionId,
+          lesionId: lesion.id,
+        });
+      }
+    } else {
+      // If no lesions, show zone with its general description
+      badges.push({
+        label: normalizeText(zone.label) || normalizeText(zone.regionId),
+        tone: 'abnormal',
+        meta: joinMeta(
+          normalizeText(zone.description),
+          zone.image?.fileUrl ? translate('consultation.page.exam.bodyMap.photoAttached') : '',
+        ),
+        imageUrl: zone.image?.fileUrl ?? undefined,
+        zoneId: zone.regionId,
+      });
+    }
+  }
+
+  return badges;
 }
 
 function buildCarePlanGroups(
@@ -510,7 +543,11 @@ function buildTreatmentRows(
 
 function extractDocumentedZones(examPayload: ConsultationExamPayload): DermatologyExamZone[] {
   return Object.values(examPayload.bodyMap.zones ?? {})
-    .filter((zone) => !!normalizeText(zone.description) || !!zone.image?.fileUrl)
+    .filter((zone) => 
+      !!normalizeText(zone.description) || 
+      !!zone.image?.fileUrl ||
+      (zone.drawing?.lesions && zone.drawing.lesions.length > 0)
+    )
     .sort((left, right) => {
       if (left.view !== right.view) {
         return left.view.localeCompare(right.view);
