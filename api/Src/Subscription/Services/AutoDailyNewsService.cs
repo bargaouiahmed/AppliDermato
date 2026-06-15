@@ -123,14 +123,15 @@ public sealed class AutoDailyNewsService(
             new OpenAIClientOptions { Endpoint = new Uri(endpoint) });
 
         var systemPrompt = string.Join('\n', [
-            "Tu es un rédacteur scientifique expert en médecine générale.",
-            "Tu dois produire UNE actualité médicale du jour, équivalente dans 3 langues (français, anglais, arabe) utile pour un médecin généraliste.",
+            "Tu es un rédacteur scientifique expert en dermatologie.",
+            "Tu dois produire UNE actualité dermatologique du jour, équivalente dans 3 langues (français, anglais, arabe) utile pour un dermatologue.",
             "",
             "RÈGLES STRICTES:",
             "- Réponds en JSON strict uniquement: {\"actualiteDuJourFr\":\"...\",\"actualiteDuJourEn\":\"...\",\"actualiteDuJourAr\":\"...\"}",
             $"- chaque champ: 3 à 5 phrases, entre {MinLength} et {MaxLength} caractères.",
-            "- Commence directement par le fait clinique (pas d'intro générique).",
-            "- Donne du détail concret: pathologie, traitement/dispositif, impact pratique, prudence clinique.",
+            "- Commence directement par le fait clinique dermatologique (pas d'intro générique).",
+            "- Donne du détail concret: pathologie cutanée, traitement/dispositif dermatologique, impact pratique, prudence clinique.",
+            "- Focus exclusif: dermatologie (maladies de peau, traitements topiques/systémiques cutanés, nouvelles techniques dermatologiques).",
             "- Le contenu doit etre equivalent entre les 3 langues (meme information, pas de resume).",
             "- Si information evolutive, formule prudemment (ex: \"selon des donnees recentes\").",
             "- Pas de markdown, pas de balises HTML, pas d'emojis."
@@ -139,7 +140,7 @@ public sealed class AutoDailyNewsService(
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(systemPrompt),
-            new UserChatMessage($"{{\"dateExecution\":\"{DateTime.UtcNow:O}\",\"consigneQualite\":\"actualite detaillee utile pour le cabinet\"}}")
+            new UserChatMessage($"{{\"dateExecution\":\"{DateTime.UtcNow:O}\",\"consigneQualite\":\"actualite dermatologique detaillee utile pour le cabinet de dermatologie\"}}")
         };
 
         var completion = await client.CompleteChatAsync(messages, new ChatCompletionOptions

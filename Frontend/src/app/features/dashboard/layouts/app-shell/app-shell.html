@@ -17,9 +17,6 @@
             <a class="nav-link" routerLink="/calendar" routerLinkActive="active">Agenda</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" routerLink="/sketchfab-test" routerLinkActive="active">Body Map</a>
-          </li>
-          <li class="nav-item">
             @if (selfCheckinLink()) {
               <a class="nav-link" [href]="selfCheckinLink()" target="_blank" rel="noopener">
                 {{ 'profile.selfCheckin.title' | translate }}
