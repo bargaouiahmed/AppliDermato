@@ -43,8 +43,7 @@ type PatientSelectorStep = 'newPatient' | 'returningPatient';
 type QuestionnaireStep =
   | 'antecedentsGeneraux'
   | 'antecedentsFamiliaux'
-  | 'signesFonctionnels'
-  | 'histoireMaladie'
+  | 'antecedentsDermatologiques'
   | 'traitementEnCours';
 type YesNoAnswer = '' | 'yes' | 'no';
 
@@ -66,10 +65,8 @@ type QuestionnaireModel = {
   antecedentsGeneraux: string[];
   hasAntecedentsFamiliaux: YesNoAnswer;
   antecedentsFamiliaux: string[];
-  hasSignesFonctionnels: YesNoAnswer;
-  signesFonctionnels: string[];
-  hasHistoireMaladie: YesNoAnswer;
-  histoireMaladie: string;
+  hasAntecedentsDermatologiques: YesNoAnswer;
+  antecedentsDermatologiques: string[];
   hasTraitementEnCours: YesNoAnswer;
   traitementEnCours: string[];
 };
@@ -138,10 +135,8 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
     antecedentsGeneraux: [],
     hasAntecedentsFamiliaux: '',
     antecedentsFamiliaux: [],
-    hasSignesFonctionnels: '',
-    signesFonctionnels: [],
-    hasHistoireMaladie: '',
-    histoireMaladie: '',
+    hasAntecedentsDermatologiques: '',
+    antecedentsDermatologiques: [],
     hasTraitementEnCours: '',
     traitementEnCours: [],
   });
@@ -149,8 +144,7 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
   protected readonly questionnaireStepOrder: QuestionnaireStep[] = [
     'antecedentsGeneraux',
     'antecedentsFamiliaux',
-    'signesFonctionnels',
-    'histoireMaladie',
+    'antecedentsDermatologiques',
     'traitementEnCours',
   ];
   protected readonly questionnaireStep = signal<QuestionnaireStep>('antecedentsGeneraux');
@@ -165,28 +159,27 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
   private confirmationTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly sameDayConsultationGuards = new Set<string>();
   private readonly defaultMotifKeys = [
-    'motifFever',
-    'motifDryCough',
-    'motifProductiveCough',
-    'motifSoreThroat',
-    'motifDyspnea',
-    'motifChestPain',
-    'motifPalpitations',
-    'motifHeadache',
-    'motifDizziness',
-    'motifGeneralFatigue',
-    'motifAbdominalPain',
-    'motifNausea',
-    'motifVomiting',
-    'motifDiarrhea',
-    'motifConstipation',
-    'motifDysuria',
-    'motifPollakiuria',
-    'motifLowBackPain',
-    'motifJointPain',
-    'motifCheckup',
-    'motifPrescriptionRenewal',
-    'motifVaccination',
+    'motifAcne',
+    'motifRosacee',
+    'motifEczema',
+    'motifDermatiteAtopique',
+    'motifPsoriasis',
+    'motifUrticaire',
+    'motifPrurit',
+    'motifEruptionCutanee',
+    'motifLesionSuspecte',
+    'motifVerrues',
+    'motifMycoseCutanee',
+    'motifChuteDeCeveux',
+    'motifAlopecie',
+    'motifVitiligo',
+    'motifMelasma',
+    'motifGale',
+    'motifZona',
+    'motifHerpes',
+    'motifConsultationPreventive',
+    'motifDepistage',
+    'motifRenouvellementOrdonnance',
   ];
   private readonly questionnaireOptionKeys = [
     'generalHistoryHypertension',
@@ -194,43 +187,53 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
     'generalHistoryAsthma',
     'generalHistoryThyroid',
     'generalHistoryCardiacDisease',
-    'familyHistoryDiabetes',
-    'familyHistoryHypertension',
-    'familyHistoryCardiacDisease',
-    'familyHistoryCancer',
-    'familyHistoryStroke',
-    'functionalSignFever',
-    'functionalSignCough',
-    'functionalSignDyspnea',
-    'functionalSignChestPain',
-    'functionalSignAbdominalPain',
-    'functionalSignFatigue',
-    'functionalSignHeadache',
+    'familyHistoryAtopieFamiliale',
+    'familyHistoryPsoriasisFamilial',
+    'familyHistoryVitiligoFamilial',
+    'familyHistoryPeladeFamiliale',
+    'familyHistoryLupusFamilial',
+    'familyHistoryMelanomeFamilial',
+    'familyHistoryCancerCutaneFamilial',
+    'familyHistoryAcneSevereFamiliale',
+    'familyHistoryIchthyoseFamiliale',
+    'dermaAntecedentDermatiteAtopique',
+    'dermaAntecedentPsoriasis',
+    'dermaAntecedentAcne',
+    'dermaAntecedentRosacee',
+    'dermaAntecedentUrticaireChronique',
+    'dermaAntecedentVitiligo',
+    'dermaAntecedentMelasma',
+    'dermaAntecedentDermatiteSeborrheique',
+    'dermaAntecedentLupusCutane',
+    'dermaAntecedentLichenPlan',
+    'dermaAntecedentAlopecie',
+    'dermaAntecedentHerpesRecidivant',
+    'dermaAntecedentZona',
+    'dermaAntecedentCancerCutane',
   ];
   private readonly supportedLanguages: SelfCheckinLanguage[] = ['fr', 'en', 'ar'];
   private readonly motifKeyByKnownLabel = new Map<string, string>([
-    ['fievre', 'motifFever'],
-    ['toux seche', 'motifDryCough'],
-    ['toux grasse', 'motifProductiveCough'],
-    ['maux de gorge', 'motifSoreThroat'],
-    ['dyspnee', 'motifDyspnea'],
-    ['douleur thoracique', 'motifChestPain'],
-    ['palpitations', 'motifPalpitations'],
-    ['cephalee', 'motifHeadache'],
-    ['vertiges', 'motifDizziness'],
-    ['fatigue generale', 'motifGeneralFatigue'],
-    ['douleur abdominale', 'motifAbdominalPain'],
-    ['nausees', 'motifNausea'],
-    ['vomissements', 'motifVomiting'],
-    ['diarrhee', 'motifDiarrhea'],
-    ['constipation', 'motifConstipation'],
-    ['dysurie', 'motifDysuria'],
-    ['pollakiurie', 'motifPollakiuria'],
-    ['lombalgie', 'motifLowBackPain'],
-    ['arthralgies', 'motifJointPain'],
-    ['bilan de sante', 'motifCheckup'],
-    ['renouvellement ordonnance', 'motifPrescriptionRenewal'],
-    ['vaccination', 'motifVaccination'],
+    ['acne', 'motifAcne'],
+    ['rosacee', 'motifRosacee'],
+    ['eczema', 'motifEczema'],
+    ['dermatite atopique', 'motifDermatiteAtopique'],
+    ['psoriasis', 'motifPsoriasis'],
+    ['urticaire', 'motifUrticaire'],
+    ['prurit', 'motifPrurit'],
+    ['eruption cutanee', 'motifEruptionCutanee'],
+    ['lesion suspecte', 'motifLesionSuspecte'],
+    ['verrues', 'motifVerrues'],
+    ['mycose cutanee', 'motifMycoseCutanee'],
+    ['chute de cheveux', 'motifChuteDeCeveux'],
+    ['alopecie', 'motifAlopecie'],
+    ['vitiligo', 'motifVitiligo'],
+    ['melasma', 'motifMelasma'],
+    ['gale', 'motifGale'],
+    ['zona', 'motifZona'],
+    ['herpes', 'motifHerpes'],
+    ['consultation preventive', 'motifConsultationPreventive'],
+    ['depistage cancer cutane', 'motifDepistage'],
+    ['renouvellement ordonnance', 'motifRenouvellementOrdonnance'],
   ]);
 
   protected readonly addKioskTag = (term: string): string => this.normalizeTag(term);
@@ -252,15 +255,10 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
           form.hasAntecedentsFamiliaux === 'no' ||
           (form.hasAntecedentsFamiliaux === 'yes' && form.antecedentsFamiliaux.length > 0)
         );
-      case 'signesFonctionnels':
+      case 'antecedentsDermatologiques':
         return (
-          form.hasSignesFonctionnels === 'no' ||
-          (form.hasSignesFonctionnels === 'yes' && form.signesFonctionnels.length > 0)
-        );
-      case 'histoireMaladie':
-        return (
-          form.hasHistoireMaladie === 'no' ||
-          (form.hasHistoireMaladie === 'yes' && form.histoireMaladie.trim().length > 0)
+          form.hasAntecedentsDermatologiques === 'no' ||
+          (form.hasAntecedentsDermatologiques === 'yes' && form.antecedentsDermatologiques.length > 0)
         );
       case 'traitementEnCours':
         return (
@@ -303,20 +301,31 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
     this.t('generalHistoryCardiacDisease'),
   ]);
   protected readonly antecedentsFamiliauxOptions = computed(() => [
-    this.t('familyHistoryDiabetes'),
-    this.t('familyHistoryHypertension'),
-    this.t('familyHistoryCardiacDisease'),
-    this.t('familyHistoryCancer'),
-    this.t('familyHistoryStroke'),
+    this.t('familyHistoryAtopieFamiliale'),
+    this.t('familyHistoryPsoriasisFamilial'),
+    this.t('familyHistoryVitiligoFamilial'),
+    this.t('familyHistoryPeladeFamiliale'),
+    this.t('familyHistoryLupusFamilial'),
+    this.t('familyHistoryMelanomeFamilial'),
+    this.t('familyHistoryCancerCutaneFamilial'),
+    this.t('familyHistoryAcneSevereFamiliale'),
+    this.t('familyHistoryIchthyoseFamiliale'),
   ]);
-  protected readonly signesFonctionnelsOptions = computed(() => [
-    this.t('functionalSignFever'),
-    this.t('functionalSignCough'),
-    this.t('functionalSignDyspnea'),
-    this.t('functionalSignChestPain'),
-    this.t('functionalSignAbdominalPain'),
-    this.t('functionalSignFatigue'),
-    this.t('functionalSignHeadache'),
+  protected readonly antecedentsDermatologiquesOptions = computed(() => [
+    this.t('dermaAntecedentDermatiteAtopique'),
+    this.t('dermaAntecedentPsoriasis'),
+    this.t('dermaAntecedentAcne'),
+    this.t('dermaAntecedentRosacee'),
+    this.t('dermaAntecedentUrticaireChronique'),
+    this.t('dermaAntecedentVitiligo'),
+    this.t('dermaAntecedentMelasma'),
+    this.t('dermaAntecedentDermatiteSeborrheique'),
+    this.t('dermaAntecedentLupusCutane'),
+    this.t('dermaAntecedentLichenPlan'),
+    this.t('dermaAntecedentAlopecie'),
+    this.t('dermaAntecedentHerpesRecidivant'),
+    this.t('dermaAntecedentZona'),
+    this.t('dermaAntecedentCancerCutane'),
   ]);
   protected readonly defaultMotifOptions = computed(() =>
     this.defaultMotifKeys.map((key) => this.t(key)),
@@ -328,16 +337,13 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
     if (
       !form.hasAntecedentsGeneraux ||
       !form.hasAntecedentsFamiliaux ||
-      !form.hasSignesFonctionnels ||
-      !form.hasHistoireMaladie ||
+      !form.hasAntecedentsDermatologiques ||
       !form.hasTraitementEnCours
     ) {
       return false;
     }
 
-    const validHistory =
-      form.hasHistoireMaladie === 'no' || form.histoireMaladie.trim().length > 0;
-    return this.selectedMotifs().length > 0 && validHistory;
+    return this.selectedMotifs().length > 0;
   });
 
   protected readonly stepsCount = 6;
@@ -646,7 +652,7 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
   }
 
   protected updateQuestionnaireSelection(
-    key: 'antecedentsGeneraux' | 'antecedentsFamiliaux' | 'signesFonctionnels' | 'traitementEnCours',
+    key: 'antecedentsGeneraux' | 'antecedentsFamiliaux' | 'antecedentsDermatologiques' | 'traitementEnCours',
     value: readonly unknown[],
   ): void {
     this.questionnaire.update((current) => ({
@@ -692,16 +698,10 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
     if (
       !form.hasAntecedentsGeneraux ||
       !form.hasAntecedentsFamiliaux ||
-      !form.hasSignesFonctionnels ||
-      !form.hasHistoireMaladie ||
+      !form.hasAntecedentsDermatologiques ||
       !form.hasTraitementEnCours
     ) {
       this.errorMessage.set(this.t('answerRequired'));
-      return;
-    }
-
-    if (form.hasHistoireMaladie === 'yes' && form.histoireMaladie.trim().length === 0) {
-      this.errorMessage.set(this.t('historySelectionRequired'));
       return;
     }
 
@@ -869,7 +869,7 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
       addAnomaly('family', item, '');
     }
 
-    for (const item of form.hasSignesFonctionnels === 'yes' ? form.signesFonctionnels : []) {
+    for (const item of form.hasAntecedentsDermatologiques === 'yes' ? form.antecedentsDermatologiques : []) {
       addAnomaly('medical', item, '');
     }
 
@@ -897,8 +897,7 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
       }));
 
     return {
-      histoireMaladie:
-        form.hasHistoireMaladie === 'yes' ? form.histoireMaladie.trim() : this.t('no'),
+      histoireMaladie: '',
       diagnostics: this.questionnaireDiagnostics,
       anomalies,
       ongoingTreatments: selectedTreatments,
@@ -1011,9 +1010,9 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
 
     const generalHistory: string[] = [];
     const familyHistory: string[] = [];
-    const functionalSigns: string[] = [];
-    const functionalSignChoices = new Set(
-      this.signesFonctionnelsOptions().map((item) => this.normalizeChoice(item)),
+    const dermatologicHistory: string[] = [];
+    const dermatologicHistoryChoices = new Set(
+      this.antecedentsDermatologiquesOptions().map((item) => this.normalizeChoice(item)),
     );
 
     const anomalies = [...(consultation.anomalies ?? [])].sort(
@@ -1046,8 +1045,9 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
         continue;
       }
 
-      if (functionalSignChoices.has(this.normalizeChoice(label))) {
-        this.addUniqueChoice(functionalSigns, label);
+      const normalizedLabel = this.normalizeChoice(label);
+      if (dermatologicHistoryChoices.has(normalizedLabel)) {
+        this.addUniqueChoice(dermatologicHistory, label);
         continue;
       }
 
@@ -1059,17 +1059,14 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
     const treatments = this.uniqueStrings(
       (consultation.ongoingTreatments ?? []).map((item) => item.medicine),
     );
-    const histoireMaladie = (consultation.histoireMaladie ?? '').trim();
 
     this.questionnaire.set({
       hasAntecedentsGeneraux: generalHistory.length > 0 ? 'yes' : '',
       antecedentsGeneraux: generalHistory,
       hasAntecedentsFamiliaux: familyHistory.length > 0 ? 'yes' : '',
       antecedentsFamiliaux: familyHistory,
-      hasSignesFonctionnels: functionalSigns.length > 0 ? 'yes' : '',
-      signesFonctionnels: functionalSigns,
-      hasHistoireMaladie: histoireMaladie.length > 0 ? 'yes' : '',
-      histoireMaladie,
+      hasAntecedentsDermatologiques: dermatologicHistory.length > 0 ? 'yes' : '',
+      antecedentsDermatologiques: dermatologicHistory,
       hasTraitementEnCours: treatments.length > 0 ? 'yes' : '',
       traitementEnCours: treatments,
     });
@@ -1256,10 +1253,8 @@ export class SelfCheckinPage implements OnInit, OnDestroy {
       antecedentsGeneraux: [],
       hasAntecedentsFamiliaux: '',
       antecedentsFamiliaux: [],
-      hasSignesFonctionnels: '',
-      signesFonctionnels: [],
-      hasHistoireMaladie: '',
-      histoireMaladie: '',
+      hasAntecedentsDermatologiques: '',
+      antecedentsDermatologiques: [],
       hasTraitementEnCours: '',
       traitementEnCours: [],
     });

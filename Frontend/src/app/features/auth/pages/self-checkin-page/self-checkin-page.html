@@ -324,17 +324,17 @@
               </div>
             }
 
-            @case ('signesFonctionnels') {
+            @case ('antecedentsDermatologiques') {
               <div class="question-card">
-                <p>{{ t('questionFunctionalSigns') }}</p>
+                <p>{{ t('questionDermatologicHistory') }}</p>
                 <div class="choice-inline">
-                  <button type="button" [class.active]="questionnaire().hasSignesFonctionnels === 'yes'" (click)="updateQuestionnaireField('hasSignesFonctionnels', 'yes')">{{ t('yes') }}</button>
-                  <button type="button" [class.active]="questionnaire().hasSignesFonctionnels === 'no'" (click)="updateQuestionnaireField('hasSignesFonctionnels', 'no')">{{ t('no') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasAntecedentsDermatologiques === 'yes'" (click)="updateQuestionnaireField('hasAntecedentsDermatologiques', 'yes')">{{ t('yes') }}</button>
+                  <button type="button" [class.active]="questionnaire().hasAntecedentsDermatologiques === 'no'" (click)="updateQuestionnaireField('hasAntecedentsDermatologiques', 'no')">{{ t('no') }}</button>
                 </div>
-                @if (questionnaire().hasSignesFonctionnels === 'yes') {
+                @if (questionnaire().hasAntecedentsDermatologiques === 'yes') {
                 <ng-select
                   class="kiosk-select"
-                  [items]="signesFonctionnelsOptions()"
+                  [items]="antecedentsDermatologiquesOptions()"
                   [appendTo]="'body'"
                   dropdownPosition="auto"
                   [multiple]="true"
@@ -344,27 +344,10 @@
                   [addTag]="addKioskTag"
                   [addTagText]="t('addTagText')"
                   [notFoundText]="t('noOptions')"
-                  [ngModel]="questionnaire().signesFonctionnels"
-                  (ngModelChange)="updateQuestionnaireSelection('signesFonctionnels', $event)"
+                  [ngModel]="questionnaire().antecedentsDermatologiques"
+                  (ngModelChange)="updateQuestionnaireSelection('antecedentsDermatologiques', $event)"
                   [placeholder]="t('selectPlaceholder')"
                 ></ng-select>
-                }
-              </div>
-            }
-
-            @case ('histoireMaladie') {
-              <div class="question-card">
-                <p>{{ t('questionDiseaseHistory') }}</p>
-                <div class="choice-inline">
-                  <button type="button" [class.active]="questionnaire().hasHistoireMaladie === 'yes'" (click)="updateQuestionnaireField('hasHistoireMaladie', 'yes')">{{ t('yes') }}</button>
-                  <button type="button" [class.active]="questionnaire().hasHistoireMaladie === 'no'" (click)="updateQuestionnaireField('hasHistoireMaladie', 'no')">{{ t('no') }}</button>
-                </div>
-                @if (questionnaire().hasHistoireMaladie === 'yes') {
-                <textarea
-                  [placeholder]="t('diseaseHistoryPlaceholder')"
-                  [ngModel]="questionnaire().histoireMaladie"
-                  (ngModelChange)="updateQuestionnaireField('histoireMaladie', $event)"
-                ></textarea>
                 }
               </div>
             }
