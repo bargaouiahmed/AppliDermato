@@ -32,7 +32,7 @@ import { ConsultationConduiteLettreConfrereFormComponent } from './components/co
 import { ConsultationConduiteOrdonnanceFormComponent } from './components/consultation-conduite-ordonnance-form.component';
 import { ConsultationConduiteParacliniqueFormComponent } from './components/consultation-conduite-paraclinique-form.component';
 
-type ParacliniquePrintSection = 'chirurgie' | 'imagerie' | 'bilan_sanguin';
+type ParacliniquePrintSection = 'chirurgie' | 'laser' | 'imagerie' | 'bilan_sanguin';
 
 type ParacliniquePrintRequest = {
   mode: 'single' | 'all';
@@ -75,6 +75,7 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
   private static readonly PARACLINIQUE_GROUP_ACTION_KEY = 'paraclinique';
   private static readonly PARACLINIQUE_ACTION_KEYS = [
     'paraclinique_chirurgie',
+    'paraclinique_laser',
     'paraclinique_imagerie',
     'paraclinique_bilan_sanguin',
   ] as const;
@@ -306,7 +307,13 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.refreshDiagnosticCatalog(consultationId);
+    queueMicrotask(() => {
+      if ((this.consultationId?.trim() ?? '') !== consultationId) {
+        return;
+      }
+
+      this.refreshDiagnosticCatalog(consultationId);
+    });
   }
 
   protected onDiagnosticSelectionChange(nextValues: string[]): void {
@@ -509,7 +516,7 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
       documentType = 'lettre_confrere';
     } else if (key.includes('cnam')) {
       documentType = 'cnam';
-    } else if (key.includes('paraclinique') || key.includes('chirurgie') || key.includes('imagerie') || key.includes('bilan sanguin')) {
+    } else if (key.includes('paraclinique') || key.includes('chirurgie') || key.includes('laser') || key.includes('imagerie') || key.includes('bilan sanguin')) {
       documentType = 'paraclinique';
     }
 
@@ -523,6 +530,7 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
 
     if (documentType === 'paraclinique') {
       if (key.includes('chirurgie')) queryParams['sections'] = 'chirurgie';
+      else if (key.includes('laser')) queryParams['sections'] = 'laser';
       else if (key.includes('imagerie')) queryParams['sections'] = 'imagerie';
       else if (key.includes('bilan sanguin')) queryParams['sections'] = 'bilan_sanguin';
     }
@@ -666,7 +674,7 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
     const normalized = sections
       .map((section) => this.normalizeActionKey(String(section)) as ParacliniquePrintSection)
       .filter((section): section is ParacliniquePrintSection => (
-        section === 'chirurgie' || section === 'imagerie' || section === 'bilan_sanguin'
+        section === 'chirurgie' || section === 'laser' || section === 'imagerie' || section === 'bilan_sanguin'
       ));
 
     return normalized.filter((section, index) => normalized.indexOf(section) === index);
@@ -1264,6 +1272,8 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
         return 'consultation.documents.types.paraclinique';
       case 'paraclinique_chirurgie':
         return 'consultation.conduite.actions.paracliniqueChirurgie';
+      case 'paraclinique_laser':
+        return 'consultation.conduite.actions.paracliniqueLaser';
       case 'paraclinique_imagerie':
         return 'consultation.conduite.actions.paracliniqueImagerie';
       case 'paraclinique_bilan_sanguin':
@@ -1341,6 +1351,16 @@ export class ConsultationConduiteSectionComponent implements OnInit, OnChanges {
       case 'paraclinique':
         return {};
       case 'paraclinique_chirurgie':
+        return {
+          type: '',
+          types: [],
+          dateOperation: '',
+          clinique: '',
+          forfait: '',
+          operateur: '',
+          informationAdditionnel: '',
+        };
+      case 'paraclinique_laser':
         return {
           type: '',
           types: [],

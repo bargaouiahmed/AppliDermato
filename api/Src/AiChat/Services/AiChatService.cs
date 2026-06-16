@@ -40,8 +40,8 @@ public sealed class AiChatService(
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private static readonly string SystemPrompt = string.Join("\n", [
-        "Tu es l'assistant IA de Generalisto.",
-        "Tu aides des médecins généralistes dans leur raisonnement clinique, leur organisation et leur rédaction médicale.",
+        "Tu es l'assistant IA de Dermatologo.",
+        "Tu aides des dermatologues dans leur raisonnement clinique, leur organisation et leur rédaction medicale.",
         "Réponds toujours dans la langue du dernier message de l'utilisateur. Si le message mélange plusieurs langues, utilise la langue dominante. Si l'utilisateur demande explicitement une autre langue, respecte cette demande.",
         "Sois pratique, structuré, prudent et concis. Signale les incertitudes et propose les points à vérifier.",
         "Utilise les outils disponibles lorsque la question concerne les patients, l'historique, les consultations, le calendrier, l'agenda, les rendez-vous, les statistiques ou les tendances du cabinet.",
@@ -564,7 +564,7 @@ public sealed class AiChatService(
 
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation("HTTP-Referer", httpReferer);
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Generalisto");
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Dermatologo");
 
         var body = new
         {
@@ -648,7 +648,7 @@ public sealed class AiChatService(
 
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation("HTTP-Referer", httpReferer);
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Generalisto");
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Dermatologo");
 
         var messages = BuildOpenRouterToolMessages(request);
         var tools = BuildReadOnlyTools();

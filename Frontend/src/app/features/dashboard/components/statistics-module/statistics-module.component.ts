@@ -306,6 +306,7 @@ export class StatisticsModuleComponent implements OnInit {
       key.includes('lettre') ||
       key.includes('cnam') ||
       key.includes('chirurgie') ||
+      key.includes('laser') ||
       key.includes('imagerie') ||
       key.includes('bilan sanguin') ||
       key.includes('bilan_sanguin');
@@ -332,12 +333,13 @@ export class StatisticsModuleComponent implements OnInit {
     else if (key.includes('certificat')) documentType = 'certificat';
     else if (key.includes('lettre')) documentType = 'lettre_confrere';
     else if (key.includes('cnam')) documentType = 'cnam';
-    else if (key.includes('chirurgie') || key.includes('imagerie') || key.includes('bilan sanguin') || key.includes('bilan_sanguin')) documentType = 'paraclinique';
+    else if (key.includes('chirurgie') || key.includes('laser') || key.includes('imagerie') || key.includes('bilan sanguin') || key.includes('bilan_sanguin')) documentType = 'paraclinique';
     if (!documentType) return;
 
     const queryParams: Record<string, string> = {};
     if (documentType === 'paraclinique') {
       if (key.includes('chirurgie')) queryParams['sections'] = 'chirurgie';
+      else if (key.includes('laser')) queryParams['sections'] = 'laser';
       else if (key.includes('imagerie')) queryParams['sections'] = 'imagerie';
       else if (key.includes('bilan sanguin') || key.includes('bilan_sanguin')) queryParams['sections'] = 'bilan_sanguin';
     }

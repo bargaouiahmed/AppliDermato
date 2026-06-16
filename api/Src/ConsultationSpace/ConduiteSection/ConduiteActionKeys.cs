@@ -8,6 +8,7 @@ public static class ConduiteActionKeys
     public const string Cnam = "cnam";
 
     public const string ParacliniqueChirurgie = "paraclinique_chirurgie";
+    public const string ParacliniqueLaser = "paraclinique_laser";
     public const string ParacliniqueImagerie = "paraclinique_imagerie";
     public const string ParacliniqueBilanSanguin = "paraclinique_bilan_sanguin";
 
@@ -19,6 +20,7 @@ public static class ConduiteActionKeys
         LettreConfrere,
         Cnam,
         ParacliniqueChirurgie,
+        ParacliniqueLaser,
         ParacliniqueImagerie,
         ParacliniqueBilanSanguin,
     };

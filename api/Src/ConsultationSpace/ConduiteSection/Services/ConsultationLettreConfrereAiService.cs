@@ -31,7 +31,7 @@ public sealed class ConsultationLettreConfrereAiService(
         var description = NormalizeText(request.GeneralDescription);
         if (string.IsNullOrWhiteSpace(description))
         {
-            throw new InvalidOperationException("Merci de saisir une description générale pour la lettre IA.");
+            throw new InvalidOperationException("Merci de saisir une description gÃ©nÃ©rale pour la lettre IA.");
         }
 
         await EnsureConsultationOwnershipAsync(consultationId, cabinetIdentityId);
@@ -65,7 +65,7 @@ public sealed class ConsultationLettreConfrereAiService(
         var content = NormalizeText(request.Contenue);
         if (string.IsNullOrWhiteSpace(StripHtml(content)))
         {
-            throw new InvalidOperationException("Aucun contenu à corriger pour cette lettre.");
+            throw new InvalidOperationException("Aucun contenu Ã  corriger pour cette lettre.");
         }
 
         await EnsureConsultationOwnershipAsync(consultationId, cabinetIdentityId);
@@ -182,19 +182,19 @@ public sealed class ConsultationLettreConfrereAiService(
                 "system",
                 string.Join('\n', new[]
                 {
-                    "Tu es un assistant rédactionnel pour un médecin généraliste.",
-                    "Ta mission: rédiger le CORPS d'une lettre professionnelle destinée à un confrère ou une consœur.",
+                    "Tu es un assistant redactionnel pour un dermatologue.",
+                    "Ta mission: rÃ©diger le CORPS d'une lettre professionnelle destinÃ©e Ã  un confrÃ¨re ou une consÅ“ur.",
                     "",
-                    "RÈGLES DE SORTIE:",
-                    "- RÈGLE DE LANGUE PRIORITAIRE: rédige contenue dans la même langue que l'instruction utilisateur.",
-                    "- Si la description demandée est en arabe, contenue doit être en arabe; si elle est en français, en français; si elle est en anglais, en anglais.",
-                    "- Ne traduis jamais vers le français ou l'anglais par défaut.",
+                    "RÃˆGLES DE SORTIE:",
+                    "- RÃˆGLE DE LANGUE PRIORITAIRE: rÃ©dige contenue dans la mÃªme langue que l'instruction utilisateur.",
+                    "- Si la description demandÃ©e est en arabe, contenue doit Ãªtre en arabe; si elle est en franÃ§ais, en franÃ§ais; si elle est en anglais, en anglais.",
+                    "- Ne traduis jamais vers le franÃ§ais ou l'anglais par dÃ©faut.",
                     "- Retourne UNIQUEMENT un JSON valide, sans markdown.",
-                    "- Clés obligatoires: medecin, formulepolitesse, contenue.",
-                    "- medecin et formulepolitesse sont des métadonnées fournies par l'application: recopie-les telles quelles si elles sont présentes.",
-                    "- Utilise formulepolitesse pour adapter le genre en français ou en arabe.",
+                    "- ClÃ©s obligatoires: medecin, formulepolitesse, contenue.",
+                    "- medecin et formulepolitesse sont des mÃ©tadonnÃ©es fournies par l'application: recopie-les telles quelles si elles sont prÃ©sentes.",
+                    "- Utilise formulepolitesse pour adapter le genre en franÃ§ais ou en arabe.",
                     "- contenue: uniquement le corps de la lettre.",
-                    "- N'écris jamais dans contenue la formule de politesse, le destinataire, un appel de type Cher confrère/Chère consœur, ni une signature.",
+                    "- N'Ã©cris jamais dans contenue la formule de politesse, le destinataire, un appel de type Cher confrÃ¨re/ChÃ¨re consÅ“ur, ni une signature.",
                     "- N'invente aucune information clinique absente de la description ou du contexte.",
                     "- Utilise le contexte consultation seulement s'il est pertinent pour la demande.",
                     "- Format de contenue: HTML simple avec <p> et <br>."
@@ -204,12 +204,12 @@ public sealed class ConsultationLettreConfrereAiService(
                 string.Join('\n', new[]
                 {
                     $"Destinataire actuel: {job.Medecin.DefaultIfEmpty("(vide)")}",
-                    $"Formule actuelle: {job.Formulepolitesse.DefaultIfEmpty("Cher confrère")}",
-                    "Langue de sortie: même langue que la description demandée.",
-                    $"Description demandée: {job.GeneralDescription}",
+                    $"Formule actuelle: {job.Formulepolitesse.DefaultIfEmpty("Cher confrÃ¨re")}",
+                    "Langue de sortie: mÃªme langue que la description demandÃ©e.",
+                    $"Description demandÃ©e: {job.GeneralDescription}",
                     string.IsNullOrWhiteSpace(job.SourceContent)
                         ? string.Empty
-                        : $"Contenu actuel à prendre en compte: {job.SourceContent}",
+                        : $"Contenu actuel Ã  prendre en compte: {job.SourceContent}",
                     "",
                     "--- Contexte consultation indicatif ---",
                     context.ToPrompt()
@@ -230,19 +230,19 @@ public sealed class ConsultationLettreConfrereAiService(
                 "system",
                 string.Join('\n', new[]
                 {
-                    "Tu es un assistant rédactionnel spécialisé en correction médicale.",
-                    "Ta mission: corriger la langue, la fluidité et le ton professionnel du texte fourni sans changer son sens.",
+                    "Tu es un assistant redactionnel pour un dermatologue.",
+                    "Ta mission: corriger la langue, la fluiditÃ© et le ton professionnel du texte fourni sans changer son sens.",
                     "",
-                    "RÈGLES DE SORTIE:",
-                    "- RÈGLE DE LANGUE PRIORITAIRE: conserve la langue de l'instruction de correction si elle est fournie, sinon conserve la langue du texte à corriger.",
-                    "- Si l'instruction ou le texte est en arabe, contenue doit être en arabe; si c'est en français, en français; si c'est en anglais, en anglais.",
-                    "- Ne traduis jamais vers le français ou l'anglais par défaut.",
+                    "RÃˆGLES DE SORTIE:",
+                    "- RÃˆGLE DE LANGUE PRIORITAIRE: conserve la langue de l'instruction de correction si elle est fournie, sinon conserve la langue du texte Ã  corriger.",
+                    "- Si l'instruction ou le texte est en arabe, contenue doit Ãªtre en arabe; si c'est en franÃ§ais, en franÃ§ais; si c'est en anglais, en anglais.",
+                    "- Ne traduis jamais vers le franÃ§ais ou l'anglais par dÃ©faut.",
                     "- Retourne UNIQUEMENT un JSON valide, sans markdown.",
-                    "- Clés obligatoires: medecin, formulepolitesse, contenue.",
-                    "- medecin et formulepolitesse sont des métadonnées fournies par l'application: recopie-les telles quelles si elles sont présentes.",
-                    "- Utilise formulepolitesse pour adapter le genre en français ou en arabe.",
-                    "- contenue: uniquement le corps corrigé.",
-                    "- N'écris jamais dans contenue la formule de politesse, le destinataire, un appel de type Cher confrère/Chère consœur, ni une signature.",
+                    "- ClÃ©s obligatoires: medecin, formulepolitesse, contenue.",
+                    "- medecin et formulepolitesse sont des mÃ©tadonnÃ©es fournies par l'application: recopie-les telles quelles si elles sont prÃ©sentes.",
+                    "- Utilise formulepolitesse pour adapter le genre en franÃ§ais ou en arabe.",
+                    "- contenue: uniquement le corps corrigÃ©.",
+                    "- N'Ã©cris jamais dans contenue la formule de politesse, le destinataire, un appel de type Cher confrÃ¨re/ChÃ¨re consÅ“ur, ni une signature.",
                     "- N'ajoute aucune information absente du texte original.",
                     "- Format de contenue: HTML simple avec <p> et <br>."
                 })),
@@ -251,8 +251,8 @@ public sealed class ConsultationLettreConfrereAiService(
                 string.Join('\n', new[]
                 {
                     $"Destinataire: {job.Medecin.DefaultIfEmpty("(vide)")}",
-                    $"Formule actuelle: {job.Formulepolitesse.DefaultIfEmpty("Cher confrère")}",
-                    "Langue de sortie: même langue que l'instruction de correction si elle est fournie, sinon même langue que le texte à corriger.",
+                    $"Formule actuelle: {job.Formulepolitesse.DefaultIfEmpty("Cher confrÃ¨re")}",
+                    "Langue de sortie: mÃªme langue que l'instruction de correction si elle est fournie, sinon mÃªme langue que le texte Ã  corriger.",
                     string.IsNullOrWhiteSpace(job.CorrectionPrompt)
                         ? string.Empty
                         : $"Instruction de correction: {job.CorrectionPrompt}",
@@ -260,7 +260,7 @@ public sealed class ConsultationLettreConfrereAiService(
                     "--- Contexte consultation indicatif, ne pas inventer ---",
                     context.ToPrompt(),
                     "",
-                    "Texte à corriger:",
+                    "Texte Ã  corriger:",
                     job.SourceContent
                 }.Where(line => !string.IsNullOrWhiteSpace(line))))
         };
@@ -320,7 +320,7 @@ public sealed class ConsultationLettreConfrereAiService(
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
             "HTTP-Referer",
             ReadOptionalEnv("openrouter_http_referer", "OPENROUTER_REFERER").DefaultIfEmpty("https://generalisto.app"));
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Generalisto");
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Dermatologo");
 
         var body = new
         {
@@ -365,7 +365,7 @@ public sealed class ConsultationLettreConfrereAiService(
 
         if (string.IsNullOrWhiteSpace(assistantText))
         {
-            throw new InvalidOperationException("OpenRouter a répondu sans texte.");
+            throw new InvalidOperationException("OpenRouter a rÃ©pondu sans texte.");
         }
 
         return assistantText.Trim();
@@ -517,7 +517,7 @@ public sealed class ConsultationLettreConfrereAiService(
         var json = ExtractJsonObject(rawAiText);
         if (string.IsNullOrWhiteSpace(json))
         {
-            throw new InvalidOperationException("La réponse IA ne contient pas de JSON valide.");
+            throw new InvalidOperationException("La rÃ©ponse IA ne contient pas de JSON valide.");
         }
 
         using var document = JsonDocument.Parse(json);
@@ -533,7 +533,7 @@ public sealed class ConsultationLettreConfrereAiService(
 
         if (string.IsNullOrWhiteSpace(StripHtml(contenue)))
         {
-            throw new InvalidOperationException("La réponse IA ne contient pas de lettre exploitable.");
+            throw new InvalidOperationException("La rÃ©ponse IA ne contient pas de lettre exploitable.");
         }
 
         return BuildPayload(new Dictionary<string, object?>
@@ -622,23 +622,23 @@ public sealed class ConsultationLettreConfrereAiService(
     {
         var sanitized = value.Trim();
         var openingFormula =
-            @"(?:cher\s+confr(?:e|è)re|ch(?:e|è)re\s+cons(?:oe|œ)ur|dear\s+colleague|cher\s+coll(?:e|è)gue|زميلي\s+العزيز|زميلتي\s+العزيزة)";
+            @"(?:cher\s+confr(?:e|Ã¨)re|ch(?:e|Ã¨)re\s+cons(?:oe|Å“)ur|dear\s+colleague|cher\s+coll(?:e|Ã¨)gue|Ø²Ù…ÙŠÙ„ÙŠ\s+Ø§Ù„Ø¹Ø²ÙŠØ²|Ø²Ù…ÙŠÙ„ØªÙŠ\s+Ø§Ù„Ø¹Ø²ÙŠØ²Ø©)";
 
         sanitized = Regex.Replace(
             sanitized,
-            @"^\s*<p>\s*" + openingFormula + @"\s*[,،]?\s*</p>\s*",
+            @"^\s*<p>\s*" + openingFormula + @"\s*[,ØŒ]?\s*</p>\s*",
             string.Empty,
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         sanitized = Regex.Replace(
             sanitized,
-            @"^\s*<p>\s*" + openingFormula + @"\s*[,،]?\s*<br\s*/?>\s*",
+            @"^\s*<p>\s*" + openingFormula + @"\s*[,ØŒ]?\s*<br\s*/?>\s*",
             "<p>",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         sanitized = Regex.Replace(
             sanitized,
-            @"^\s*" + openingFormula + @"\s*[,،]?\s*(<br\s*/?>|\r?\n)+",
+            @"^\s*" + openingFormula + @"\s*[,ØŒ]?\s*(<br\s*/?>|\r?\n)+",
             string.Empty,
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
@@ -651,21 +651,21 @@ public sealed class ConsultationLettreConfrereAiService(
     private static string NormalizeFormule(string? value)
     {
         var normalized = NormalizeToken(value);
-        if (normalized.Contains("consoeur") || normalized.Contains("consœur") || normalized.Contains("chere"))
+        if (normalized.Contains("consoeur") || normalized.Contains("consÅ“ur") || normalized.Contains("chere"))
         {
-            return "Chère consœur";
+            return "ChÃ¨re consÅ“ur";
         }
 
-        return "Cher confrère";
+        return "Cher confrÃ¨re";
     }
 
     private static string ResolveFormalityKey(string formule)
     {
         var normalized = NormalizeToken(formule);
         return normalized.Contains("consoeur")
-            || normalized.Contains("consœur")
-            || normalized.Contains("زميلتي")
-            || normalized.Contains("زميلة")
+            || normalized.Contains("consÅ“ur")
+            || normalized.Contains("Ø²Ù…ÙŠÙ„ØªÙŠ")
+            || normalized.Contains("Ø²Ù…ÙŠÙ„Ø©")
             ? "consoeur"
             : "confrere";
     }
@@ -732,7 +732,7 @@ public sealed class ConsultationLettreConfrereAiService(
                 var message = messageElement.GetString();
                 if (!string.IsNullOrWhiteSpace(message))
                 {
-                    return $"OpenRouter a refusé la requête ({statusCode}): {message}";
+                    return $"OpenRouter a refusÃ© la requÃªte ({statusCode}): {message}";
                 }
             }
         }
@@ -741,7 +741,7 @@ public sealed class ConsultationLettreConfrereAiService(
             // Fall through to compact raw payload.
         }
 
-        return $"OpenRouter a refusé la requête ({statusCode}).";
+        return $"OpenRouter a refusÃ© la requÃªte ({statusCode}).";
     }
 
     private static string BuildFriendlyError(Exception ex)
@@ -750,23 +750,23 @@ public sealed class ConsultationLettreConfrereAiService(
         if (message.Contains("401", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("unauthorized", StringComparison.OrdinalIgnoreCase))
         {
-            return "OpenRouter a refusé la clé API. Vérifiez openrouter_api_key.";
+            return "OpenRouter a refusÃ© la clÃ© API. VÃ©rifiez openrouter_api_key.";
         }
 
         if (message.Contains("model", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("404", StringComparison.OrdinalIgnoreCase))
         {
-            return "Le modèle OpenRouter configuré est introuvable ou indisponible.";
+            return "Le modÃ¨le OpenRouter configurÃ© est introuvable ou indisponible.";
         }
 
         if (message.Contains("timeout", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("timed out", StringComparison.OrdinalIgnoreCase))
         {
-            return "La réponse de l'assistant a pris trop de temps. Réessayez.";
+            return "La rÃ©ponse de l'assistant a pris trop de temps. RÃ©essayez.";
         }
 
         return string.IsNullOrWhiteSpace(message)
-            ? "Impossible d'obtenir une réponse IA pour la lettre."
+            ? "Impossible d'obtenir une rÃ©ponse IA pour la lettre."
             : message;
     }
 
@@ -785,14 +785,14 @@ public sealed class ConsultationLettreConfrereAiService(
         public string ToPrompt()
             => string.Join('\n', new[]
             {
-                $"Patient: {PatientFullName.DefaultIfEmpty("Non précisé")}",
-                $"Age: {PatientAge.DefaultIfEmpty("Non précisé")}",
-                $"Sexe: {PatientSex.DefaultIfEmpty("Non précisé")}",
-                $"Motifs: {Motifs.DefaultIfEmpty("Non précisés")}",
-                $"Histoire de la maladie: {HistoireMaladie.DefaultIfEmpty("Non précisée")}",
-                $"Diagnostics: {Diagnostics.DefaultIfEmpty("Non précisés")}",
-                $"Traitements en cours: {OngoingTreatments.DefaultIfEmpty("Non précisés")}",
-                $"Informations CAT: {AdditionalInformation.DefaultIfEmpty("Non précisées")}",
+                $"Patient: {PatientFullName.DefaultIfEmpty("Non prÃ©cisÃ©")}",
+                $"Age: {PatientAge.DefaultIfEmpty("Non prÃ©cisÃ©")}",
+                $"Sexe: {PatientSex.DefaultIfEmpty("Non prÃ©cisÃ©")}",
+                $"Motifs: {Motifs.DefaultIfEmpty("Non prÃ©cisÃ©s")}",
+                $"Histoire de la maladie: {HistoireMaladie.DefaultIfEmpty("Non prÃ©cisÃ©e")}",
+                $"Diagnostics: {Diagnostics.DefaultIfEmpty("Non prÃ©cisÃ©s")}",
+                $"Traitements en cours: {OngoingTreatments.DefaultIfEmpty("Non prÃ©cisÃ©s")}",
+                $"Informations CAT: {AdditionalInformation.DefaultIfEmpty("Non prÃ©cisÃ©es")}",
             });
     }
 }

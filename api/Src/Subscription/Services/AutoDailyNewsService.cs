@@ -1,5 +1,8 @@
 using System.ClientModel;
+using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using api.Src.Auth.Entities;
 using Microsoft.EntityFrameworkCore;
 using OpenAI;
@@ -13,6 +16,9 @@ public sealed class AutoDailyNewsService(
 {
     private const int MinLength = 220;
     private const int MaxLength = 900;
+    private const int MaxNewsSources = 8;
+    private const string DermatologyNewsRssUrl =
+        "https://news.google.com/rss/search?q=dermatology%20OR%20melanoma%20OR%20psoriasis%20OR%20atopic%20dermatitis%20when%3A1d&hl=en-US&gl=US&ceid=US%3Aen";
 
     public async Task GenerateSuperAdminDailyNewsAsync(CancellationToken cancellationToken = default)
     {
@@ -117,30 +123,44 @@ public sealed class AutoDailyNewsService(
             return null;
         }
 
+        var newsContext = await FetchDermatologyNewsContextAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(newsContext))
+        {
+            logger.LogWarning("[AUTO_DAILY_NEWS] dermatology_news_search_empty");
+            return null;
+        }
+
         var client = new ChatClient(
             model,
             new ApiKeyCredential(apiKey),
             new OpenAIClientOptions { Endpoint = new Uri(endpoint) });
 
         var systemPrompt = string.Join('\n', [
-            "Tu es un rédacteur scientifique expert en dermatologie.",
-            "Tu dois produire UNE actualité dermatologique du jour, équivalente dans 3 langues (français, anglais, arabe) utile pour un dermatologue.",
+            "Tu es un redacteur scientifique expert en dermatologie.",
+            "Tu dois produire UNE actualite dermatologique du jour, equivalente dans 3 langues (francais, anglais, arabe) utile pour un dermatologue.",
             "",
-            "RÈGLES STRICTES:",
-            "- Réponds en JSON strict uniquement: {\"actualiteDuJourFr\":\"...\",\"actualiteDuJourEn\":\"...\",\"actualiteDuJourAr\":\"...\"}",
-            $"- chaque champ: 3 à 5 phrases, entre {MinLength} et {MaxLength} caractères.",
-            "- Commence directement par le fait clinique dermatologique (pas d'intro générique).",
-            "- Donne du détail concret: pathologie cutanée, traitement/dispositif dermatologique, impact pratique, prudence clinique.",
-            "- Focus exclusif: dermatologie (maladies de peau, traitements topiques/systémiques cutanés, nouvelles techniques dermatologiques).",
-            "- Le contenu doit etre equivalent entre les 3 langues (meme information, pas de resume).",
-            "- Si information evolutive, formule prudemment (ex: \"selon des donnees recentes\").",
+            "REGLES STRICTES:",
+            "- Reponds en JSON strict uniquement: {\"actualiteDuJourFr\":\"...\",\"actualiteDuJourEn\":\"...\",\"actualiteDuJourAr\":\"...\"}",
+            $"- chaque champ: 3 a 5 phrases, entre {MinLength} et {MaxLength} caracteres.",
+            "- Commence directement par le fait clinique dermatologique.",
+            "- Donne du detail concret: pathologie cutanee, traitement ou dispositif dermatologique, impact pratique, prudence clinique.",
+            "- Focus exclusif: dermatologie.",
+            "- Le contenu doit etre equivalent entre les 3 langues.",
+            "- Base-toi uniquement sur les resultats de recherche fournis dans la conversation.",
+            "- Si les sources sont insuffisantes ou contradictoires, reste prudent et n'invente rien.",
             "- Pas de markdown, pas de balises HTML, pas d'emojis."
         ]);
 
         var messages = new List<ChatMessage>
         {
             new SystemChatMessage(systemPrompt),
-            new UserChatMessage($"{{\"dateExecution\":\"{DateTime.UtcNow:O}\",\"consigneQualite\":\"actualite dermatologique detaillee utile pour le cabinet de dermatologie\"}}")
+            new UserChatMessage(
+                JsonSerializer.Serialize(new
+                {
+                    dateExecution = DateTime.UtcNow.ToString("O"),
+                    consigneQualite = "actualite dermatologique detaillee utile pour le cabinet de dermatologie",
+                    resultatsRechercheDermatologie = newsContext
+                }))
         };
 
         var completion = await client.CompleteChatAsync(messages, new ChatCompletionOptions
@@ -179,6 +199,62 @@ public sealed class AutoDailyNewsService(
         return new DailyNewsPack(fr, en, ar);
     }
 
+    private async Task<string?> FetchDermatologyNewsContextAsync(CancellationToken cancellationToken)
+    {
+        using var httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(20)
+        };
+
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
+            "User-Agent",
+            "Dermatologo/1.0 (daily-news-search)");
+
+        string rssContent;
+        try
+        {
+            rssContent = await httpClient.GetStringAsync(DermatologyNewsRssUrl, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[AUTO_DAILY_NEWS] dermatology_news_search_failed");
+            return null;
+        }
+
+        XDocument document;
+        try
+        {
+            document = XDocument.Parse(rssContent);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "[AUTO_DAILY_NEWS] dermatology_news_parse_failed");
+            return null;
+        }
+
+        var items = document
+            .Descendants("item")
+            .Select(item => new
+            {
+                Title = CleanNewsText(item.Element("title")?.Value),
+                Link = CleanNewsText(item.Element("link")?.Value),
+                PublishedAt = CleanNewsText(item.Element("pubDate")?.Value),
+                Description = CleanNewsText(item.Element("description")?.Value),
+            })
+            .Where(item => !string.IsNullOrWhiteSpace(item.Title))
+            .Take(MaxNewsSources)
+            .Select((item, index) =>
+                $"{index + 1}. titre={item.Title}; date={Fallback(item.PublishedAt, "inconnue")}; resume={Fallback(item.Description, "non fourni")}; lien={Fallback(item.Link, "non fourni")}")
+            .ToArray();
+
+        if (items.Length == 0)
+        {
+            return null;
+        }
+
+        return string.Join('\n', items);
+    }
+
     private static string ExtractJsonObject(string raw)
     {
         if (string.IsNullOrWhiteSpace(raw))
@@ -211,6 +287,21 @@ public sealed class AutoDailyNewsService(
 
         return value.Trim();
     }
+
+    private static string CleanNewsText(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var withoutHtml = Regex.Replace(value, "<.*?>", " ");
+        var decoded = WebUtility.HtmlDecode(withoutHtml);
+        return Regex.Replace(decoded, @"\s+", " ").Trim();
+    }
+
+    private static string Fallback(string? value, string fallback)
+        => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
 
     private sealed record DailyNewsPack(string Fr, string En, string Ar);
 }

@@ -462,7 +462,7 @@ export class AiChatComponent implements OnDestroy {
 
   private buildContext(): string {
     const lines = [
-      'Chat flottant dans Generalisto pour medecins generalistes.',
+      'Chat flottant dans Dermatologo pour dermatologues.',
       'Si un patientId est fourni, il correspond au patient actuellement ouvert dans la consultation active.',
       'Si un consultationId est fourni, il correspond a la consultation actuellement ouverte.',
     ];

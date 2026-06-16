@@ -967,6 +967,7 @@ public class StatisticsService(AppDbContext db) : IStatisticsService
             "certificat" => "Certificat",
             "lettre_confrere" => "Lettre confrère",
             "paraclinique_chirurgie" => "Chirurgie",
+            "paraclinique_laser" => "Laser",
             "paraclinique_imagerie" => "Imagerie",
             "paraclinique_bilan_sanguin" => "Bilan sanguin",
             "cnam" => "CNAM",

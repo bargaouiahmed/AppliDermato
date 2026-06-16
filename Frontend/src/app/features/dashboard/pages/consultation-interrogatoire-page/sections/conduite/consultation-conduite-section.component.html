@@ -284,14 +284,17 @@
 	@if (hasAction('paraclinique') && isActionExpanded('paraclinique')) {
 		<app-consultation-conduite-paraclinique-form
 			[hasChirurgie]="hasAction('paraclinique')"
+			[hasLaser]="hasAction('paraclinique')"
 			[hasImagerie]="hasAction('paraclinique')"
 			[hasBilanSanguin]="hasAction('paraclinique')"
 			[clinicOptions]="clinicOptions"
 			[isPrinting]="isPrintingDocument('paraclinique')"
 			[chirurgiePayload]="payloadFor('paraclinique_chirurgie')"
+			[laserPayload]="payloadFor('paraclinique_laser')"
 			[imageriePayload]="payloadFor('paraclinique_imagerie')"
 			[bilanSanguinPayload]="payloadFor('paraclinique_bilan_sanguin')"
 			(chirurgiePayloadChange)="onActionPayloadChange('paraclinique_chirurgie', $event)"
+			(laserPayloadChange)="onActionPayloadChange('paraclinique_laser', $event)"
 			(imageriePayloadChange)="onActionPayloadChange('paraclinique_imagerie', $event)"
 			(bilanSanguinPayloadChange)="onActionPayloadChange('paraclinique_bilan_sanguin', $event)"
 			(printRequested)="onParacliniquePrintRequested($event)"

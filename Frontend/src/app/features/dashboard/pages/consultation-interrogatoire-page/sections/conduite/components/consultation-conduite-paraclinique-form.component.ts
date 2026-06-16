@@ -1,11 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  SimpleChanges,
+  effect,
+  inject,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   NgNotFoundTemplateDirective,
   NgOptionTemplateDirective,
   NgSelectComponent,
 } from '@ng-select/ng-select';
+import { I18nService } from '../../../../../../../core/services/i18n.service';
 
 type BilanCheckboxDefinition = {
   key: string;
@@ -26,14 +37,19 @@ type SelectedBilanType = {
   isDefault: boolean;
 };
 
-type RowOperationType = 'Chirurgie' | 'Imagerie' | 'Bilan Sanguin';
+type RowOperationType = 'Chirurgie' | 'Laser' | 'Imagerie' | 'Bilan Sanguin';
 
 type RowOperationOption = {
   label: string;
   value: RowOperationType;
 };
 
-export type ParacliniquePrintSection = 'chirurgie' | 'imagerie' | 'bilan_sanguin';
+type SuggestionOption = {
+  label: string;
+  value: string;
+};
+
+export type ParacliniquePrintSection = 'chirurgie' | 'laser' | 'imagerie' | 'bilan_sanguin';
 
 export type ParacliniquePrintRequest = {
   mode: 'single' | 'all';
@@ -96,6 +112,51 @@ const CHIRURGIE_SUGGESTIONS: string[] = [
   'Parage et suture plaie cutanée simple',
   'Reprise cicatrice hypertrophique/chéloïde',
 ];
+
+const LASER_SUGGESTIONS: string[] = [
+  'Laser dÃ©pilatoire',
+  'Laser vasculaire pour couperose / angiomes',
+  'Laser pigmentaire pour lentigos / taches solaires',
+  'Laser fractionnÃ© pour cicatrices d\'acnÃ©',
+  'Laser fractionnÃ© pour vergetures',
+  'Laser ablatif CO2 pour rhinophyma',
+  'Laser CO2 pour verrues / acrochordons',
+  'Laser Q-switched pour tatouage',
+  'Laser Nd:YAG pour onychomycose',
+  'PhotothÃ©rapie ciblÃ©e excimer',
+  'Laser pour lÃ©sions pigmentÃ©es bÃ©nignes',
+  'Laser pour rajeunissement cutanÃ©',
+];
+
+const LASER_SUGGESTIONS_CLEAN: string[] = [
+  'Laser depilatoire',
+  'Laser vasculaire pour couperose / angiomes',
+  'Laser pigmentaire pour lentigos / taches solaires',
+  'Laser fractionne pour cicatrices d\'acne',
+  'Laser fractionne pour vergetures',
+  'Laser ablatif CO2 pour rhinophyma',
+  'Laser CO2 pour verrues / acrochordons',
+  'Laser Q-switched pour tatouage',
+  'Laser Nd:YAG pour onychomycose',
+  'Phototherapie ciblee excimer',
+  'Laser pour lesions pigmentees benignes',
+  'Laser pour rajeunissement cutane',
+];
+
+const LASER_SUGGESTION_KEYS = [
+  'depilatoire',
+  'vasculaire',
+  'pigmentaire',
+  'fractionneCicatricesAcne',
+  'fractionneVergetures',
+  'ablatifCo2Rhinophyma',
+  'co2VerruesAcrochordons',
+  'qSwitchedTatouage',
+  'ndYagOnychomycose',
+  'phototherapieExcimer',
+  'lesionsPigmenteesBenignes',
+  'rajeunissementCutane',
+] as const;
 
 const IMAGERIE_SUGGESTIONS: string[] = [
   'Radiographie thorax',
@@ -209,6 +270,11 @@ const PARACLINIQUE_FIELD_RULES: Record<RowOperationType, ParacliniqueFieldRules>
     showForfait: true,
     showOperateur: true,
   },
+  'Laser': {
+    showClinique: true,
+    showForfait: true,
+    showOperateur: true,
+  },
   'Imagerie': {
     showClinique: true,
     showForfait: true,
@@ -223,12 +289,14 @@ const PARACLINIQUE_FIELD_RULES: Record<RowOperationType, ParacliniqueFieldRules>
 
 const OPERATION_TYPE_TO_PRINT_SECTION: Record<RowOperationType, ParacliniquePrintSection> = {
   'Chirurgie': 'chirurgie',
+  'Laser': 'laser',
   'Imagerie': 'imagerie',
   'Bilan Sanguin': 'bilan_sanguin',
 };
 
 const ROW_OPERATION_OPTIONS: RowOperationOption[] = [
   { label: 'Chirurgie', value: 'Chirurgie' },
+  { label: 'Laser', value: 'Laser' },
   { label: 'Imagerie', value: 'Imagerie' },
   { label: 'Bilan sanguin', value: 'Bilan Sanguin' },
 ];
@@ -246,25 +314,32 @@ const ROW_OPERATION_OPTIONS: RowOperationOption[] = [
   templateUrl: './consultation-conduite-paraclinique-form.component.html',
   styleUrls: ['./consultation-conduite-paraclinique-form.component.css'],
 })
-export class ConsultationConduiteParacliniqueFormComponent implements OnChanges {
+export class ConsultationConduiteParacliniqueFormComponent implements OnChanges, OnDestroy {
+  private static readonly PAYLOAD_EMIT_DEBOUNCE_MS = 550;
+  private readonly i18n = inject(I18nService);
+
   @Input() hasChirurgie = false;
+  @Input() hasLaser = false;
   @Input() hasImagerie = false;
   @Input() hasBilanSanguin = false;
   @Input() clinicOptions: string[] = [];
   @Input() isPrinting = false;
 
   @Input() chirurgiePayload: Record<string, unknown> | null = null;
+  @Input() laserPayload: Record<string, unknown> | null = null;
   @Input() imageriePayload: Record<string, unknown> | null = null;
   @Input() bilanSanguinPayload: Record<string, unknown> | null = null;
 
   @Output() chirurgiePayloadChange = new EventEmitter<Record<string, unknown>>();
+  @Output() laserPayloadChange = new EventEmitter<Record<string, unknown>>();
   @Output() imageriePayloadChange = new EventEmitter<Record<string, unknown>>();
   @Output() bilanSanguinPayloadChange = new EventEmitter<Record<string, unknown>>();
   @Output() printRequested = new EventEmitter<ParacliniquePrintRequest>();
 
   protected readonly chirurgieSuggestions = CHIRURGIE_SUGGESTIONS;
+  protected laserSuggestions: SuggestionOption[] = [];
   protected readonly imagerieSuggestions = IMAGERIE_SUGGESTIONS;
-  protected readonly operationTypes: RowOperationType[] = ['Chirurgie', 'Imagerie', 'Bilan Sanguin'];
+  protected readonly operationTypes: RowOperationType[] = ['Chirurgie', 'Laser', 'Imagerie', 'Bilan Sanguin'];
   protected readonly operationTypeSelectOptions = ROW_OPERATION_OPTIONS;
 
   protected rows: ParacliniqueRow[] = [];
@@ -284,21 +359,55 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
 
   private rowSequence = 0;
   private isHydrating = false;
+  private isSelfEmitting = false;
   private pendingBilanTypeModalKey = '';
+  private payloadEmitTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    effect(() => {
+      this.i18n.lang();
+      this.laserSuggestions = LASER_SUGGESTION_KEYS.map((key) => {
+        const label = this.i18n.t(`consultation.conduite.paraclinique.laserCatalog.${key}`);
+        return { label, value: label };
+      });
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (
       !changes['chirurgiePayload']
+      && !changes['laserPayload']
       && !changes['imageriePayload']
       && !changes['bilanSanguinPayload']
       && !changes['hasChirurgie']
+      && !changes['hasLaser']
       && !changes['hasImagerie']
       && !changes['hasBilanSanguin']
     ) {
       return;
     }
 
+    // Skip re-hydration when the payload change was triggered by this component's own emit.
+    // This prevents focus loss on inputs (e.g. forfait, operateur) due to row recreation.
+    if (this.isSelfEmitting) {
+      return;
+    }
+
+    const hasSelectionToggleChange =
+      !!changes['hasChirurgie']
+      || !!changes['hasLaser']
+      || !!changes['hasImagerie']
+      || !!changes['hasBilanSanguin'];
+
+    if (!hasSelectionToggleChange && this.matchesIncomingPayloads()) {
+      return;
+    }
+
     this.hydrateRowsFromPayloads();
+  }
+
+  ngOnDestroy(): void {
+    this.flushPayloadEmit();
   }
 
   protected requestPrintAll(): void {
@@ -458,7 +567,7 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
     }
   }
 
-  protected onChirurgieTypeChange(row: ParacliniqueRow, value: unknown): void {
+  protected onSingleActeTypeChange(row: ParacliniqueRow, value: unknown): void {
     row.typeValue = this.readString(value).trim();
     this.emitPayloadsFromRows();
   }
@@ -490,12 +599,20 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
 
   protected onRowForfaitChange(row: ParacliniqueRow, value: unknown): void {
     row.forfait = this.readString(value);
-    this.emitPayloadsFromRows();
+    this.schedulePayloadEmit();
+  }
+
+  protected onRowForfaitBlur(): void {
+    this.flushPayloadEmit();
   }
 
   protected onRowOperateurChange(row: ParacliniqueRow, value: unknown): void {
     row.operateur = this.readString(value);
-    this.emitPayloadsFromRows();
+    this.schedulePayloadEmit();
+  }
+
+  protected onRowOperateurBlur(): void {
+    this.flushPayloadEmit();
   }
 
   protected onBilanTypeSelected(row: ParacliniqueRow, typeKey: string | null): void {
@@ -809,6 +926,11 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
       nextRows.push(chirurgieRow);
     }
 
+    const laserRow = this.buildRowFromSingleActePayload(this.laserPayload ?? {}, 'Laser');
+    if (laserRow) {
+      nextRows.push(laserRow);
+    }
+
     const imagerieRow = this.buildRowFromImageriePayload(this.imageriePayload ?? {});
     if (imagerieRow) {
       nextRows.push(imagerieRow);
@@ -832,17 +954,50 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
     }
   }
 
+  private schedulePayloadEmit(): void {
+    if (this.payloadEmitTimer !== null) {
+      clearTimeout(this.payloadEmitTimer);
+    }
+
+    this.payloadEmitTimer = setTimeout(() => {
+      this.payloadEmitTimer = null;
+      this.emitPayloadsFromRows();
+    }, ConsultationConduiteParacliniqueFormComponent.PAYLOAD_EMIT_DEBOUNCE_MS);
+  }
+
+  private flushPayloadEmit(): void {
+    if (this.payloadEmitTimer !== null) {
+      clearTimeout(this.payloadEmitTimer);
+      this.payloadEmitTimer = null;
+    }
+
+    this.emitPayloadsFromRows();
+  }
+
   private emitPayloadsFromRows(): void {
+    if (this.payloadEmitTimer !== null) {
+      clearTimeout(this.payloadEmitTimer);
+      this.payloadEmitTimer = null;
+    }
+
     if (this.isHydrating) {
       return;
     }
 
     const chirurgieRow = this.rows.find((row) => row.operationType === 'Chirurgie');
+    const laserRow = this.rows.find((row) => row.operationType === 'Laser');
     const imagerieRow = this.rows.find((row) => row.operationType === 'Imagerie');
     const bilanRow = this.rows.find((row) => row.operationType === 'Bilan Sanguin');
 
+    // Guard against re-hydration triggered by our own emit flowing back through the parent.
+    this.isSelfEmitting = true;
+
     this.chirurgiePayloadChange.emit(
       chirurgieRow ? this.buildChirurgiePayload(chirurgieRow) : this.createEmptyChirurgiePayload(),
+    );
+
+    this.laserPayloadChange.emit(
+      laserRow ? this.buildChirurgiePayload(laserRow) : this.createEmptyChirurgiePayload(),
     );
 
     this.imageriePayloadChange.emit(
@@ -852,6 +1007,37 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
     this.bilanSanguinPayloadChange.emit(
       bilanRow ? this.buildBilanPayload(bilanRow) : this.createEmptyBilanPayload(),
     );
+
+    // Reset the guard after the current change detection cycle completes.
+    // Using Promise.resolve() ensures the flag is cleared after Angular processes
+    // the synchronous ngOnChanges triggered by the parent's input updates.
+    Promise.resolve().then(() => {
+      this.isSelfEmitting = false;
+    });
+  }
+
+  private matchesIncomingPayloads(): boolean {
+    const chirurgieRow = this.rows.find((row) => row.operationType === 'Chirurgie');
+    const laserRow = this.rows.find((row) => row.operationType === 'Laser');
+    const imagerieRow = this.rows.find((row) => row.operationType === 'Imagerie');
+    const bilanRow = this.rows.find((row) => row.operationType === 'Bilan Sanguin');
+
+    return this.areSingleActePayloadsEquivalent(
+      this.chirurgiePayload ?? {},
+      chirurgieRow ? this.buildChirurgiePayload(chirurgieRow) : this.createEmptyChirurgiePayload(),
+    )
+      && this.areSingleActePayloadsEquivalent(
+        this.laserPayload ?? {},
+        laserRow ? this.buildChirurgiePayload(laserRow) : this.createEmptyChirurgiePayload(),
+      )
+      && this.areImageriePayloadsEquivalent(
+        this.imageriePayload ?? {},
+        imagerieRow ? this.buildImageriePayload(imagerieRow) : this.createEmptyImageriePayload(),
+      )
+      && this.areBilanPayloadsEquivalent(
+        this.bilanSanguinPayload ?? {},
+        bilanRow ? this.buildBilanPayload(bilanRow) : this.createEmptyBilanPayload(),
+      );
   }
 
   private buildChirurgiePayload(row: ParacliniqueRow): Record<string, unknown> {
@@ -940,6 +1126,13 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
   }
 
   private buildRowFromChirurgiePayload(payload: Record<string, unknown>): ParacliniqueRow | null {
+    return this.buildRowFromSingleActePayload(payload, 'Chirurgie');
+  }
+
+  private buildRowFromSingleActePayload(
+    payload: Record<string, unknown>,
+    operationType: Extract<RowOperationType, 'Chirurgie' | 'Laser'>,
+  ): ParacliniqueRow | null {
     const type = this.readFirstTypeName(payload['types'], payload['type']);
     const dateTime = this.splitDateAndTime(this.readString(payload['dateOperation']));
     const clinique = this.readString(payload['clinique']);
@@ -962,7 +1155,7 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
     }
 
     const row = this.createEmptyRow();
-    row.operationType = 'Chirurgie';
+    row.operationType = operationType;
     row.typeValue = type;
     row.date = dateTime.date;
     row.time = dateTime.time;
@@ -1064,6 +1257,10 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
       return 'Chirurgie';
     }
 
+    if (normalized.includes('laser')) {
+      return 'Laser';
+    }
+
     if (normalized.includes('imagerie') || normalized.includes('imageri')) {
       return 'Imagerie';
     }
@@ -1111,8 +1308,48 @@ export class ConsultationConduiteParacliniqueFormComponent implements OnChanges 
     return '';
   }
 
+  private areSingleActePayloadsEquivalent(
+    left: Record<string, unknown>,
+    right: Record<string, unknown>,
+  ): boolean {
+    const normalizedLeft = this.buildRowFromSingleActePayload(left, 'Chirurgie');
+    const normalizedRight = this.buildRowFromSingleActePayload(right, 'Chirurgie');
+    return this.arePayloadsEqual(
+      normalizedLeft ? this.buildChirurgiePayload(normalizedLeft) : this.createEmptyChirurgiePayload(),
+      normalizedRight ? this.buildChirurgiePayload(normalizedRight) : this.createEmptyChirurgiePayload(),
+    );
+  }
+
+  private areImageriePayloadsEquivalent(
+    left: Record<string, unknown>,
+    right: Record<string, unknown>,
+  ): boolean {
+    const normalizedLeft = this.buildRowFromImageriePayload(left);
+    const normalizedRight = this.buildRowFromImageriePayload(right);
+    return this.arePayloadsEqual(
+      normalizedLeft ? this.buildImageriePayload(normalizedLeft) : this.createEmptyImageriePayload(),
+      normalizedRight ? this.buildImageriePayload(normalizedRight) : this.createEmptyImageriePayload(),
+    );
+  }
+
+  private areBilanPayloadsEquivalent(
+    left: Record<string, unknown>,
+    right: Record<string, unknown>,
+  ): boolean {
+    const normalizedLeft = this.buildRowFromBilanPayload(left);
+    const normalizedRight = this.buildRowFromBilanPayload(right);
+    return this.arePayloadsEqual(
+      normalizedLeft ? this.buildBilanPayload(normalizedLeft) : this.createEmptyBilanPayload(),
+      normalizedRight ? this.buildBilanPayload(normalizedRight) : this.createEmptyBilanPayload(),
+    );
+  }
+
+  private arePayloadsEqual(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
   private rowHasMeaningfulData(row: ParacliniqueRow): boolean {
-    if (row.operationType === 'Chirurgie') {
+    if (row.operationType === 'Chirurgie' || row.operationType === 'Laser') {
       return !!(
         row.typeValue.trim()
         || row.date.trim()

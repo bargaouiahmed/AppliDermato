@@ -97,6 +97,7 @@ public partial class ConduitePrintService
             var section = normalized switch
             {
                 "chirurgie" => ParacliniquePrintSectionKind.Chirurgie,
+                "laser" => ParacliniquePrintSectionKind.Laser,
                 "imagerie" => ParacliniquePrintSectionKind.Imagerie,
                 "bilan_sanguin" => ParacliniquePrintSectionKind.BilanSanguin,
                 _ => (ParacliniquePrintSectionKind?)null,
@@ -151,6 +152,7 @@ public partial class ConduitePrintService
         var actionKey = section switch
         {
             ParacliniquePrintSectionKind.Chirurgie => ConduiteActionKeys.ParacliniqueChirurgie,
+            ParacliniquePrintSectionKind.Laser => ConduiteActionKeys.ParacliniqueLaser,
             ParacliniquePrintSectionKind.Imagerie => ConduiteActionKeys.ParacliniqueImagerie,
             ParacliniquePrintSectionKind.BilanSanguin => ConduiteActionKeys.ParacliniqueBilanSanguin,
             _ => string.Empty,
@@ -183,6 +185,14 @@ public partial class ConduitePrintService
                 !string.IsNullOrWhiteSpace(ReadString(payload, "operateur")) ||
                 !string.IsNullOrWhiteSpace(ReadString(payload, "informationAdditionnel")),
 
+            ParacliniquePrintSectionKind.Laser =>
+                ResolveParacliniqueActe(payload, isBilan: false) != "-" ||
+                hasDateTime ||
+                !string.IsNullOrWhiteSpace(ReadString(payload, "clinique")) ||
+                !string.IsNullOrWhiteSpace(ReadString(payload, "forfait")) ||
+                !string.IsNullOrWhiteSpace(ReadString(payload, "operateur")) ||
+                !string.IsNullOrWhiteSpace(ReadString(payload, "informationAdditionnel")),
+
             ParacliniquePrintSectionKind.Imagerie =>
                 ResolveParacliniqueActe(payload, isBilan: false) != "-" ||
                 hasDateTime ||
@@ -204,14 +214,17 @@ public partial class ConduitePrintService
         return (section, locale.LanguageCode) switch
         {
             (ParacliniquePrintSectionKind.Chirurgie, "ar") => "Ø¬Ø±Ø§Ø­Ø©",
+            (ParacliniquePrintSectionKind.Laser, "ar") => "Ù„ÙŠØ²Ø±",
             (ParacliniquePrintSectionKind.Imagerie, "ar") => "ØªØµÙˆÙŠØ± Ø·Ø¨ÙŠ",
             (ParacliniquePrintSectionKind.BilanSanguin, "ar") => "ØªØ­Ø§Ù„ÙŠÙ„ Ø¯Ù…ÙˆÙŠØ©",
 
             (ParacliniquePrintSectionKind.Chirurgie, "en") => "Surgery",
+            (ParacliniquePrintSectionKind.Laser, "en") => "Laser",
             (ParacliniquePrintSectionKind.Imagerie, "en") => "Imagerie",
             (ParacliniquePrintSectionKind.BilanSanguin, "en") => "Blood tests",
 
             (ParacliniquePrintSectionKind.Chirurgie, _) => "Chirurgie",
+            (ParacliniquePrintSectionKind.Laser, _) => "Laser",
             (ParacliniquePrintSectionKind.Imagerie, _) => "Imagerie",
             (ParacliniquePrintSectionKind.BilanSanguin, _) => "Bilan sanguin",
             _ => locale.ParacliniqueTitle,
@@ -261,8 +274,8 @@ public partial class ConduitePrintService
         var doctorArabicDisplayName = BuildPersonalizedDoctorArabicName(context, locale);
         var cnamValue = BuildPersonalizedCnamValue(context);
         var professionLabel = locale.LanguageCode == "ar"
-            ? "\u0637\u0628\u064A\u0628 \u0639\u0627\u0645"
-            : "Médecin généraliste";
+            ? "\u0637\u0628\u064A\u0628 \u0623\u0645\u0631\u0627\u0636 \u062C\u0644\u062F\u064A\u0629"
+            : "Dermatologue";
 
         container.Column(column =>
         {
@@ -368,6 +381,9 @@ public partial class ConduitePrintService
                 switch (pageData.Section)
                 {
                     case ParacliniquePrintSectionKind.Chirurgie:
+                        ComposeParacliniqueChirurgieContent(sectionContainer, context, pageData.Payload, locale);
+                        break;
+                    case ParacliniquePrintSectionKind.Laser:
                         ComposeParacliniqueChirurgieContent(sectionContainer, context, pageData.Payload, locale);
                         break;
                     case ParacliniquePrintSectionKind.Imagerie:
@@ -971,6 +987,7 @@ public partial class ConduitePrintService
     private static readonly IReadOnlyList<ParacliniquePrintSectionKind> ParacliniquePrintSectionOrder =
     [
         ParacliniquePrintSectionKind.Chirurgie,
+        ParacliniquePrintSectionKind.Laser,
         ParacliniquePrintSectionKind.Imagerie,
         ParacliniquePrintSectionKind.BilanSanguin,
     ];
@@ -978,6 +995,7 @@ public partial class ConduitePrintService
     private enum ParacliniquePrintSectionKind
     {
         Chirurgie,
+        Laser,
         Imagerie,
         BilanSanguin,
     }

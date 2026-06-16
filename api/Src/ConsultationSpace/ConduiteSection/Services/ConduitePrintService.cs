@@ -13,7 +13,7 @@ public partial class ConduitePrintService(AppDbContext db) : IConduitePrintServi
     private static readonly string BrandName = (
         Environment.GetEnvironmentVariable("brandname")
         ?? Environment.GetEnvironmentVariable("brand_name")
-        ?? "Generalisto"
+        ?? "Dermatologo"
     ).Trim();
 
     public async Task<PrintableConduiteDocumentResponse> GeneratePrintableDocument(
@@ -1608,10 +1608,11 @@ public partial class ConduitePrintService(AppDbContext db) : IConduitePrintServi
     private static string BuildParacliniqueBody(PrintContext context)
     {
         context.ActionsByKey.TryGetValue(ConduiteActionKeys.ParacliniqueChirurgie, out var chirurgie);
+        context.ActionsByKey.TryGetValue(ConduiteActionKeys.ParacliniqueLaser, out var laser);
         context.ActionsByKey.TryGetValue(ConduiteActionKeys.ParacliniqueImagerie, out var imagerie);
         context.ActionsByKey.TryGetValue(ConduiteActionKeys.ParacliniqueBilanSanguin, out var bilanSanguin);
 
-        if (chirurgie is null && imagerie is null && bilanSanguin is null)
+        if (chirurgie is null && laser is null && imagerie is null && bilanSanguin is null)
         {
             return "<div class=\"body-block\"><h3>Paraclinique</h3><p>Aucun acte paraclinique enregistré.</p></div>";
         }
@@ -1647,6 +1648,23 @@ public partial class ConduitePrintService(AppDbContext db) : IConduitePrintServi
             if (!string.IsNullOrWhiteSpace(chirurgieInformation))
             {
                 notes.Add(("Chirurgie", chirurgieInformation));
+            }
+        }
+
+        if (laser is not null)
+        {
+            sb.Append(RenderParacliniqueTableRow(
+                operationType: "Laser",
+                payload: laser.Payload,
+                isBilan: false,
+                showClinique: true,
+                showForfait: true,
+                showOperateur: true));
+
+            var laserInformation = ReadString(laser.Payload, "informationAdditionnel");
+            if (!string.IsNullOrWhiteSpace(laserInformation))
+            {
+                notes.Add(("Laser", laserInformation));
             }
         }
 

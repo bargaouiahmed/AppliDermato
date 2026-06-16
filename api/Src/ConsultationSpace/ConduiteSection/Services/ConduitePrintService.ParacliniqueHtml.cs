@@ -296,8 +296,8 @@ public partial class ConduitePrintService
       width: 1.2em;
       text-align: center;
     }
-    .footer-contact-item .fa-phone-alt::before { content: "☎"; }
-    .footer-contact-item .fa-mobile-alt::before { content: "📱"; }
+    .footer-contact-item .fa-phone-alt::before { content: "Ã¢ËœÅ½"; }
+    .footer-contact-item .fa-mobile-alt::before { content: "Ã°Å¸â€œÂ±"; }
     @media print {
       body { background: #ffffff; }
       .print-toolbar { display: none !important; }
@@ -454,8 +454,8 @@ public partial class ConduitePrintService
         var doctorArabicName = BuildPersonalizedDoctorArabicName(context, locale);
         var cnamValue = BuildPersonalizedCnamValue(context);
         var professionLabel = locale.LanguageCode == "ar"
-            ? "\u0637\u0628\u064A\u0628 \u0639\u0627\u0645"
-            : "Médecin généraliste";
+            ? "\u0637\u0628\u064A\u0628 \u0623\u0645\u0631\u0627\u0636 \u062C\u0644\u062F\u064A\u0629"
+            : "Dermatologue";
 
         var sb = new StringBuilder();
         sb.Append("<header class=\"inaya-header\">");
@@ -503,6 +503,7 @@ public partial class ConduitePrintService
         return pageData.Section switch
         {
             ParacliniquePrintSectionKind.Chirurgie => BuildParacliniqueChirurgieHtml(context, locale, pageData.Payload),
+            ParacliniquePrintSectionKind.Laser => BuildParacliniqueChirurgieHtml(context, locale, pageData.Payload),
             ParacliniquePrintSectionKind.Imagerie => BuildParacliniqueImagerieHtml(context, locale, pageData.Payload),
             ParacliniquePrintSectionKind.BilanSanguin => BuildParacliniqueBilanHtml(context, locale, pageData.Payload),
             _ => string.Empty,
@@ -657,7 +658,7 @@ public partial class ConduitePrintService
             {
                 "ar" => "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u062D\u0627\u0644\u064A\u0644 \u0645\u062D\u062F\u062F\u0629",
                 "en" => "No blood test selected",
-                _ => "Aucun bilan sanguin sélectionné",
+                _ => "Aucun bilan sanguin sÃƒÂ©lectionnÃƒÂ©",
             })}</p>");
         }
         else
@@ -671,7 +672,7 @@ public partial class ConduitePrintService
                 foreach (var checkbox in bilanType.Checkboxes)
                 {
                     sb.Append("<li>");
-                    sb.Append(EscapeHtml(bilanType.ShowCheckboxMarkers ? $"{(checkbox.Checked ? "■" : "□")} {checkbox.Label}" : checkbox.Label));
+                    sb.Append(EscapeHtml(bilanType.ShowCheckboxMarkers ? $"{(checkbox.Checked ? "Ã¢â€“Â " : "Ã¢â€“Â¡")} {checkbox.Label}" : checkbox.Label));
                     sb.Append("</li>");
                 }
                 sb.Append("</ul>");

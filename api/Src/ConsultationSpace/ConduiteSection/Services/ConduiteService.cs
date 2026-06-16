@@ -51,6 +51,13 @@ public class ConduiteService(AppDbContext db) : IConduiteService
         },
         new()
         {
+            ActionKey = ConduiteActionKeys.ParacliniqueLaser,
+            Label = "Paraclinique - Laser",
+            Category = "paraclinique",
+            IsParaclinique = true,
+        },
+        new()
+        {
             ActionKey = ConduiteActionKeys.ParacliniqueImagerie,
             Label = "Paraclinique - Imagerie",
             Category = "paraclinique",
@@ -378,16 +385,15 @@ public class ConduiteService(AppDbContext db) : IConduiteService
                 continue;
             }
 
-            if (normalizedActionKey.Contains("laser", StringComparison.Ordinal) ||
-                normalizedActionKey.Contains("orthoptique", StringComparison.Ordinal))
+            if (normalizedActionKey.Contains("orthoptique", StringComparison.Ordinal))
             {
-                throw new InvalidOperationException("Paraclinique laser and bilan orthoptique are not allowed.");
+                throw new InvalidOperationException("Bilan orthoptique is not allowed.");
             }
 
             if (normalizedActionKey == "paraclinique")
             {
                 throw new InvalidOperationException(
-                    "Paraclinique must be one of: chirurgie, imagerie or bilan sanguin.");
+                    "Paraclinique must be one of: chirurgie, laser, imagerie or bilan sanguin.");
             }
 
             if (!ConduiteActionKeys.AllowedActionKeys.Contains(normalizedActionKey))

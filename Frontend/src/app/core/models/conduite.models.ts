@@ -4,6 +4,7 @@ export type ConduiteActionKey =
   | 'lettre_confrere'
   | 'cnam'
   | 'paraclinique_chirurgie'
+  | 'paraclinique_laser'
   | 'paraclinique_imagerie'
   | 'paraclinique_bilan_sanguin';
 

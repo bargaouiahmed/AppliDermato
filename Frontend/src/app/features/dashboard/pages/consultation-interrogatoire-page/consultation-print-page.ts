@@ -40,7 +40,7 @@ type DoctorPrintInfo = {
   showFooterMobile: boolean;
 };
 
-type ParacliniquePrintSection = 'chirurgie' | 'imagerie' | 'bilan_sanguin';
+type ParacliniquePrintSection = 'chirurgie' | 'laser' | 'imagerie' | 'bilan_sanguin';
 type PdfLibNamespace = {
   PDFDocument: {
     load(source: ArrayBuffer | Uint8Array, options?: { ignoreEncryption?: boolean }): Promise<any>;
@@ -1004,7 +1004,7 @@ export class ConsultationPrintPage implements OnInit {
         <ul>
           ${doctorNameRight !== 'الدكتور' ? `<li><strong>${this.escapeHtml(doctorNameRight)}</strong></li>` : ''}
           ${doctorNameRight !== 'الدكتور' ? '<hr class="my-1 bold-line" />' : ''}
-          <li><strong>${this.escapeHtml(lang === 'ar' ? 'طبيب عام' : 'Generaliste')}</strong></li>
+          <li><strong>${this.escapeHtml(lang === 'ar' ? 'طبيب أمراض جلدية' : 'Dermatologue')}</strong></li>
         </ul>
       </div>
     </header>`;
@@ -1359,7 +1359,7 @@ export class ConsultationPrintPage implements OnInit {
       .split(',')
       .map((entry) => entry.trim().toLowerCase().replace(/[\s-]+/g, '_'))
       .filter((entry): entry is ParacliniquePrintSection => (
-        entry === 'chirurgie' || entry === 'imagerie' || entry === 'bilan_sanguin'
+        entry === 'chirurgie' || entry === 'laser' || entry === 'imagerie' || entry === 'bilan_sanguin'
       ));
 
     return parsed.filter((entry, index) => parsed.indexOf(entry) === index);

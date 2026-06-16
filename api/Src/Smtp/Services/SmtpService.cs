@@ -15,7 +15,7 @@ public class SmtpService(PublicUrlSettings publicUrls) : ISmtpService
     private readonly bool enableSsl = bool.Parse(Environment.GetEnvironmentVariable("smtp_secure") ?? "true");
 
 
-    private readonly string brandName = Environment.GetEnvironmentVariable("brand_name") ?? "Generalisto";
+    private readonly string brandName = Environment.GetEnvironmentVariable("brand_name") ?? "Dermatologo";
 
 
     public async Task SendPasswordResetEmailAsync(string toEmail, string resetCode, string Firstname, string Lastname, string language = "fr")

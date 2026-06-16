@@ -684,6 +684,7 @@ public class PatientService(AppDbContext db) : IPatientService
             "certificat" => "Certificat",
             "lettre_confrere" => "Lettre confrère",
             "paraclinique_chirurgie" => "Chirurgie",
+            "paraclinique_laser" => "Laser",
             "paraclinique_imagerie" => "Imagerie",
             "paraclinique_bilan_sanguin" => "Bilan sanguin",
             _ => actionKey

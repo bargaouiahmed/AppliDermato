@@ -66,21 +66,41 @@
               @if (row.operationType === 'Chirurgie') {
                 <ng-select
                   [items]="chirurgieSuggestions"
+                  [appendTo]="'body'"
                   [inputAttrs]="{ name: 'paracliniqueActeChirurgie_' + row.id, 'aria-label': 'Acte de chirurgie' }"
                   [searchable]="true"
                   [clearable]="true"
                   [addTag]="true"
                   [ngModel]="row.typeValue"
-                  (ngModelChange)="onChirurgieTypeChange(row, $event)"
+                  (ngModelChange)="onSingleActeTypeChange(row, $event)"
                   placeholder="Sélectionner ou saisir"
                 >
                   <ng-template ng-notfound-tmp>
                     <div class="ng-option">Aucun résultat</div>
                   </ng-template>
                 </ng-select>
+              } @else if (row.operationType === 'Laser') {
+                <ng-select
+                  [items]="laserSuggestions"
+                  bindLabel="label"
+                  bindValue="value"
+                  [appendTo]="'body'"
+                  [inputAttrs]="{ name: 'paracliniqueActeLaser_' + row.id, 'aria-label': 'Acte laser' }"
+                  [searchable]="true"
+                  [clearable]="true"
+                  [addTag]="true"
+                  [ngModel]="row.typeValue"
+                  (ngModelChange)="onSingleActeTypeChange(row, $event)"
+                  placeholder="SÃ©lectionner ou saisir"
+                >
+                  <ng-template ng-notfound-tmp>
+                    <div class="ng-option">Aucun rÃ©sultat</div>
+                  </ng-template>
+                </ng-select>
               } @else if (row.operationType === 'Imagerie') {
                 <ng-select
                   [items]="imagerieSuggestions"
+                  [appendTo]="'body'"
                   [inputAttrs]="{ name: 'paracliniqueActeImagerie_' + row.id, 'aria-label': 'Acte d’imagerie' }"
                   [multiple]="true"
                   [searchable]="true"
@@ -99,6 +119,7 @@
                 <div class="bilan-acte-cell">
                   <ng-select
                     [items]="bilanTypeOptions"
+                    [appendTo]="'body'"
                     bindLabel="name"
                     bindValue="key"
                     [inputAttrs]="{ name: 'paracliniqueBilanType_' + row.id, 'aria-label': 'Type de bilan sanguin' }"
@@ -236,6 +257,7 @@
                   aria-label="Forfait"
                   [ngModel]="row.forfait"
                   (ngModelChange)="onRowForfaitChange(row, $event)"
+                  (blur)="onRowForfaitBlur()"
                   placeholder="Forfait"
                 />
               } @else {
@@ -252,6 +274,7 @@
                   aria-label="Opérateur"
                   [ngModel]="row.operateur"
                   (ngModelChange)="onRowOperateurChange(row, $event)"
+                  (blur)="onRowOperateurBlur()"
                   placeholder="Opérateur"
                 />
               } @else {

@@ -150,6 +150,46 @@
           }
 
           <!-- Imagerie -->
+          @if (detailType === 'paraclinique_laser') {
+            <div class="detail-section">
+              @if (laserInfo.types.length > 0) {
+                <div class="detail-tags mb-3">
+                  @for (type of laserInfo.types; track type) {
+                    <span class="detail-tag">{{ type }}</span>
+                  }
+                </div>
+              }
+              @if (laserInfo.date) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.date' | translate }}</label>
+                  <span class="detail-value">{{ laserInfo.date }}</span>
+                </div>
+              }
+              @if (laserInfo.clinique) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.clinique' | translate }}</label>
+                  <span class="detail-value">{{ laserInfo.clinique }}</span>
+                </div>
+              }
+              @if (laserInfo.operateur) {
+                <div class="detail-row">
+                  <label class="detail-label">{{ 'consultation.carepModal.operateur' | translate }}</label>
+                  <span class="detail-value">{{ laserInfo.operateur }}</span>
+                </div>
+              }
+              @if (laserInfo.information) {
+                <div class="detail-section mt-2">
+                  <label class="detail-label">{{ 'consultation.carepModal.info' | translate }}</label>
+                  <p class="detail-text">{{ laserInfo.information }}</p>
+                </div>
+              }
+              @if (laserInfo.types.length === 0 && !laserInfo.date && !laserInfo.clinique && !laserInfo.operateur && !laserInfo.information) {
+                <div class="empty-state">{{ 'consultation.carepModal.noData' | translate }}</div>
+              }
+            </div>
+          }
+
+          <!-- Imagerie -->
           @if (detailType === 'paraclinique_imagerie') {
             <div class="detail-section">
               @if (imagerieInfo.types.length > 0) {

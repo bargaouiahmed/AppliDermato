@@ -29,19 +29,15 @@ type AntecedentFormState = {
 };
 
 type StandardFamilyAntecedentKey =
-  | 'hypertension-arterielle-familiale'
-  | 'diabete-familial'
-  | 'dyslipidemie-familiale'
-  | 'cardiopathie-ischemique-premature-familiale'
-  | 'avc-familial'
-  | 'insuffisance-renale-chronique-familiale'
-  | 'maladie-thyroidienne-familiale'
-  | 'asthme-atopie-familial'
-  | 'maladie-auto-immune-familiale'
-  | 'epilepsie-familiale'
-  | 'cancer-colorectal-familial'
-  | 'cancer-sein-ovaire-familial'
-  | 'cancer-prostate-familial';
+  | 'atopie-familiale'
+  | 'psoriasis-familial'
+  | 'vitiligo-familial'
+  | 'pelade-familiale'
+  | 'lupus-maladie-auto-immune-familiale'
+  | 'melanome-familial'
+  | 'cancer-cutane-non-melanome-familial'
+  | 'acne-severe-familiale'
+  | 'ichthyose-maladie-genetique-cutanee-familiale';
 
 type StandardFamilyAntecedentDefinition = {
   key: StandardFamilyAntecedentKey;
@@ -54,82 +50,58 @@ type StandardFamilyAntecedentDefinition = {
 
 const STANDARD_FAMILY_ANTECEDENTS: readonly StandardFamilyAntecedentDefinition[] = [
   {
-    key: 'hypertension-arterielle-familiale',
-    label: 'Hypertension arterielle familiale',
-    templateKey: 'family-hypertension-arterielle',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.hypertensionArterielleFamiliale',
+    key: 'atopie-familiale',
+    label: 'Atopie familiale',
+    templateKey: 'family-atopie',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.atopieFamiliale',
   },
   {
-    key: 'diabete-familial',
-    label: 'Diabete familial',
-    templateKey: 'family-diabete',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.diabeteFamilial',
+    key: 'psoriasis-familial',
+    label: 'Psoriasis familial',
+    templateKey: 'family-psoriasis',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.psoriasisFamilial',
   },
   {
-    key: 'dyslipidemie-familiale',
-    label: 'Dyslipidemie familiale',
-    templateKey: 'family-dyslipidemie',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.dyslipidemieFamiliale',
+    key: 'vitiligo-familial',
+    label: 'Vitiligo familial',
+    templateKey: 'family-vitiligo',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.vitiligoFamilial',
   },
   {
-    key: 'cardiopathie-ischemique-premature-familiale',
-    label: 'Cardiopathie ischemique premature familiale',
-    templateKey: 'family-cardiopathie-ischemique-premature',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.cardiopathieIschemiquePrematureFamiliale',
+    key: 'pelade-familiale',
+    label: 'Pelade familiale',
+    templateKey: 'family-pelade',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.peladeFamiliale',
   },
   {
-    key: 'avc-familial',
-    label: 'AVC familial',
-    templateKey: 'family-avc',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.avcFamilial',
+    key: 'lupus-maladie-auto-immune-familiale',
+    label: 'Lupus ou maladie auto-immune familiale',
+    templateKey: 'family-lupus-maladie-auto-immune',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.lupusMaladieAutoImmuneFamiliale',
   },
   {
-    key: 'insuffisance-renale-chronique-familiale',
-    label: 'Insuffisance renale chronique familiale',
-    templateKey: 'family-insuffisance-renale-chronique',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.insuffisanceRenaleChroniqueFamiliale',
+    key: 'melanome-familial',
+    label: 'Melanome familial',
+    templateKey: 'family-melanome',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.melanomeFamilial',
   },
   {
-    key: 'maladie-thyroidienne-familiale',
-    label: 'Maladie thyroidienne familiale',
-    templateKey: 'family-maladie-thyroidienne',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.maladieThyroidienneFamiliale',
+    key: 'cancer-cutane-non-melanome-familial',
+    label: 'Cancer cutane non melanome familial',
+    templateKey: 'family-cancer-cutane-non-melanome',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.cancerCutaneNonMelanomeFamilial',
   },
   {
-    key: 'asthme-atopie-familial',
-    label: 'Asthme ou terrain atopique familial',
-    templateKey: 'family-asthme-atopie',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.asthmeAtopieFamilial',
+    key: 'acne-severe-familiale',
+    label: 'Acne severe familiale',
+    templateKey: 'family-acne-severe',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.acneSevereFamiliale',
   },
   {
-    key: 'maladie-auto-immune-familiale',
-    label: 'Maladie auto-immune familiale',
-    templateKey: 'family-maladie-auto-immune',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.maladieAutoImmuneFamiliale',
-  },
-  {
-    key: 'epilepsie-familiale',
-    label: 'Epilepsie familiale',
-    templateKey: 'family-epilepsie',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.epilepsieFamiliale',
-  },
-  {
-    key: 'cancer-colorectal-familial',
-    label: 'Cancer colorectal familial',
-    templateKey: 'family-cancer-colorectal',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.cancerColorectalFamilial',
-  },
-  {
-    key: 'cancer-sein-ovaire-familial',
-    label: 'Cancer du sein ou de l ovaire familial',
-    templateKey: 'family-cancer-sein-ovaire',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.cancerSeinOvaireFamilial',
-  },
-  {
-    key: 'cancer-prostate-familial',
-    label: 'Cancer de la prostate familial',
-    templateKey: 'family-cancer-prostate',
-    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.cancerProstateFamilial',
+    key: 'ichthyose-maladie-genetique-cutanee-familiale',
+    label: 'Ichthyose ou maladie genetique cutanee familiale',
+    templateKey: 'family-ichthyose-maladie-genetique-cutanee',
+    i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.ichthyoseMaladieGenetiqueCutaneeFamiliale',
   },
 ];
 

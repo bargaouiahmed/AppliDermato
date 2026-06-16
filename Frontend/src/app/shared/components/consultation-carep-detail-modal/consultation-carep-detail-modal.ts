@@ -29,6 +29,7 @@ type CarepDetailType =
   | 'certificat'
   | 'lettre_confrere'
   | 'paraclinique_chirurgie'
+  | 'paraclinique_laser'
   | 'paraclinique_imagerie'
   | 'paraclinique_bilan_sanguin'
   | 'cnam_ap1'
@@ -100,6 +101,9 @@ export class ConsultationCarepDetailModal implements OnChanges {
     }
     if (key.includes('chirurgie')) {
       return 'paraclinique_chirurgie';
+    }
+    if (key.includes('laser')) {
+      return 'paraclinique_laser';
     }
     if (key.includes('imagerie')) {
       return 'paraclinique_imagerie';
@@ -284,6 +288,16 @@ export class ConsultationCarepDetailModal implements OnChanges {
     };
   }
 
+  protected get laserInfo(): {
+    types: string[];
+    date?: string;
+    clinique?: string;
+    operateur?: string;
+    information?: string;
+  } {
+    return this.chirurgieInfo;
+  }
+
   protected get imagerieInfo(): {
     types: string[];
     date?: string;
@@ -445,6 +459,7 @@ export class ConsultationCarepDetailModal implements OnChanges {
         (normalizedSearch.includes('certificat') && normalizedAction.includes('certificat')) ||
         (normalizedSearch.includes('lettre') && normalizedAction.includes('lettre')) ||
         (normalizedSearch.includes('chirurgie') && normalizedAction.includes('chirurgie')) ||
+        (normalizedSearch.includes('laser') && normalizedAction.includes('laser')) ||
         (normalizedSearch.includes('imagerie') && normalizedAction.includes('imagerie')) ||
         ((normalizedSearch.includes('bilan sanguin') || normalizedSearch.includes('bilan_sanguin')) &&
           normalizedAction.includes('bilan_sanguin'))

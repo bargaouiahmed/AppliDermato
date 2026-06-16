@@ -694,8 +694,21 @@ export const fr: Record<string, string> = {
   'consultation.conduite.nextConsultation.errors.motifRequired': 'Ajoutez au moins un motif pour le prochain rendez-vous.',
   'consultation.conduite.nextConsultation.errors.createFailed': 'Impossible de créer le prochain rendez-vous.',
   'consultation.conduite.actions.paracliniqueChirurgie': 'Paraclinique chirurgie',
+  'consultation.conduite.actions.paracliniqueLaser': 'Paraclinique laser',
   'consultation.conduite.actions.paracliniqueImagerie': 'Paraclinique imagerie',
   'consultation.conduite.actions.paracliniqueBilanSanguin': 'Paraclinique bilan sanguin',
+  'consultation.conduite.paraclinique.laserCatalog.depilatoire': 'Laser dépilatoire',
+  'consultation.conduite.paraclinique.laserCatalog.vasculaire': 'Laser vasculaire pour couperose / angiomes',
+  'consultation.conduite.paraclinique.laserCatalog.pigmentaire': 'Laser pigmentaire pour lentigos / taches solaires',
+  'consultation.conduite.paraclinique.laserCatalog.fractionneCicatricesAcne': 'Laser fractionné pour cicatrices d\'acné',
+  'consultation.conduite.paraclinique.laserCatalog.fractionneVergetures': 'Laser fractionné pour vergetures',
+  'consultation.conduite.paraclinique.laserCatalog.ablatifCo2Rhinophyma': 'Laser ablatif CO2 pour rhinophyma',
+  'consultation.conduite.paraclinique.laserCatalog.co2VerruesAcrochordons': 'Laser CO2 pour verrues / acrochordons',
+  'consultation.conduite.paraclinique.laserCatalog.qSwitchedTatouage': 'Laser Q-switched pour tatouage',
+  'consultation.conduite.paraclinique.laserCatalog.ndYagOnychomycose': 'Laser Nd:YAG pour onychomycose',
+  'consultation.conduite.paraclinique.laserCatalog.phototherapieExcimer': 'Photothérapie ciblée excimer',
+  'consultation.conduite.paraclinique.laserCatalog.lesionsPigmenteesBenignes': 'Laser pour lésions pigmentées bénignes',
+  'consultation.conduite.paraclinique.laserCatalog.rajeunissementCutane': 'Laser pour rajeunissement cutané',
   'consultation.conduite.cnam.title': 'Demander CNAM',
   'consultation.conduite.cnam.typeSelector.label': 'Type de demande CNAM',
   'consultation.conduite.cnam.types.ap1': 'Demander AP1',
@@ -963,7 +976,7 @@ export const fr: Record<string, string> = {
   'consultation.page.placeholders.documents': 'Section documents',
   'consultation.page.interrogatoire.antecedents.title': 'Antécédents généraux',
   'consultation.page.interrogatoire.antecedents.subtitle':
-    'Sélectionnez les anomalies courantes de médecine générale puis renseignez les détails.',
+    'Selectionnez les antecedents pertinents en dermatologie puis renseignez les details.',
   'consultation.page.interrogatoire.antecedents.empty':
     'Aucun',
   'consultation.page.interrogatoire.fields.diagnosedSince': 'Diagnostiqué depuis',
@@ -1201,34 +1214,29 @@ export const fr: Record<string, string> = {
   'consultation.page.interrogatoire.functionalSigns.items.anxiete': 'Anxiété',
   'consultation.page.interrogatoire.functionalSigns.items.troublesSommeil':
     'Troubles du sommeil',
-  'consultation.page.interrogatoire.familyAntecedents.title': 'Antécédents familiaux',
+  'consultation.page.interrogatoire.familyAntecedents.title': 'Antecedents familiaux',
   'consultation.page.interrogatoire.familyAntecedents.subtitle':
-    'Sélectionnez les antécédents familiaux de médecine générale et ajoutez une description concise.',
+    'Selectionnez les antecedents familiaux pertinents en dermatologie et ajoutez une description concise.',
   'consultation.page.interrogatoire.familyAntecedents.empty':
     'Aucun',
-  'consultation.page.interrogatoire.familyAntecedents.items.hypertensionArterielleFamiliale':
-    'Hypertension artérielle familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.diabeteFamilial': 'Diabète familial',
-  'consultation.page.interrogatoire.familyAntecedents.items.dyslipidemieFamiliale':
-    'Dyslipidémie familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.cardiopathieIschemiquePrematureFamiliale':
-    'Cardiopathie ischémique prématurée familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.avcFamilial': 'AVC familial',
-  'consultation.page.interrogatoire.familyAntecedents.items.insuffisanceRenaleChroniqueFamiliale':
-    'Insuffisance rénale chronique familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.maladieThyroidienneFamiliale':
-    'Maladie thyroïdienne familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.asthmeAtopieFamilial':
-    'Asthme ou terrain atopique familial',
-  'consultation.page.interrogatoire.familyAntecedents.items.maladieAutoImmuneFamiliale':
-    'Maladie auto-immune familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.epilepsieFamiliale': 'Épilepsie familiale',
-  'consultation.page.interrogatoire.familyAntecedents.items.cancerColorectalFamilial':
-    'Cancer colorectal familial',
-  'consultation.page.interrogatoire.familyAntecedents.items.cancerSeinOvaireFamilial':
-    'Cancer du sein ou de l\'ovaire familial',
-  'consultation.page.interrogatoire.familyAntecedents.items.cancerProstateFamilial':
-    'Cancer de la prostate familial',
+  'consultation.page.interrogatoire.familyAntecedents.items.atopieFamiliale':
+    'Atopie familiale',
+  'consultation.page.interrogatoire.familyAntecedents.items.psoriasisFamilial':
+    'Psoriasis familial',
+  'consultation.page.interrogatoire.familyAntecedents.items.vitiligoFamilial':
+    'Vitiligo familial',
+  'consultation.page.interrogatoire.familyAntecedents.items.peladeFamiliale':
+    'Pelade familiale',
+  'consultation.page.interrogatoire.familyAntecedents.items.lupusMaladieAutoImmuneFamiliale':
+    'Lupus ou maladie auto-immune familiale',
+  'consultation.page.interrogatoire.familyAntecedents.items.melanomeFamilial':
+    'Melanome familial',
+  'consultation.page.interrogatoire.familyAntecedents.items.cancerCutaneNonMelanomeFamilial':
+    'Cancer cutane non melanome familial',
+  'consultation.page.interrogatoire.familyAntecedents.items.acneSevereFamiliale':
+    'Acne severe familiale',
+  'consultation.page.interrogatoire.familyAntecedents.items.ichthyoseMaladieGenetiqueCutaneeFamiliale':
+    'Ichthyose ou maladie genetique cutanee familiale',
   'consultation.page.interrogatoire.treatments.title': 'Traitement en cours',
   'consultation.page.interrogatoire.treatments.prescribedOrdonnances': 'Ordonnances prescrites',
   'consultation.page.interrogatoire.treatments.line': 'Ligne de traitement',

@@ -434,6 +434,7 @@ function buildParacliniqueBadges(
   emptyBadgeLabel: string,
 ): ConclusionBadge[] {
   const chirurgiePayload = asRecord(findAction(actions, 'paraclinique_chirurgie')?.payload);
+  const laserPayload = asRecord(findAction(actions, 'paraclinique_laser')?.payload);
   const imageriePayload = asRecord(findAction(actions, 'paraclinique_imagerie')?.payload);
   const bilanPayload = asRecord(findAction(actions, 'paraclinique_bilan_sanguin')?.payload);
   const badges: ConclusionBadge[] = [];
@@ -446,6 +447,18 @@ function buildParacliniqueBadges(
   for (const item of chirurgieTypes) {
     badges.push({
       label: `${translate('consultation.conduite.actions.paracliniqueChirurgie')} : ${item}`,
+      tone: 'abnormal',
+    });
+  }
+
+  const laserTypes = normalizeDistinctStrings([
+    readNestedText(laserPayload, ['type']),
+    ...readTypeNames(laserPayload['types']),
+  ]);
+
+  for (const item of laserTypes) {
+    badges.push({
+      label: `${translate('consultation.conduite.actions.paracliniqueLaser')} : ${item}`,
       tone: 'abnormal',
     });
   }
