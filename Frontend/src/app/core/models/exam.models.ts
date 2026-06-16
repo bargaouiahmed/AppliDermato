@@ -21,6 +21,7 @@ export interface DermatologyExamDrawingLesion {
   id: string;
   path: string;
   description: string;
+  dermoscopie: string;
   image: DermatologyExamImage | null;
 }
 

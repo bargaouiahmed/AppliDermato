@@ -400,6 +400,34 @@
   gap: 0.45rem;
 }
 
+.dermoscopie-details {
+  border: 1px solid #ead9d1;
+  border-radius: 0.7rem;
+  background: #ffffff;
+  padding: 0.75rem 0.9rem;
+  margin-top: 0.4rem;
+}
+
+.dermoscopie-details summary {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6f7f79;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+
+.dermoscopie-details textarea {
+  width: 100%;
+  margin-top: 0.60rem;
+  border: 1px solid #d4d9d8;
+  border-radius: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  color: #21443a;
+  resize: vertical;
+  min-height: 5rem;
+}
+
 .drawing-field-header {
   display: flex;
   justify-content: space-between;

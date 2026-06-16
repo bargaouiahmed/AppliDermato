@@ -13,7 +13,7 @@ public partial class ConduitePrintService(AppDbContext db) : IConduitePrintServi
     private static readonly string BrandName = (
         Environment.GetEnvironmentVariable("brandname")
         ?? Environment.GetEnvironmentVariable("brand_name")
-        ?? "Dermatologo"
+        ?? "Dermato"
     ).Trim();
 
     public async Task<PrintableConduiteDocumentResponse> GeneratePrintableDocument(

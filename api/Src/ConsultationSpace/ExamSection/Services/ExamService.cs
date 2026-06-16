@@ -483,6 +483,7 @@ public class ExamService(AppDbContext db, IExamRealtimeNotifier examRealtimeNoti
                     ["id"] = lesionId,
                     ["path"] = path,
                     ["description"] = NormalizeText(ReadStringProperty(lesionElement, "description"), 4000),
+                    ["dermoscopie"] = NormalizeText(ReadStringProperty(lesionElement, "dermoscopie"), 4000),
                     ["image"] = NormalizeImage(ReadObjectProperty(lesionElement, "image")),
                 });
 
@@ -512,6 +513,7 @@ public class ExamService(AppDbContext db, IExamRealtimeNotifier examRealtimeNoti
                         ["id"] = $"legacy-lesion-{lesions.Count + 1}",
                         ["path"] = path,
                         ["description"] = string.Empty,
+                        ["dermoscopie"] = string.Empty,
                         ["image"] = null,
                     });
                 }

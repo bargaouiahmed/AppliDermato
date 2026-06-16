@@ -1308,6 +1308,8 @@ export const en: Record<string, string> = {
   'consultation.page.exam.bodyMap.selectLesionHint': 'Select a drawn lesion to add its photo and description.',
   'consultation.page.exam.bodyMap.selectedLesionDescription': 'Selected lesion description',
   'consultation.page.exam.bodyMap.selectedLesionDescriptionPlaceholder': 'Describe only the selected drawn lesion',
+  'consultation.page.exam.bodyMap.dermoscopieLabel': 'Dermoscopy',
+  'consultation.page.exam.bodyMap.dermoscopiePlaceholder': 'Dermoscopic description (optional)',
   'consultation.page.exam.bodyMap.selectedLesionImage': 'Selected lesion image',
   'consultation.page.exam.bodyMap.deleteSelectedLesion': 'Delete selected lesion',
   'consultation.page.exam.bodyMap.undoDrawing': 'Undo shape',

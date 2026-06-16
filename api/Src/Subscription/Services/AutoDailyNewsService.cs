@@ -208,7 +208,7 @@ public sealed class AutoDailyNewsService(
 
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
             "User-Agent",
-            "Dermatologo/1.0 (daily-news-search)");
+            "Dermato/1.0 (daily-news-search)");
 
         string rssContent;
         try

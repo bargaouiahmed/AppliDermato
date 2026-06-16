@@ -320,7 +320,7 @@ public sealed class ConsultationLettreConfrereAiService(
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
             "HTTP-Referer",
             ReadOptionalEnv("openrouter_http_referer", "OPENROUTER_REFERER").DefaultIfEmpty("https://generalisto.app"));
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Dermatologo");
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-Title", "Dermato");
 
         var body = new
         {

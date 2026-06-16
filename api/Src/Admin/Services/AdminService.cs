@@ -38,7 +38,7 @@ public class AdminService(AppDbContext db, ISmtpService smtpService) : IAdminSer
             AdminNotes = request.NotesFromAdmin,
         };
 
-        var password = $"dr-{request.Lastname.ToLower()}-{request.Firstname.ToLower()[0]}.{Environment.GetEnvironmentVariable("brand_name") ?? "Dermatologo"}{GenerateRandomNumericalString(6)}";
+        var password = $"dr-{request.Lastname.ToLower()}-{request.Firstname.ToLower()[0]}.{Environment.GetEnvironmentVariable("brand_name") ?? "Dermato"}{GenerateRandomNumericalString(6)}";
         if (!cabinetIdentity.HashAndUpdatePassword(password))
         {
             throw new Exception("Failed to generate a valid password for the new doctor.");

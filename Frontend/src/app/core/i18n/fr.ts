@@ -1,4 +1,4 @@
-﻿/** French translations (default) */
+/** French translations (default) */
 export const fr: Record<string, string> = {
   // Login
   'login.title': 'Connexion',
@@ -1300,6 +1300,8 @@ export const fr: Record<string, string> = {
   'consultation.page.exam.bodyMap.selectLesionHint': 'Sélectionnez une lésion dessinée pour ajouter sa photo et sa description.',
   'consultation.page.exam.bodyMap.selectedLesionDescription': 'Description de la lésion sélectionnée',
   'consultation.page.exam.bodyMap.selectedLesionDescriptionPlaceholder': 'Décrivez uniquement la lésion dessinée sélectionnée',
+  'consultation.page.exam.bodyMap.dermoscopieLabel': 'Dermoscopie',
+  'consultation.page.exam.bodyMap.dermoscopiePlaceholder': 'Description dermoscopique (optionnel)',
   'consultation.page.exam.bodyMap.selectedLesionImage': 'Image de la lésion sélectionnée',
   'consultation.page.exam.bodyMap.deleteSelectedLesion': 'Supprimer la lésion sélectionnée',
   'consultation.page.exam.bodyMap.undoDrawing': 'Annuler la forme',

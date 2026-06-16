@@ -1295,6 +1295,8 @@ export const ar: Record<string, string> = {
   'consultation.page.exam.bodyMap.selectLesionHint': 'حدد آفة مرسومة لإضافة صورتها ووصفها.',
   'consultation.page.exam.bodyMap.selectedLesionDescription': 'وصف الآفة المحددة',
   'consultation.page.exam.bodyMap.selectedLesionDescriptionPlaceholder': 'صف الآفة المرسومة المحددة فقط',
+  'consultation.page.exam.bodyMap.dermoscopieLabel': 'فحص الجلد المجهري',
+  'consultation.page.exam.bodyMap.dermoscopiePlaceholder': 'الوصف المجهري للجلد (اختياري)',
   'consultation.page.exam.bodyMap.selectedLesionImage': 'صورة الآفة المحددة',
   'consultation.page.exam.bodyMap.deleteSelectedLesion': 'حذف الآفة المحددة',
   'consultation.page.exam.bodyMap.undoDrawing': 'تراجع عن الشكل',

@@ -68,6 +68,7 @@ type ZoneDrawingLesionState = {
   id: string;
   path: string;
   description: string;
+  dermoscopie: string;
   existingImage: DermatologyExamImage | null;
   nextFile: File | null;
   removeExistingImage: boolean;
@@ -934,6 +935,13 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     }));
   }
 
+  protected updateSelectedDrawingLesionDermoscopie(dermoscopie: string): void {
+    this.updateSelectedDrawingLesion((lesion) => ({
+      ...lesion,
+      dermoscopie,
+    }));
+  }
+
   protected closeZoneModal(): void {
     if (this.isSavingZone) {
       return;
@@ -1057,11 +1065,13 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     const drawableLesions = modalState.drawingLesions.filter((lesion) => this.normalizeText(lesion.path).length > 0);
     const uploadOperations: Observable<SavedDrawingLesion>[] = drawableLesions.map((lesion, index) => {
       const description = this.normalizeMultilineText(lesion.description);
+      const dermoscopie = this.normalizeMultilineText(lesion.dermoscopie);
       const previousDocumentId = lesion.existingImage?.documentId?.trim() || null;
       const baseLesion = {
         id: this.normalizeText(lesion.id) || this.createDrawingLesionId(),
         path: this.normalizeText(lesion.path),
         description,
+        dermoscopie,
       };
 
       if (!lesion.nextFile) {
@@ -1515,6 +1525,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
             id: `legacy-lesion-${index + 1}`,
             path,
             description: '',
+            dermoscopie: '',
             image: null,
           });
         });
@@ -1544,6 +1555,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       id: this.normalizeText(lesion?.id ?? '') || fallbackId,
       path,
       description: this.normalizeMultilineText(lesion?.description ?? ''),
+      dermoscopie: this.normalizeMultilineText(lesion?.dermoscopie ?? ''),
       image: this.normalizeImage(lesion?.image),
     };
   }
@@ -1724,6 +1736,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       id: this.normalizeText(lesion.id) || this.createDrawingLesionId(),
       path: this.normalizeText(lesion.path),
       description: this.normalizeMultilineText(lesion.description),
+      dermoscopie: this.normalizeMultilineText(lesion.dermoscopie ?? ''),
       existingImage: this.normalizeImage(lesion.image),
       nextFile: null,
       removeExistingImage: false,
@@ -1735,6 +1748,7 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       id: this.createDrawingLesionId(),
       path,
       description: '',
+      dermoscopie: '',
       existingImage: null,
       nextFile: null,
       removeExistingImage: false,

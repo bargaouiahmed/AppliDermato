@@ -516,6 +516,16 @@
                 ></textarea>
               </label>
 
+              <details class="dermoscopie-details" [open]="!!lesion.dermoscopie">
+                <summary>{{ 'consultation.page.exam.bodyMap.dermoscopieLabel' | translate }}</summary>
+                <textarea
+                  rows="4"
+                  [ngModel]="lesion.dermoscopie"
+                  (ngModelChange)="updateSelectedDrawingLesionDermoscopie($event)"
+                  [placeholder]="'consultation.page.exam.bodyMap.dermoscopiePlaceholder' | translate"
+                ></textarea>
+              </details>
+
               <div class="modal-field">
                 <span>{{ 'consultation.page.exam.bodyMap.selectedLesionImage' | translate }}</span>
                 <input
