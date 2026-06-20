@@ -24,11 +24,6 @@
                 "input": "public"
               },
               {
-                "glob": "*.svg",
-                "input": "../bodymap/maps/molemapper",
-                "output": "bodymap/"
-              },
-              {
                 "glob": "**/*",
                 "input": "node_modules/@kolkov/angular-editor/assets/icons",
                 "output": "assets/ae-icons/"
