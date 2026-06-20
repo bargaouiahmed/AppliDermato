@@ -254,6 +254,13 @@ export class ConsultationExamPhonePage implements OnInit, PhoneModeExitAware {
     this.activeDrawingLesionId = this.activeDrawingLesions[0]?.id ?? null;
   }
 
+  protected onPhoneZoneSelectChange(event: Event): void {
+    const select = event.target as HTMLSelectElement | null;
+    if (select) {
+      this.selectZone(select.value);
+    }
+  }
+
   protected selectDrawingLesion(lesionId: string): void {
     this.activeDrawingLesionId = lesionId;
   }

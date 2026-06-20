@@ -64,6 +64,36 @@ type DrawingPoint = {
   y: number;
 };
 
+type LesionShapeTemplateKey = 'round' | 'oval' | 'plaque' | 'annular' | 'linear' | 'triangle' | 'square';
+type LesionResizeHandle = 'nw' | 'ne' | 'se' | 'sw';
+
+type LesionShapeTemplate = {
+  key: LesionShapeTemplateKey;
+  label: string;
+  previewPath: string;
+};
+
+type DrawingBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type LesionResizeState = {
+  lesionId: string;
+  handle: LesionResizeHandle;
+  startPoint: DrawingPoint;
+  originalPath: string;
+  originalBounds: DrawingBounds;
+};
+
+type LesionDragState = {
+  lesionId: string;
+  startPoint: DrawingPoint;
+  originalPath: string;
+};
+
 type ZoneDrawingLesionState = {
   id: string;
   path: string;
@@ -102,6 +132,44 @@ type BodyDrawingSurface = {
 };
 
 const DRAWING_ZOOM_LEVELS = [1, 1.5, 2, 3] as const;
+const LESION_SHAPE_PREVIEW_VIEW_BOX = '0 0 40 40';
+const LESION_SHAPE_TEMPLATES: LesionShapeTemplate[] = [
+  {
+    key: 'round',
+    label: 'Ronde',
+    previewPath: 'M 20 7 L 26.5 8.8 L 31.2 13.5 L 33 20 L 31.2 26.5 L 26.5 31.2 L 20 33 L 13.5 31.2 L 8.8 26.5 L 7 20 L 8.8 13.5 L 13.5 8.8 Z',
+  },
+  {
+    key: 'oval',
+    label: 'Ovale',
+    previewPath: 'M 20 9 L 28 11 L 33 16 L 35 20 L 33 24 L 28 29 L 20 31 L 12 29 L 7 24 L 5 20 L 7 16 L 12 11 Z',
+  },
+  {
+    key: 'plaque',
+    label: 'Plaque',
+    previewPath: 'M 11 12 L 20 8 L 29 10 L 34 17 L 31 27 L 23 33 L 13 31 L 7 24 L 8 16 Z',
+  },
+  {
+    key: 'annular',
+    label: 'Annulaire',
+    previewPath: 'M 20 7 L 27 9 L 32 14 L 34 21 L 31 28 L 25 32 L 17 33 L 10 29 L 6 22 L 8 14 L 13 9 Z M 20 15 L 16 16 L 14 20 L 16 24 L 21 25 L 25 23 L 26 19 L 24 16 Z',
+  },
+  {
+    key: 'linear',
+    label: 'Lineaire',
+    previewPath: 'M 8 17 L 31 10 L 34 18 L 11 30 Z',
+  },
+  {
+    key: 'triangle',
+    label: 'Triangle',
+    previewPath: 'M 20 7 L 34 32 L 6 32 Z',
+  },
+  {
+    key: 'square',
+    label: 'Carre',
+    previewPath: 'M 9 9 L 31 9 L 31 31 L 9 31 Z',
+  },
+];
 
 @Component({
   selector: 'app-consultation-examen-section',
@@ -151,8 +219,28 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   protected modalState: ZoneModalState | null = null;
   protected isSavingZone = false;
   protected readonly drawingZoomLevels = DRAWING_ZOOM_LEVELS;
+  protected readonly lesionShapeTemplates = LESION_SHAPE_TEMPLATES;
+  protected readonly lesionShapePreviewViewBox = LESION_SHAPE_PREVIEW_VIEW_BOX;
   protected drawingZoom = 1;
   protected isDrawingPanning = false;
+  protected selectedLesionShapeTemplateKey: LesionShapeTemplateKey | 'freehand' | null = null;
+
+  protected selectFreehandTool(): void {
+    if (this.isSavingZone) {
+      return;
+    }
+    this.selectedLesionShapeTemplateKey =
+      this.selectedLesionShapeTemplateKey === 'freehand' ? null : 'freehand';
+    this.activeDrawingPoints = [];
+    this.lesionResizeState = null;
+    this.lesionDragState = null;
+    if (this.modalState) {
+      this.modalState = {
+        ...this.modalState,
+        draftDrawingPath: '',
+      };
+    }
+  }
 
   private readonly autosaveTrigger = new Subject<string>();
   private isHydratingFromBackend = false;
@@ -168,6 +256,9 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   private drawingPanOffset: DrawingPoint = { x: 0, y: 0 };
   private drawingPanPointerId: number | null = null;
   private drawingPanLastClientPoint: DrawingPoint | null = null;
+  private draggingLesionShapeTemplateKey: LesionShapeTemplateKey | null = null;
+  private lesionResizeState: LesionResizeState | null = null;
+  private lesionDragState: LesionDragState | null = null;
   private pendingRealtimePayload: ConsultationExamPayload | null = null;
   private isDestroyed = false;
 
@@ -574,6 +665,21 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     }
   }
 
+  protected get truncatedPhoneModeUrl(): string {
+    const url = this.phoneModeQrUrl;
+    if (!url) {
+      return '';
+    }
+    const hashIndex = url.indexOf('#');
+    if (hashIndex !== -1) {
+      return url.substring(0, hashIndex) + '...';
+    }
+    if (url.length > 50) {
+      return url.substring(0, 47) + '...';
+    }
+    return url;
+  }
+
   protected onRegionKeydown(event: KeyboardEvent, regionId: string): void {
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
@@ -654,8 +760,338 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
     this.activeDrawingPoints = [];
   }
 
+  protected selectLesionShapeTemplate(templateKey: LesionShapeTemplateKey): void {
+    if (this.isSavingZone) {
+      return;
+    }
+
+    this.selectedLesionShapeTemplateKey =
+      this.selectedLesionShapeTemplateKey === templateKey ? null : templateKey;
+    this.activeDrawingPoints = [];
+    this.lesionResizeState = null;
+    this.lesionDragState = null;
+    if (this.modalState) {
+      this.modalState = {
+        ...this.modalState,
+        draftDrawingPath: '',
+      };
+    }
+  }
+
+  protected startLesionShapeDrag(templateKey: LesionShapeTemplateKey, event: DragEvent): void {
+    if (this.isSavingZone) {
+      event.preventDefault();
+      return;
+    }
+
+    this.draggingLesionShapeTemplateKey = templateKey;
+    this.selectedLesionShapeTemplateKey = templateKey;
+    event.dataTransfer?.setData('text/plain', templateKey);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'copy';
+    }
+  }
+
+  protected finishLesionShapeDrag(): void {
+    this.draggingLesionShapeTemplateKey = null;
+  }
+
+  protected allowLesionShapeDrop(event: DragEvent): void {
+    if (!this.isSavingZone && this.isDrawingModal) {
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'copy';
+      }
+    }
+  }
+
+  protected dropLesionShape(event: DragEvent): void {
+    if (!this.modalState || this.isSavingZone || !this.isDrawingModal) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    const templateKey = this.readDroppedLesionShapeKey(event);
+    if (!templateKey) {
+      return;
+    }
+
+    this.addLesionShapeAtPoint(templateKey, this.clientEventToSvgPoint(event));
+    this.draggingLesionShapeTemplateKey = null;
+  }
+
+  private readDroppedLesionShapeKey(event: DragEvent): LesionShapeTemplateKey | null {
+    const key = event.dataTransfer?.getData('text/plain');
+    if (key && this.lesionShapeTemplates.some((t) => t.key === key)) {
+      return key as LesionShapeTemplateKey;
+    }
+    return null;
+  }
+
+  protected addLesionShapeAtPoint(templateKey: LesionShapeTemplateKey, point: DrawingPoint): void {
+    if (!this.modalState || this.isSavingZone) {
+      return;
+    }
+
+    const template = this.lesionShapeTemplates.find((t) => t.key === templateKey);
+    if (!template) {
+      return;
+    }
+
+    // Default size is 16x16 units, centered on target point.
+    // Original template preview bounds are 0 0 40 40, so original center is 20, 20.
+    // SX = SY = 16 / 40 = 0.4
+    const scale = 0.4;
+    const newPath = this.transformPath(template.previewPath, point.x, point.y, scale, scale, 20, 20);
+    const newLesion = this.createDrawingLesionState(newPath);
+
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: [...this.modalState.drawingLesions, newLesion],
+      selectedDrawingLesionId: newLesion.id,
+      draftDrawingPath: '',
+    };
+    this.selectedLesionShapeTemplateKey = null;
+  }
+
+  private clientEventToSvgPoint(event: DragEvent): DrawingPoint {
+    const svg = (event.currentTarget as Element).closest('svg') as SVGSVGElement;
+    return this.clientPointToSvgPoint(svg, event.clientX, event.clientY);
+  }
+
+  protected resizeSelectedLesion(event: PointerEvent): void {
+    if (!this.lesionResizeState || !this.modalState) {
+      return;
+    }
+
+    const orig = this.lesionResizeState.originalBounds;
+    const currentPoint = this.pointerEventToSvgPoint(event);
+    const dx = currentPoint.x - this.lesionResizeState.startPoint.x;
+    const dy = currentPoint.y - this.lesionResizeState.startPoint.y;
+
+    let newX = orig.x;
+    let newY = orig.y;
+    let newWidth = orig.width;
+    let newHeight = orig.height;
+
+    const handle = this.lesionResizeState.handle;
+
+    if (handle.includes('e')) {
+      newWidth = orig.width + dx;
+    } else if (handle.includes('w')) {
+      newX = orig.x + dx;
+      newWidth = orig.width - dx;
+    }
+
+    if (handle.includes('s')) {
+      newHeight = orig.height + dy;
+    } else if (handle.includes('n')) {
+      newY = orig.y + dy;
+      newHeight = orig.height - dy;
+    }
+
+    // Prevent exactly zero dimensions so the shape can still be resized later
+    if (Math.abs(newWidth) < 1) {
+      newWidth = newWidth < 0 ? -1 : 1;
+    }
+    if (Math.abs(newHeight) < 1) {
+      newHeight = newHeight < 0 ? -1 : 1;
+    }
+
+    const targetBounds: DrawingBounds = {
+      x: newX,
+      y: newY,
+      width: newWidth,
+      height: newHeight,
+    };
+
+    const newPath = this.resizePath(this.lesionResizeState.originalPath, orig, targetBounds);
+    const lesionId = this.lesionResizeState.lesionId;
+
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: this.modalState.drawingLesions.map((l) =>
+        l.id === lesionId ? { ...l, path: newPath } : l
+      ),
+    };
+  }
+
+  protected finishLesionResize(event: PointerEvent): void {
+    if (!this.lesionResizeState) {
+      return;
+    }
+    try {
+      (event.target as Element).releasePointerCapture?.(event.pointerId);
+    } catch (e) {
+      // Ignore
+    }
+    this.lesionResizeState = null;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  private moveSelectedLesion(event: PointerEvent): void {
+    if (!this.lesionDragState || !this.modalState) {
+      return;
+    }
+
+    const currentPoint = this.pointerEventToSvgPoint(event);
+    const dx = currentPoint.x - this.lesionDragState.startPoint.x;
+    const dy = currentPoint.y - this.lesionDragState.startPoint.y;
+    const bounds = this.pathBounds(this.lesionDragState.originalPath);
+    if (!bounds) {
+      return;
+    }
+
+    // Translate: move to new position by shifting the center
+    const targetBounds: DrawingBounds = {
+      x: bounds.x + dx,
+      y: bounds.y + dy,
+      width: bounds.width,
+      height: bounds.height,
+    };
+    const newPath = this.resizePath(this.lesionDragState.originalPath, bounds, targetBounds);
+    const lesionId = this.lesionDragState.lesionId;
+
+    this.modalState = {
+      ...this.modalState,
+      drawingLesions: this.modalState.drawingLesions.map((l) =>
+        l.id === lesionId ? { ...l, path: newPath } : l
+      ),
+    };
+  }
+
+  private finishLesionDrag(event: PointerEvent): void {
+    if (!this.lesionDragState) {
+      return;
+    }
+    try {
+      (event.target as Element).releasePointerCapture?.(event.pointerId);
+    } catch (e) {
+      // Ignore
+    }
+    this.lesionDragState = null;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  private pathBounds(path: string): DrawingBounds | null {
+    if (!path) {
+      return null;
+    }
+    const numbers = path.match(/-?\d+(?:\.\d+)?/g)?.map(Number);
+    if (!numbers || numbers.length < 2) {
+      return null;
+    }
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    for (let i = 0; i < numbers.length; i += 2) {
+      if (i + 1 >= numbers.length) {
+        break;
+      }
+      const x = numbers[i];
+      const y = numbers[i + 1];
+      if (x < minX) {
+        minX = x;
+      }
+      if (x > maxX) {
+        maxX = x;
+      }
+      if (y < minY) {
+        minY = y;
+      }
+      if (y > maxY) {
+        maxY = y;
+      }
+    }
+
+    if (minX === Infinity || minY === Infinity) {
+      return null;
+    }
+
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
+  }
+
+  private transformPath(
+    path: string,
+    dx: number,
+    dy: number,
+    sx: number,
+    sy: number,
+    cx: number,
+    cy: number
+  ): string {
+    const regex = /([a-df-z]+)|(-?\d+(?:\.\d+)?)/gi;
+    let match;
+    let result = '';
+    let isX = true;
+
+    while ((match = regex.exec(path)) !== null) {
+      const token = match[0];
+      if (/[a-df-z]/i.test(token)) {
+        result += token + ' ';
+        isX = true;
+      } else {
+        const num = parseFloat(token);
+        if (isX) {
+          const val = dx + (num - cx) * sx;
+          result += this.formatDrawingNumber(val) + ' ';
+          isX = false;
+        } else {
+          const val = dy + (num - cy) * sy;
+          result += this.formatDrawingNumber(val) + ' ';
+          isX = true;
+        }
+      }
+    }
+    return result.trim();
+  }
+
+  private resizePath(path: string, orig: DrawingBounds, target: DrawingBounds): string {
+    const regex = /([a-df-z]+)|(-?\d+(?:\.\d+)?)/gi;
+    let match;
+    let result = '';
+    let isX = true;
+
+    while ((match = regex.exec(path)) !== null) {
+      const token = match[0];
+      if (/[a-df-z]/i.test(token)) {
+        result += token + ' ';
+        isX = true;
+      } else {
+        const num = parseFloat(token);
+        if (isX) {
+          const nx = orig.width > 0 ? (num - orig.x) / orig.width : 0;
+          const val = target.x + nx * target.width;
+          result += this.formatDrawingNumber(val) + ' ';
+          isX = false;
+        } else {
+          const ny = orig.height > 0 ? (num - orig.y) / orig.height : 0;
+          const val = target.y + ny * target.height;
+          result += this.formatDrawingNumber(val) + ' ';
+          isX = true;
+        }
+      }
+    }
+    return result.trim();
+  }
+
   protected startHeadDrawing(event: PointerEvent): void {
     if (!this.modalState || !this.isDrawingModal || this.isSavingZone) {
+      return;
+    }
+
+    // If a lesion resize or drag-to-move is in progress, do NOT start any new drawing.
+    if (this.lesionResizeState || this.lesionDragState) {
       return;
     }
 
@@ -670,17 +1106,53 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       return;
     }
 
-    const point = this.pointerEventToSvgPoint(event);
-    this.activeDrawingPoints = [point];
-    this.modalState = {
-      ...this.modalState,
-      draftDrawingPath: this.pointsToPath(this.activeDrawingPoints, false),
-    };
-    (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
-    event.preventDefault();
+    if (this.selectedLesionShapeTemplateKey === 'freehand') {
+      const point = this.pointerEventToSvgPoint(event);
+      this.activeDrawingPoints = [point];
+      this.modalState = {
+        ...this.modalState,
+        draftDrawingPath: this.pointsToPath(this.activeDrawingPoints, false),
+      };
+      (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+      event.preventDefault();
+      return;
+    }
+
+    if (this.selectedLesionShapeTemplateKey) {
+      const placedPoint = this.pointerEventToSvgPoint(event);
+      this.addLesionShapeAtPoint(this.selectedLesionShapeTemplateKey, placedPoint);
+
+      // Immediately enter resize mode from the SE corner so the user can
+      // hold the mouse down and drag to size the newly placed shape.
+      const placedLesion = this.selectedDrawingLesion;
+      const placedBounds = placedLesion ? this.pathBounds(placedLesion.path) : null;
+      if (placedLesion && placedBounds) {
+        this.lesionResizeState = {
+          lesionId: placedLesion.id,
+          handle: 'se',
+          startPoint: placedPoint,
+          originalPath: placedLesion.path,
+          originalBounds: placedBounds,
+        };
+        (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
   }
 
   protected continueHeadDrawing(event: PointerEvent): void {
+    if (this.lesionResizeState) {
+      this.resizeSelectedLesion(event);
+      return;
+    }
+
+    if (this.lesionDragState) {
+      this.moveSelectedLesion(event);
+      return;
+    }
+
     if (this.isDrawingPanning) {
       this.continueDrawingPan(event);
       return;
@@ -705,6 +1177,16 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected finishHeadDrawing(event: PointerEvent): void {
+    if (this.lesionResizeState) {
+      this.finishLesionResize(event);
+      return;
+    }
+
+    if (this.lesionDragState) {
+      this.finishLesionDrag(event);
+      return;
+    }
+
     if (this.isDrawingPanning) {
       this.finishDrawingPan(event);
       return;
@@ -734,6 +1216,16 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected cancelHeadDrawing(event: PointerEvent): void {
+    if (this.lesionResizeState) {
+      this.finishLesionResize(event);
+      return;
+    }
+
+    if (this.lesionDragState) {
+      this.finishLesionDrag(event);
+      return;
+    }
+
     if (this.isDrawingPanning) {
       this.finishDrawingPan(event);
       return;
@@ -749,6 +1241,38 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       draftDrawingPath: '',
     };
     (event.currentTarget as Element).releasePointerCapture?.(event.pointerId);
+  }
+
+  protected selectedLesionBounds(): DrawingBounds | null {
+    const lesion = this.selectedDrawingLesion;
+    return lesion ? this.pathBounds(lesion.path) : null;
+  }
+
+  protected lesionResizeHandlePoint(bounds: DrawingBounds, handle: LesionResizeHandle): DrawingPoint {
+    const x = handle.includes('w') ? bounds.x : bounds.x + bounds.width;
+    const y = handle.includes('n') ? bounds.y : bounds.y + bounds.height;
+    return { x, y };
+  }
+
+  protected startLesionResize(handle: LesionResizeHandle, event: PointerEvent): void {
+    const lesion = this.selectedDrawingLesion;
+    const bounds = lesion ? this.pathBounds(lesion.path) : null;
+    if (!this.modalState || !lesion || !bounds || this.isSavingZone || (event.pointerType === 'mouse' && event.button !== 0)) {
+      return;
+    }
+
+    this.activeDrawingPoints = [];
+    this.selectedLesionShapeTemplateKey = null;
+    this.lesionResizeState = {
+      lesionId: lesion.id,
+      handle,
+      startPoint: this.pointerEventToSvgPoint(event),
+      originalPath: lesion.path,
+      originalBounds: bounds,
+    };
+    (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   protected onDrawingContextMenu(event: Event): void {
@@ -926,6 +1450,19 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
       selectedDrawingLesionId: lesionId,
       draftDrawingPath: '',
     };
+
+    // Initiate a drag-to-move gesture when no shape tool is selected
+    if (event instanceof PointerEvent && !this.selectedLesionShapeTemplateKey) {
+      const lesion = this.modalState.drawingLesions.find((l) => l.id === lesionId);
+      if (lesion) {
+        this.lesionDragState = {
+          lesionId,
+          startPoint: this.pointerEventToSvgPoint(event),
+          originalPath: lesion.path,
+        };
+        (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+      }
+    }
   }
 
   protected updateSelectedDrawingLesionDescription(description: string): void {
@@ -1581,7 +2118,8 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   private pointerEventToSvgPoint(event: PointerEvent): DrawingPoint {
-    const svg = event.currentTarget as SVGSVGElement;
+    const target = event.currentTarget as Element;
+    const svg = (target.tagName.toLowerCase() === 'svg' ? target : target.closest('svg')) as SVGSVGElement;
     return this.clientPointToSvgPoint(svg, event.clientX, event.clientY);
   }
 

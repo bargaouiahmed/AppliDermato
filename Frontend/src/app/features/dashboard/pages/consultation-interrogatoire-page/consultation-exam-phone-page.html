@@ -39,36 +39,24 @@
         <p>{{ 'consultation.page.exam.phone.emptyDescription' | translate }}</p>
       </section>
     } @else {
-      <section class="zone-list-shell">
-        @for (group of zoneGroups; track group.view) {
-          <div class="zone-group-card">
-            <div class="zone-group-header">
-              <h2>{{ group.titleKey | translate }}</h2>
-              <span>{{ group.zones.length }}</span>
-            </div>
-
-            <div class="zone-card-list">
-              @for (summary of group.zones; track summary.zone.regionId) {
-                <button
-                  type="button"
-                  class="zone-card"
-                  [class.is-active]="summary.zone.regionId === activeZoneId"
-                  (click)="selectZone(summary.zone.regionId)"
-                >
-                  <div class="zone-card-copy">
-                    <strong>{{ summary.label }}</strong>
-                    <span>{{ summary.zone.description || ('consultation.page.exam.phone.noDescription' | translate) }}</span>
-                  </div>
-
-                  <div class="zone-card-meta">
-                    <span>{{ summary.lesionCount }} {{ 'consultation.page.exam.phone.lesionCountShort' | translate }}</span>
-                    <span>{{ summary.imageCount }} {{ 'consultation.page.exam.phone.imageCountShort' | translate }}</span>
-                  </div>
-                </button>
-              }
-            </div>
-          </div>
-        }
+      <section class="phone-zone-selector-card">
+        <label for="phone-zone-select" class="selector-label">
+          <i class="bi bi-geo-alt-fill"></i>
+        </label>
+        <div class="select-wrapper">
+          <select
+            id="phone-zone-select"
+            class="custom-phone-select"
+            (change)="onPhoneZoneSelectChange($event)"
+          >
+            @for (summary of documentedZones; track summary.zone.regionId) {
+              <option [value]="summary.zone.regionId" [selected]="summary.zone.regionId === activeZoneId">
+                {{ summary.label }} ({{ summary.lesionCount }} {{ 'consultation.page.exam.phone.lesionCountShort' | translate }}, {{ summary.imageCount }} {{ 'consultation.page.exam.phone.imageCountShort' | translate }})
+              </option>
+            }
+          </select>
+          <i class="bi bi-chevron-down select-chevron"></i>
+        </div>
       </section>
 
       @if (activeZone) {

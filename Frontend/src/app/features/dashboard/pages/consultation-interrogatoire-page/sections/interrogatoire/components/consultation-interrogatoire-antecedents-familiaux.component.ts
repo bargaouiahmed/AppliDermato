@@ -81,27 +81,31 @@ const STANDARD_FAMILY_ANTECEDENTS: readonly StandardFamilyAntecedentDefinition[]
   },
   {
     key: 'melanome-familial',
-    label: 'Melanome familial',
+    label: 'Mélanome familial',
     templateKey: 'family-melanome',
     i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.melanomeFamilial',
+    aliases: ['Melanome familial'],
   },
   {
     key: 'cancer-cutane-non-melanome-familial',
-    label: 'Cancer cutane non melanome familial',
+    label: 'Cancer cutané non mélanome familial',
     templateKey: 'family-cancer-cutane-non-melanome',
     i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.cancerCutaneNonMelanomeFamilial',
+    aliases: ['Cancer cutane non melanome familial'],
   },
   {
     key: 'acne-severe-familiale',
-    label: 'Acne severe familiale',
+    label: 'Acné sévère familiale',
     templateKey: 'family-acne-severe',
     i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.acneSevereFamiliale',
+    aliases: ['Acne severe familiale'],
   },
   {
     key: 'ichthyose-maladie-genetique-cutanee-familiale',
-    label: 'Ichthyose ou maladie genetique cutanee familiale',
+    label: 'Ichthyose ou maladie génétique cutanée familiale',
     templateKey: 'family-ichthyose-maladie-genetique-cutanee',
     i18nKey: 'consultation.page.interrogatoire.familyAntecedents.items.ichthyoseMaladieGenetiqueCutaneeFamiliale',
+    aliases: ['Ichthyose ou maladie genetique cutanee familiale'],
   },
 ];
 

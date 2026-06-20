@@ -330,31 +330,73 @@
         </div>
 
         <div class="zone-modal-body phone-mode-modal-body">
-          <p class="phone-mode-copy">{{ 'consultation.page.exam.phone.scanDescription' | translate }}</p>
+          <div class="phone-mode-modal-grid">
+            <div class="phone-mode-instructions-col">
+              <h4>{{ 'consultation.page.exam.phone.instructions.title' | translate }}</h4>
+              <ul class="instructions-list">
+                <li>
+                  <span class="step-icon">
+                    <i class="bi bi-qr-code-scan"></i>
+                  </span>
+                  <div>
+                    <strong>{{ 'consultation.page.exam.phone.instructions.step1Header' | translate }}</strong>
+                  </div>
+                </li>
+                <li>
+                  <span class="step-icon">
+                    <i class="bi bi-geo-alt-fill"></i>
+                  </span>
+                  <div>
+                    <strong>{{ 'consultation.page.exam.phone.instructions.step2Header' | translate }}</strong>
+                  </div>
+                </li>
+                <li>
+                  <span class="step-icon">
+                    <i class="bi bi-camera-fill"></i>
+                  </span>
+                  <div>
+                    <strong>{{ 'consultation.page.exam.phone.instructions.step3Header' | translate }}</strong>
+                  </div>
+                </li>
+                <li>
+                  <span class="step-icon animate-pulse-slow">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                  </span>
+                  <div>
+                    <strong>{{ 'consultation.page.exam.phone.instructions.step4Header' | translate }}</strong>
+                  </div>
+                </li>
+              </ul>
+            </div>
 
-          <div class="phone-mode-qr-shell">
-            @if (isPhoneModeQrBusy) {
-              <div class="phone-mode-qr-placeholder">{{ 'consultation.page.loading' | translate }}</div>
-            } @else if (phoneModeQrImageUrl) {
-              <img [src]="phoneModeQrImageUrl" [alt]="'consultation.page.exam.phone.scanTitle' | translate" />
-            } @else {
-              <div class="phone-mode-qr-placeholder">{{ 'consultation.page.exam.phone.qrError' | translate }}</div>
-            }
-          </div>
+            <div class="phone-mode-qr-col">
+              <div class="phone-mode-qr-shell">
+                @if (isPhoneModeQrBusy) {
+                  <div class="phone-mode-qr-placeholder">{{ 'consultation.page.loading' | translate }}</div>
+                } @else if (phoneModeQrImageUrl) {
+                  <img [src]="phoneModeQrImageUrl" [alt]="'consultation.page.exam.phone.scanTitle' | translate" />
+                } @else {
+                  <div class="phone-mode-qr-placeholder">{{ 'consultation.page.exam.phone.qrError' | translate }}</div>
+                }
+              </div>
 
-          <div class="phone-mode-link-card">
-            <span>{{ 'consultation.page.exam.phone.linkLabel' | translate }}</span>
-            <code>{{ phoneModeQrUrl }}</code>
+              <div class="phone-mode-link-card">
+                <span class="link-label">{{ 'consultation.page.exam.phone.linkLabel' | translate }}</span>
+                <div class="link-row">
+                  <code class="truncated-url" [title]="phoneModeQrUrl">{{ truncatedPhoneModeUrl }}</code>
+                  <button type="button" class="copy-icon-btn" [disabled]="!phoneModeQrUrl" (click)="copyPhoneModeLink()" [title]="'consultation.page.exam.phone.copyLink' | translate">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="zone-modal-footer">
           <div class="footer-actions">
-            <button type="button" class="ghost-btn" (click)="closePhoneModeQr()">
-              {{ 'consultation.page.actions.cancel' | translate }}
-            </button>
-            <button type="button" class="filled-btn" [disabled]="!phoneModeQrUrl" (click)="copyPhoneModeLink()">
-              {{ 'consultation.page.exam.phone.copyLink' | translate }}
+            <button type="button" class="filled-btn" (click)="closePhoneModeQr()">
+              Fermer
             </button>
           </div>
         </div>
@@ -430,57 +472,114 @@
                 </div>
               </div>
 
-              <svg
-                class="head-drawing-svg"
-                [class.is-panning]="isDrawingPanning"
-                [attr.viewBox]="drawingSurfaceFor(modalState).viewBox"
-                (pointerdown)="startHeadDrawing($event)"
-                (pointermove)="continueHeadDrawing($event)"
-                (pointerup)="finishHeadDrawing($event)"
-                (pointercancel)="cancelHeadDrawing($event)"
-                (contextmenu)="onDrawingContextMenu($event)"
-              >
-                @if (outlinePathFor(modalState.view)) {
-                  <path class="body-skin-path" [attr.d]="outlinePathFor(modalState.view)" />
-                }
+              <div class="drawing-canvas-container">
+                <!-- Predefined shapes library at top-left -->
+                <div class="predefined-shapes-library" [class.is-disabled]="isSavingZone">
+                  <!-- Freehand drawing pencil tool -->
+                  <div
+                    class="shape-template-item"
+                    [class.is-selected]="selectedLesionShapeTemplateKey === 'freehand'"
+                    (click)="selectFreehandTool()"
+                    title="Dessin libre (Crayon)"
+                  >
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor" stroke="none" />
+                    </svg>
+                  </div>
 
-                @for (part of drawingSurfaceFor(modalState).parts; track part.slug) {
-                  @for (path of part.path?.common ?? []; track $index) {
+                  @for (template of lesionShapeTemplates; track template.key) {
+                    <div
+                      class="shape-template-item"
+                      [class.is-selected]="selectedLesionShapeTemplateKey === template.key"
+                      [attr.draggable]="!isSavingZone"
+                      (dragstart)="startLesionShapeDrag(template.key, $event)"
+                      (dragend)="finishLesionShapeDrag()"
+                      (click)="selectLesionShapeTemplate(template.key)"
+                      [attr.title]="template.label"
+                    >
+                      <svg [attr.viewBox]="lesionShapePreviewViewBox">
+                        <path [attr.d]="template.previewPath" />
+                      </svg>
+                    </div>
+                  }
+                </div>
+
+                <svg
+                  class="head-drawing-svg"
+                  [class.is-panning]="isDrawingPanning"
+                  [attr.viewBox]="drawingSurfaceFor(modalState).viewBox"
+                  (pointerdown)="startHeadDrawing($event)"
+                  (pointermove)="continueHeadDrawing($event)"
+                  (pointerup)="finishHeadDrawing($event)"
+                  (pointercancel)="cancelHeadDrawing($event)"
+                  (contextmenu)="onDrawingContextMenu($event)"
+                  (dragover)="allowLesionShapeDrop($event)"
+                  (drop)="dropLesionShape($event)"
+                >
+                  @if (outlinePathFor(modalState.view)) {
+                    <path class="body-skin-path" [attr.d]="outlinePathFor(modalState.view)" />
+                  }
+
+                  @for (part of drawingSurfaceFor(modalState).parts; track part.slug) {
+                    @for (path of part.path?.common ?? []; track $index) {
+                      <path
+                        class="head-drawing-base"
+                        [class.is-active]="part.slug === modalState.slug"
+                        [attr.d]="path"
+                        [attr.fill]="part.color"
+                      />
+                    }
+                    @for (path of part.path?.left ?? []; track $index) {
+                      <path
+                        class="head-drawing-base"
+                        [class.is-active]="part.slug === modalState.slug"
+                        [attr.d]="path"
+                        [attr.fill]="part.color"
+                      />
+                    }
+                    @for (path of part.path?.right ?? []; track $index) {
                     <path
                       class="head-drawing-base"
-                      [class.is-active]="part.slug === modalState.slug"
                       [attr.d]="path"
                       [attr.fill]="part.color"
                     />
                   }
-                  @for (path of part.path?.left ?? []; track $index) {
+                }
+                  @for (lesion of modalState.drawingLesions; track lesion.id) {
                     <path
-                      class="head-drawing-base"
-                      [class.is-active]="part.slug === modalState.slug"
-                      [attr.d]="path"
-                      [attr.fill]="part.color"
+                      class="head-lesion-shape"
+                      [class.is-selected]="lesion.id === modalState.selectedDrawingLesionId"
+                      [attr.d]="lesion.path"
+                      (pointerdown)="selectHeadLesion(lesion.id, $event)"
                     />
                   }
-                  @for (path of part.path?.right ?? []; track $index) {
-                  <path
-                    class="head-drawing-base"
-                    [attr.d]="path"
-                    [attr.fill]="part.color"
-                  />
-                }
-              }
-                @for (lesion of modalState.drawingLesions; track lesion.id) {
-                  <path
-                    class="head-lesion-shape"
-                    [class.is-selected]="lesion.id === modalState.selectedDrawingLesionId"
-                    [attr.d]="lesion.path"
-                    (pointerdown)="selectHeadLesion(lesion.id, $event)"
-                  />
-                }
-                @if (modalState.draftDrawingPath) {
-                  <path class="head-lesion-shape is-draft" [attr.d]="modalState.draftDrawingPath" />
-                }
-              </svg>
+                  @if (modalState.draftDrawingPath) {
+                    <path class="head-lesion-shape is-draft" [attr.d]="modalState.draftDrawingPath" />
+                  }
+
+                  <!-- Selected lesion bounding box and resize handles -->
+                  @if (selectedLesionBounds(); as bounds) {
+                    <rect
+                      class="lesion-resize-box"
+                      [attr.x]="bounds.x"
+                      [attr.y]="bounds.y"
+                      [attr.width]="bounds.width"
+                      [attr.height]="bounds.height"
+                    />
+                    @for (handle of ['nw', 'ne', 'se', 'sw']; track handle) {
+                      @if (lesionResizeHandlePoint(bounds, $any(handle)); as handlePoint) {
+                        <circle
+                          class="lesion-resize-handle"
+                          [attr.cx]="handlePoint.x"
+                          [attr.cy]="handlePoint.y"
+                          r="4"
+                          (pointerdown)="startLesionResize($any(handle), $event)"
+                        />
+                      }
+                    }
+                  }
+                </svg>
+              </div>
 
               @if (modalState.drawingLesions.length > 0) {
                 <div class="head-lesion-list">
