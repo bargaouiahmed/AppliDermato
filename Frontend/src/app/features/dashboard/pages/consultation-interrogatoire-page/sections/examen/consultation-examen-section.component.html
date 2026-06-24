@@ -1,4 +1,4 @@
-<div class="tab-panel exam-root">
+﻿<div class="tab-panel exam-root">
   @if (isLoading) {
     <div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
   } @else if (loadError) {
@@ -326,7 +326,7 @@
             <p class="zone-modal-eyebrow">{{ 'consultation.page.exam.phone.title' | translate }}</p>
             <h3 id="phone-mode-modal-title">{{ 'consultation.page.exam.phone.scanTitle' | translate }}</h3>
           </div>
-          <button type="button" class="modal-close" (click)="closePhoneModeQr()">×</button>
+          <button type="button" class="modal-close" (click)="closePhoneModeQr()">x</button>
         </div>
 
         <div class="zone-modal-body phone-mode-modal-body">
@@ -411,48 +411,41 @@
             <p class="zone-modal-eyebrow">{{ (modalState.view === 'front' ? 'consultation.page.exam.bodyMap.frontView' : 'consultation.page.exam.bodyMap.backView') | translate }}</p>
             <h3 id="zone-modal-title">{{ modalState.label }}</h3>
           </div>
-          <button type="button" class="modal-close" (click)="closeZoneModal()">×</button>
+          <button type="button" class="modal-close" (click)="closeZoneModal()">x</button>
         </div>
 
         <div class="zone-modal-body">
           @if (isDrawingModal) {
             <div class="modal-field head-drawing-field" (contextmenu)="onDrawingContextMenu($event)">
               <div class="drawing-field-header">
-                <span>{{ 'consultation.page.exam.bodyMap.regionDrawing' | translate }}</span>
                 <div class="drawing-actions">
-                  <div
-                    class="drawing-zoom-controls"
-                    role="group"
-                    [attr.aria-label]="'consultation.page.exam.bodyMap.zoomControls' | translate"
+                  <button
+                    type="button"
+                    class="ghost-btn drawing-zoom-btn"
+                    [attr.aria-label]="'consultation.page.exam.bodyMap.zoomOut' | translate"
+                    [disabled]="drawingZoom <= drawingZoomLevels[0] || isSavingZone"
+                    (click)="zoomDrawingOut()"
                   >
-                    <button
-                      type="button"
-                      class="ghost-btn drawing-zoom-btn"
-                      [attr.aria-label]="'consultation.page.exam.bodyMap.zoomOut' | translate"
-                      [disabled]="drawingZoom <= drawingZoomLevels[0] || isSavingZone"
-                      (click)="zoomDrawingOut()"
-                    >
-                      −
-                    </button>
-                    <span class="drawing-zoom-label">{{ drawingZoomLabel }}</span>
-                    <button
-                      type="button"
-                      class="ghost-btn drawing-zoom-btn"
-                      [attr.aria-label]="'consultation.page.exam.bodyMap.zoomIn' | translate"
-                      [disabled]="drawingZoom >= drawingZoomLevels[drawingZoomLevels.length - 1] || isSavingZone"
-                      (click)="zoomDrawingIn()"
-                    >
-                      +
-                    </button>
-                    <button
-                      type="button"
-                      class="ghost-btn"
-                      [disabled]="drawingZoom === drawingZoomLevels[0] || isSavingZone"
-                      (click)="resetDrawingZoom()"
-                    >
-                      {{ 'consultation.page.exam.bodyMap.resetZoom' | translate }}
-                    </button>
-                  </div>
+                    -
+                  </button>
+                  <span class="drawing-zoom-label">{{ drawingZoomLabel }}</span>
+                  <button
+                    type="button"
+                    class="ghost-btn drawing-zoom-btn"
+                    [attr.aria-label]="'consultation.page.exam.bodyMap.zoomIn' | translate"
+                    [disabled]="drawingZoom >= drawingZoomLevels[drawingZoomLevels.length - 1] || isSavingZone"
+                    (click)="zoomDrawingIn()"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost-btn"
+                    [disabled]="drawingZoom === drawingZoomLevels[0] || isSavingZone"
+                    (click)="resetDrawingZoom()"
+                  >
+                    {{ 'consultation.page.exam.bodyMap.resetZoom' | translate }}
+                  </button>
                   <button
                     type="button"
                     class="ghost-btn"
@@ -473,9 +466,7 @@
               </div>
 
               <div class="drawing-canvas-container">
-                <!-- Predefined shapes library at top-left -->
-                <div class="predefined-shapes-library" [class.is-disabled]="isSavingZone">
-                  <!-- Freehand drawing pencil tool -->
+                <div class="shape-toolbar shape-toolbar-left" [class.is-disabled]="isSavingZone">
                   <div
                     class="shape-template-item"
                     [class.is-selected]="selectedLesionShapeTemplateKey === 'freehand'"
@@ -487,7 +478,25 @@
                     </svg>
                   </div>
 
-                  @for (template of lesionShapeTemplates; track template.key) {
+                  @for (template of geometricLesionShapeTemplates; track template.key) {
+                    <div
+                      class="shape-template-item"
+                      [class.is-selected]="selectedLesionShapeTemplateKey === template.key"
+                      [attr.draggable]="!isSavingZone"
+                      (dragstart)="startLesionShapeDrag(template.key, $event)"
+                      (dragend)="finishLesionShapeDrag()"
+                      (click)="selectLesionShapeTemplate(template.key)"
+                      [attr.title]="template.label | translate"
+                    >
+                      <svg [attr.viewBox]="lesionShapePreviewViewBox">
+                        <path [attr.d]="template.previewPath" />
+                      </svg>
+                    </div>
+                  }
+                </div>
+
+                <div class="shape-toolbar shape-toolbar-right" [class.is-disabled]="isSavingZone">
+                  @for (template of typicalLesionShapeTemplates; track template.key) {
                     <div
                       class="shape-template-item"
                       [class.is-selected]="selectedLesionShapeTemplateKey === template.key"

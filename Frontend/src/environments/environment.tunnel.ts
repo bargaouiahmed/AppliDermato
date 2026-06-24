@@ -5,5 +5,5 @@ export const environment: AppEnvironment = buildEnvironment({
   production: false,
   name: 'tunnel',
   appUrl: 'https://derma.softsolution.site',
-  apiUrl: 'https://derma-api.softsolution.site',
+  apiUrl: 'https://gen-api.softsolution.site',
 });

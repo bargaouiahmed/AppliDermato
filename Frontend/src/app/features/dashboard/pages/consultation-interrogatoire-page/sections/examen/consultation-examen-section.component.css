@@ -1070,26 +1070,46 @@
   width: 100%;
 }
 
-.predefined-shapes-library {
+.shape-toolbar {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 0.5rem;
+  position: absolute;
+  top: 0.85rem;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #ead9d1;
-  border-radius: 8px;
-  padding: 6px 12px;
-  margin-bottom: 10px;
-  width: fit-content;
-  margin-inline: auto;
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.45rem;
+  width: 3.4rem;
+  max-height: calc(48vh - 1.7rem);
+  overflow-y: auto;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(116, 81, 62, 0.08);
 }
 
-.predefined-shapes-library.is-disabled {
+.shape-toolbar-left {
+  left: 0.85rem;
+}
+
+.shape-toolbar-right {
+  right: 0.85rem;
+}
+
+.shape-toolbar.is-disabled {
   pointer-events: none;
   opacity: 0.5;
+}
+
+.shape-toolbar-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a6659;
+  user-select: none;
 }
 
 .shape-template-item {
@@ -1153,4 +1173,3 @@
 .lesion-resize-handle:nth-of-type(2) { cursor: ne-resize; } /* ne */
 .lesion-resize-handle:nth-of-type(3) { cursor: se-resize; } /* se */
 .lesion-resize-handle:nth-of-type(4) { cursor: sw-resize; } /* sw */
-
