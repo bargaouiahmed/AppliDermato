@@ -1159,17 +1159,29 @@
 }
 
 .lesion-resize-handle {
-  fill: #ffffff;
-  stroke: #d29a00;
-  stroke-width: 2.2;
-  transition: r 0.1s ease;
+  fill: #d29a00;
+  stroke: none;
+  pointer-events: none;
 }
 
-.lesion-resize-handle:hover {
-  r: 5.5;
+/* Invisible hit-area circle for corners */
+.lesion-resize-handle-hitarea {
+  fill: transparent;
+  stroke: none;
+  cursor: pointer;
 }
+.lesion-resize-corner-nw { cursor: nw-resize; }
+.lesion-resize-corner-ne { cursor: ne-resize; }
+.lesion-resize-corner-se { cursor: se-resize; }
+.lesion-resize-corner-sw { cursor: sw-resize; }
 
-.lesion-resize-handle:nth-of-type(1) { cursor: nw-resize; } /* nw */
-.lesion-resize-handle:nth-of-type(2) { cursor: ne-resize; } /* ne */
-.lesion-resize-handle:nth-of-type(3) { cursor: se-resize; } /* se */
-.lesion-resize-handle:nth-of-type(4) { cursor: sw-resize; } /* sw */
+/* Invisible edge handles */
+.lesion-resize-edge-handle {
+  fill: transparent;
+  stroke: none;
+}
+.lesion-resize-edge-n { cursor: n-resize; }
+.lesion-resize-edge-s { cursor: s-resize; }
+.lesion-resize-edge-e { cursor: e-resize; }
+.lesion-resize-edge-w { cursor: w-resize; }
+

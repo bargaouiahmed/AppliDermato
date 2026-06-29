@@ -1,4 +1,4 @@
-﻿<div class="tab-panel exam-root">
+<div class="tab-panel exam-root">
   @if (isLoading) {
     <div class="state-card">{{ 'consultation.page.loading' | translate }}</div>
   } @else if (loadError) {
@@ -575,14 +575,35 @@
                       [attr.width]="bounds.width"
                       [attr.height]="bounds.height"
                     />
-                    @for (handle of ['nw', 'ne', 'se', 'sw']; track handle) {
+                    <!-- Edge handles (invisible grabbable rects for single-axis resize) -->
+                    @for (handle of lesionResizeEdgeHandles; track handle) {
+                      @if (lesionResizeEdgeHandleBounds(bounds, $any(handle)); as edgeBounds) {
+                        <rect
+                          [class]="'lesion-resize-edge-handle lesion-resize-edge-' + handle"
+                          [attr.x]="edgeBounds.x"
+                          [attr.y]="edgeBounds.y"
+                          [attr.width]="edgeBounds.width"
+                          [attr.height]="edgeBounds.height"
+                          (pointerdown)="startLesionResize($any(handle), $event)"
+                        />
+                      }
+                    }
+                    <!-- Corner handles (tiny visible dot + larger invisible hit-area) -->
+                    @for (handle of lesionResizeCornerHandles; track handle) {
                       @if (lesionResizeHandlePoint(bounds, $any(handle)); as handlePoint) {
+                        <circle
+                          [class]="'lesion-resize-handle-hitarea lesion-resize-corner-' + handle"
+                          [attr.cx]="handlePoint.x"
+                          [attr.cy]="handlePoint.y"
+                          r="6"
+                          (pointerdown)="startLesionResize($any(handle), $event)"
+                        />
                         <circle
                           class="lesion-resize-handle"
                           [attr.cx]="handlePoint.x"
                           [attr.cy]="handlePoint.y"
-                          r="4"
-                          (pointerdown)="startLesionResize($any(handle), $event)"
+                          r="1.5"
+                          pointer-events="none"
                         />
                       }
                     }

@@ -65,7 +65,7 @@ type DrawingPoint = {
 };
 
 type LesionShapeTemplateKey = 'round' | 'oval' | 'annular' | 'linear' | 'triangle' | 'square' | 'bulla' | 'crust' | 'erosion' | 'excoriation' | 'fissure' | 'lichenification' | 'macule' | 'nodule' | 'papule' | 'patch' | 'plaque' | 'pustule' | 'scale' | 'scar' | 'vesicle' | 'wheal';
-type LesionResizeHandle = 'nw' | 'ne' | 'se' | 'sw';
+type LesionResizeHandle = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'se' | 'sw';
 
 type LesionShapeTemplate = {
   key: LesionShapeTemplateKey;
@@ -336,6 +336,8 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   private drawingPanPointerId: number | null = null;
   private drawingPanLastClientPoint: DrawingPoint | null = null;
   private draggingLesionShapeTemplateKey: LesionShapeTemplateKey | null = null;
+  protected readonly lesionResizeCornerHandles: LesionResizeHandle[] = ['nw', 'ne', 'se', 'sw'];
+  protected readonly lesionResizeEdgeHandles: LesionResizeHandle[] = ['n', 'e', 's', 'w'];
   private lesionResizeState: LesionResizeState | null = null;
   private lesionDragState: LesionDragState | null = null;
   private pendingRealtimePayload: ConsultationExamPayload | null = null;
@@ -1643,9 +1645,38 @@ export class ConsultationExamenSectionComponent implements OnInit, OnChanges {
   }
 
   protected lesionResizeHandlePoint(bounds: DrawingBounds, handle: LesionResizeHandle): DrawingPoint {
-    const x = handle.includes('w') ? bounds.x : bounds.x + bounds.width;
-    const y = handle.includes('n') ? bounds.y : bounds.y + bounds.height;
+    const x = handle.includes('w')
+      ? bounds.x
+      : handle.includes('e')
+        ? bounds.x + bounds.width
+        : bounds.x + (bounds.width / 2);
+    const y = handle.includes('n')
+      ? bounds.y
+      : handle.includes('s')
+        ? bounds.y + bounds.height
+        : bounds.y + (bounds.height / 2);
     return { x, y };
+  }
+
+  protected lesionResizeEdgeHandleBounds(bounds: DrawingBounds, handle: LesionResizeHandle): DrawingBounds {
+    const thickness = 8;
+    const point = this.lesionResizeHandlePoint(bounds, handle);
+
+    if (handle === 'n' || handle === 's') {
+      return {
+        x: bounds.x,
+        y: point.y - (thickness / 2),
+        width: bounds.width,
+        height: thickness,
+      };
+    }
+
+    return {
+      x: point.x - (thickness / 2),
+      y: bounds.y,
+      width: thickness,
+      height: bounds.height,
+    };
   }
 
   protected startLesionResize(handle: LesionResizeHandle, event: PointerEvent): void {
