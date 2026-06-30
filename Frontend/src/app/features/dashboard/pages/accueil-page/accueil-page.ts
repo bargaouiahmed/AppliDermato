@@ -910,4 +910,13 @@ export class AccueilPage implements OnInit, OnDestroy {
       insuranceEstablishment: '',
     };
   }
+
+  navigateToPatient(patientId: string | number | null | undefined, event: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (patientId) {
+      this.router.navigate(['/patients', patientId]);
+    }
+  }
 }

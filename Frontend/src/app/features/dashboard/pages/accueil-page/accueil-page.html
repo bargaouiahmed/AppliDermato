@@ -65,7 +65,12 @@
                   <td class="expand-cell">
                     <i class="fa-solid" [class.fa-chevron-down]="expandedPatientId !== consultation.patientId" [class.fa-chevron-up]="expandedPatientId === consultation.patientId"></i>
                   </td>
-                  <td>{{ consultation.patientLastname }} {{ consultation.patientFirstname }}</td>
+                  <td>
+                    <span class="patient-name-link" (click)="navigateToPatient(consultation.patientId, $event)">
+                      {{ consultation.patientLastname }} {{ consultation.patientFirstname }}
+                    </span>
+                  </td>
+
                   <td>{{ consultation.patientConsultationCount }}</td>
                   <td>
                     @if (consultation.motifs.length > 0) {
@@ -308,8 +313,17 @@
             <tbody>
               @for (rdv of dailyRdvs; track getRdvTrackKey(rdv, $index); let idx = $index) {
                 <tr [class.ligne-impaire]="idx % 2 === 0" [class.ligne-paire]="idx % 2 !== 0">
-                  <td>{{ getRdvLastname(rdv) }}</td>
-                  <td>{{ getRdvFirstname(rdv) }}</td>
+                  <td>
+                    <span class="patient-name-link" (click)="navigateToPatient(rdv.patientId, $event)">
+                      {{ getRdvLastname(rdv) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="patient-name-link" (click)="navigateToPatient(rdv.patientId, $event)">
+                      {{ getRdvFirstname(rdv) }}
+                    </span>
+                  </td>
+
                   <td>
                     @if (rdv.motifs && rdv.motifs.length > 0) {
                       <div class="motif-wrap">

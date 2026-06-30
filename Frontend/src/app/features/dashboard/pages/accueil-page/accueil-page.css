@@ -5,6 +5,16 @@
   --inaya-row-active: rgba(147, 174, 136, 0.24);
 }
 
+.patient-name-link {
+  color: #93ae88;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.patient-name-link:hover {
+  color: #000;
+}
+
 .bg-color {
   background-color: #FFFFF0;
 }
