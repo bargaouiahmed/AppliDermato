@@ -222,7 +222,7 @@
   margin: 0 0 0.8rem;
   color: #175042;
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: bold !important; 
 }
 
 .motif-select {
@@ -455,10 +455,12 @@
 }
 
 .actions-card {
-  display: grid;
-  align-content: start;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 1rem;
+  text-align: center;
 }
 
 .duration {
@@ -545,7 +547,7 @@
   background: #fff;
   color: #175042;
   font-family: var(--app-font-family);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0;

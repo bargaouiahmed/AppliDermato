@@ -1,4 +1,4 @@
-/** French translations (default) */
+﻿/** French translations (default) */
 export const fr: Record<string, string> = {
   // Login
   'login.title': 'Connexion',
@@ -366,7 +366,7 @@ export const fr: Record<string, string> = {
   'accueil.daily.controls.pickDate': 'Sélectionner une date',
   'accueil.daily.controls.today': 'Aujourd\'hui',
   'accueil.daily.loading': 'Chargement des consultations...',
-  'accueil.daily.empty': 'La liste est actuellement vide pour cette date.',
+  'accueil.daily.empty': 'La liste est actuellement vide. Aucune donnée n\'est disponible pour le moment.',
   'accueil.daily.loadError': 'Impossible de charger les consultations.',
   'accueil.daily.columns.patient': 'Patient',
   'accueil.daily.columns.consultationNumber': 'Consultation',

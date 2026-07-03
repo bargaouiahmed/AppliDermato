@@ -452,12 +452,23 @@ export class AccueilPage implements OnInit, OnDestroy {
     const lang = this.i18n.lang();
     const locale = lang === 'fr' ? 'fr-FR' : lang === 'ar' ? 'ar-TN' : 'en-US';
     const date = value instanceof Date ? value : new Date(value);
-    return new Intl.DateTimeFormat(locale, {
+    let result =  Intl.DateTimeFormat(locale, {
       weekday: 'long',
       day: '2-digit',
       month: 'long',
       year: 'numeric',
     }).format(date);
+
+    if(lang=="fr" || lang=="en"){
+      result = result.split(" ").map((word, index) => {
+        if (index === 0 || index === 2) {
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        }
+        return word;
+      }).join(" ");
+
+    }
+    return result;
   }
 
   protected canDeleteConsultation(consultation: DailyConsultation): boolean {

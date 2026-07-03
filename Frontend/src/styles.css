@@ -7,7 +7,7 @@
 /* You can add global styles to this file, and also import other style files */
 
 :root {
-  --app-font-family: "Segoe UI", Roboto, sans-serif;
+  --app-font-family: Roboto, sans-serif;
   --bg-main: #fffff0;
   --text-primary: #121822;
   --color-sage: #93ae88;
@@ -97,6 +97,10 @@ label {
   color: #93ae88 !important;
   font-weight: 600 !important;
   border: none !important;
+    font-size: 1rem !important; 
+      font-family: Roboto, sans-serif !important;
+
+
 }
 
 .nav-link.active {
@@ -104,6 +108,8 @@ label {
   font-weight: 700 !important;
   background-color: transparent !important;
   border-color: transparent !important;
+    font-family: Roboto, sans-serif !important;
+
 }
 
 .nav-link:hover {
