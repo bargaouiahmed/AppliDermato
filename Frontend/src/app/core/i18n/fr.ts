@@ -367,6 +367,7 @@ export const fr: Record<string, string> = {
   'accueil.daily.controls.today': 'Aujourd\'hui',
   'accueil.daily.loading': 'Chargement des consultations...',
   'accueil.daily.empty': 'La liste est actuellement vide. Aucune donnée n\'est disponible pour le moment.',
+  'accueil.daily.appointment.empty':'Aucun rendez-vous',
   'accueil.daily.loadError': 'Impossible de charger les consultations.',
   'accueil.daily.columns.patient': 'Patient',
   'accueil.daily.columns.consultationNumber': 'Consultation',

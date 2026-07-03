@@ -368,6 +368,7 @@ export const en: Record<string, string> = {
   'accueil.daily.controls.today': 'Today',
   'accueil.daily.loading': 'Loading consultations...',
   'accueil.daily.empty': 'The list is currently empty. No data is available at the moment.',
+  'accueil.daily.appointment.empty': 'No appointments',
   'accueil.daily.loadError': 'Unable to load consultations.',
   'accueil.daily.columns.patient': 'Patient',
   'accueil.daily.columns.consultationNumber': 'Consultation #',

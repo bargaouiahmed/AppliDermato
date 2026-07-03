@@ -360,6 +360,7 @@ export const ar: Record<string, string> = {
   'accueil.daily.controls.today': 'اليوم',
   'accueil.daily.loading': 'جارٍ تحميل الاستشارات...',
   'accueil.daily.empty': 'القائمة فارغة حاليا. لا توجد بيانات متاحة في الوقت الحالي.',
+  'accueil.daily.appointment.empty': 'لا توجد مواعيد',
   'accueil.daily.loadError': 'تعذر تحميل الاستشارات.',
   'accueil.daily.columns.patient': 'المريض',
   'accueil.daily.columns.consultationNumber': 'رقم الاستشارة',
